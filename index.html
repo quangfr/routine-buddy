@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#2563eb" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
 <title>Routine Buddy · Prototype</title>
 <style>
 :root{
@@ -38,6 +41,14 @@ header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.92);backdrop
 .icon-btn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:8px 12px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s ease}
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
 .icon-btn:active{transform:translateY(1px)}
+.icon-btn.icon-only{width:44px;height:44px;justify-content:center;padding:0;font-size:20px}
+.view-toggle{display:inline-flex;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--panel)}
+.toggle-btn{padding:8px 14px;border:none;background:transparent;font:inherit;color:var(--muted);cursor:pointer;transition:all .15s ease}
+.toggle-btn.active{background:var(--accent);color:#fff}
+.toggle-btn:not(.active):hover{color:var(--accent)}
+.history-controls{position:sticky;top:60px;z-index:3;padding:8px 16px;background:rgba(244,247,251,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.history-controls .history-nav{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.history-week{flex:1;text-align:center;font-weight:600;color:var(--muted)}
 
 main{flex:1;display:grid;grid-template-rows:auto 1fr;gap:12px;padding:12px}
 main>section{max-width:960px;width:100%;margin:0 auto}
@@ -46,25 +57,32 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .week-label{font-weight:600;font-size:18px}
 .status-pills{display:flex;gap:8px;flex-wrap:wrap}
 .pill{font-size:14px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--off);display:flex;gap:6px;align-items:center;font-weight:500}
-.week-cells{display:flex;gap:6px;flex-wrap:wrap}
-.week-cell{width:44px;height:44px;border-radius:12px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:600;gap:2px;cursor:default}
-.week-cell .dot{font-size:18px}
+.week-cell{width:36px;height:36px;border-radius:12px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;gap:2px;cursor:default}
 .week-cell.status-green{background:rgba(22,163,74,.12);color:#047857;border-color:rgba(22,163,74,.25)}
 .week-cell.status-yellow{background:rgba(234,179,8,.18);color:#92400e;border-color:rgba(234,179,8,.28)}
 .week-cell.status-red{background:rgba(220,38,38,.14);color:#b91c1c;border-color:rgba(220,38,38,.3)}
 .week-cell.status-future{background:var(--future);color:#64748b;border:1px dashed rgba(148,163,184,.6)}
 .week-cell.status-off{background:var(--off);color:#94a3b8;border:1px dashed rgba(148,163,184,.35)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:960px;margin:0 auto;width:100%;align-content:start}
+.history-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:960px;margin:0 auto;width:100%;align-content:start}
+.section-title{margin:16px 0 12px;font-size:18px;font-weight:700}
+.grid>*,.history-grid>*{min-height:170px}
+@media (max-width:900px){
+  .grid,.history-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  .grid,.history-grid{grid-template-columns:minmax(0,1fr)}
+}
 .card{background:var(--panel);border:2px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px;min-height:150px;box-shadow:0 12px 24px rgba(15,23,42,.06);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
 .card:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(15,23,42,.08)}
 .card-head{display:flex;align-items:center;gap:10px}
-.card-head .dot{width:12px;height:12px;border-radius:50%}
+.card-head .cat-emoji{font-size:22px}
 .card h3{margin:0;font-size:18px;font-weight:700}
 .status{margin-left:auto;border-radius:10px;padding:4px 10px;font-size:13px;border:1px solid var(--border);background:var(--off);font-weight:600}
 .count{font-size:14px;color:var(--muted)}
-.cell-row{display:flex;gap:6px}
-.cell-row .week-cell{flex:1;min-width:0;cursor:default}
+.cell-row{display:flex;gap:4px}
+.cell-row .week-cell{flex:1;min-width:0;cursor:default;height:34px}
 
 .view{display:none}
 .view.active{display:block}
@@ -83,17 +101,14 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .task-actions button{padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--off);cursor:pointer}
 .week-grid{display:flex;gap:6px;flex-wrap:wrap}
 .week-cell button{all:unset}
-.task-week{display:flex;gap:6px;flex-wrap:wrap}
-.task-week .week-cell{width:42px;height:46px}
+.task-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.task-week .week-cell{width:auto;height:38px}
 .task-week .week-cell.clickable{cursor:pointer}
 .task-week .week-cell.clickable:focus-visible{outline:2px solid var(--accent)}
 .task-week .week-cell.disabled{opacity:.45;cursor:not-allowed}
 
-.history-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.history-head h2{margin:0;font-size:20px}
-.history-nav{display:flex;gap:8px;margin-left:auto}
+.history-nav{display:flex;gap:12px}
 .history-nav button{padding:8px 12px;border-radius:12px;border:1px solid var(--border);background:var(--panel);cursor:pointer}
-.history-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 
 /* Dialog */
 dialog{border:none;border-radius:18px;padding:0;background:var(--panel);color:var(--text);width:min(92vw,460px);box-shadow:0 28px 60px rgba(15,23,42,.24)}
@@ -115,16 +130,12 @@ dialog{border:none;border-radius:18px;padding:0;background:var(--panel);color:va
 .weekday-picker label{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font-size:14px}
 .weekday-picker input{accent-color:var(--accent)}
 
-footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-top:1px solid var(--border)}
-.nav{display:flex;gap:10px;padding:10px;max-width:960px;margin:0 auto;width:100%}
-.nav button{flex:1;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text);padding:12px;font-weight:600;cursor:pointer}
-.nav button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-
 @media (max-width:520px){
-  .week-cell{width:42px;height:42px}
+  .week-cell{width:34px;height:34px}
   .summary{padding:14px}
   .card{padding:14px}
-  .task-week .week-cell{width:40px;height:44px}
+  .task-week .week-cell{height:34px}
+  .history-controls{top:56px}
 }
 </style>
 </head>
@@ -134,9 +145,21 @@ footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter
     <div class="head-wrap">
       <div class="h-title"><span aria-hidden="true">👥</span>Routine Buddy</div>
       <div class="h-grow"></div>
-      <button class="icon-btn" id="quickAdd">+ New activity</button>
+      <div class="view-toggle" role="group" aria-label="Change view">
+        <button type="button" class="toggle-btn active" id="toggleNow">Now</button>
+        <button type="button" class="toggle-btn" id="toggleHistory">History</button>
+      </div>
+      <button class="icon-btn icon-only" id="quickAdd" aria-label="Add activity">➕</button>
     </div>
   </header>
+
+  <div class="history-controls" id="historyControls" hidden>
+    <div class="history-nav">
+      <button class="icon-btn" id="historyPrev" aria-label="Previous week">←</button>
+      <div class="history-week" id="historyWeekLabel"></div>
+      <button class="icon-btn" id="historyNext" aria-label="Next week">→</button>
+    </div>
+  </div>
 
   <main>
     <section class="summary" id="summary">
@@ -148,8 +171,7 @@ footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter
           <span class="pill">🟥 <span id="pillRed">0</span></span>
         </div>
       </div>
-      <div class="week-cells" id="summaryCells"></div>
-      <p class="count" style="margin:0" id="summaryLegend">A green week means every due task was completed.</p>
+      <p class="count" style="margin:0" id="summaryLegend">Weekly indicators highlight how many routines are on track.</p>
     </section>
 
     <section id="home" class="view active">
@@ -157,14 +179,7 @@ footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter
     </section>
 
     <section id="history" class="view">
-      <div class="history-head">
-        <h2>Weekly history</h2>
-        <div class="history-nav">
-          <button class="icon-btn" id="historyPrev">← Previous week</button>
-          <button class="icon-btn" id="historyNext">Next week →</button>
-        </div>
-      </div>
-      <div class="count" id="historyLabel"></div>
+      <h2 class="section-title">Weekly history</h2>
       <div class="history-grid" id="historyGrid"></div>
     </section>
 
@@ -173,18 +188,11 @@ footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter
         <button class="back" id="backBtn">← Home</button>
         <h2 id="catTitle"></h2>
         <div class="cat-week" id="catWeek"></div>
-        <button class="icon-btn add" id="addBtn">+ Add</button>
+        <button class="icon-btn icon-only add" id="addBtn" aria-label="Add activity">➕</button>
       </div>
       <div id="taskList"></div>
     </section>
   </main>
-
-  <footer>
-    <div class="nav">
-      <button id="navHome" class="active">🏠 Home</button>
-      <button id="navHistory">📚 History</button>
-    </div>
-  </footer>
 </div>
 
 <dialog id="taskDialog">
@@ -219,24 +227,12 @@ footer{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter
         <select id="f_recur">
           <option value="daily">Daily</option>
           <option value="specific">Specific day(s)</option>
-          <option value="weekly">Weekly</option>
+          <option value="weekly">1+ times / week</option>
         </select>
       </div>
       <div class="field" id="specificWrap" style="display:none">
         <label>Days of the week</label>
         <div class="weekday-picker" id="specificDays"></div>
-      </div>
-      <div class="field" id="weeklyWrap" style="display:none">
-        <label for="f_weekday">Preferred day</label>
-        <select id="f_weekday">
-          <option value="1">Monday</option>
-          <option value="2">Tuesday</option>
-          <option value="3">Wednesday</option>
-          <option value="4">Thursday</option>
-          <option value="5">Friday</option>
-          <option value="6">Saturday</option>
-          <option value="0">Sunday</option>
-        </select>
       </div>
     </div>
     <div class="modal-actions">
@@ -302,7 +298,167 @@ const EMOJIS=[
   {char:'🧺', tags:['laundry','chores']},
   {char:'🐟', tags:['fish','meal']},
   {char:'🫘', tags:['beans','meal']},
-  {char:'🕯', tags:['calm']}
+  {char:'🕯', tags:['calm']},
+  {char:'🍊', tags:['orange','fruit','vitamin']},
+  {char:'🍋', tags:['lemon','fruit','citrus']},
+  {char:'🍌', tags:['banana','fruit','potassium']},
+  {char:'🍉', tags:['watermelon','fruit','refresh']},
+  {char:'🍇', tags:['grapes','fruit','snack']},
+  {char:'🍓', tags:['strawberry','fruit','dessert']},
+  {char:'🫐', tags:['blueberry','fruit','antioxidant']},
+  {char:'🍒', tags:['cherry','fruit','dessert']},
+  {char:'🍑', tags:['peach','fruit','snack']},
+  {char:'🥝', tags:['kiwi','fruit','vitamin']},
+  {char:'🍍', tags:['pineapple','fruit','tropical']},
+  {char:'🥭', tags:['mango','fruit','tropical']},
+  {char:'🥥', tags:['coconut','fruit','hydration']},
+  {char:'🥑', tags:['avocado','fruit','healthy']},
+  {char:'🥦', tags:['broccoli','veggie','greens']},
+  {char:'🥕', tags:['carrot','veggie','beta']},
+  {char:'🧅', tags:['onion','veggie','cooking']},
+  {char:'🥔', tags:['potato','veggie','starch']},
+  {char:'🌽', tags:['corn','veggie','grains']},
+  {char:'🍠', tags:['yam','veggie','roast']},
+  {char:'🥬', tags:['lettuce','veggie','salad']},
+  {char:'🍆', tags:['eggplant','veggie','grill']},
+  {char:'🍅', tags:['tomato','veggie','garden']},
+  {char:'🧄', tags:['garlic','veggie','seasoning']},
+  {char:'🫛', tags:['peas','veggie','fiber']},
+  {char:'🥜', tags:['peanut','snack','protein']},
+  {char:'🍞', tags:['bread','carb','bakery']},
+  {char:'🥐', tags:['croissant','bakery','breakfast']},
+  {char:'🥖', tags:['baguette','bread','bakery']},
+  {char:'🫓', tags:['flatbread','bread','wrap']},
+  {char:'🥨', tags:['pretzel','snack','bakery']},
+  {char:'🧀', tags:['cheese','dairy','protein']},
+  {char:'🥚', tags:['egg','protein','breakfast']},
+  {char:'🥞', tags:['pancake','breakfast','brunch']},
+  {char:'🧇', tags:['waffle','breakfast','brunch']},
+  {char:'🍗', tags:['drumstick','meal','protein']},
+  {char:'🍖', tags:['ribs','meal','bbq']},
+  {char:'🥩', tags:['steak','meal','protein']},
+  {char:'🥓', tags:['bacon','breakfast','protein']},
+  {char:'🍔', tags:['burger','meal','fastfood']},
+  {char:'🍟', tags:['fries','snack','fastfood']},
+  {char:'🌭', tags:['hotdog','meal','fastfood']},
+  {char:'🍕', tags:['pizza','meal','slice']},
+  {char:'🥪', tags:['sandwich','meal','lunch']},
+  {char:'🌮', tags:['taco','meal','fiesta']},
+  {char:'🌯', tags:['burrito','meal','wrap']},
+  {char:'🥙', tags:['gyro','meal','mediterranean']},
+  {char:'🧆', tags:['falafel','meal','veggie']},
+  {char:'🍝', tags:['pasta','meal','comfort']},
+  {char:'🍜', tags:['noodles','meal','broth']},
+  {char:'🍲', tags:['stew','meal','comfort']},
+  {char:'🍛', tags:['curry','meal','spicy']},
+  {char:'🍣', tags:['sushi','meal','fresh']},
+  {char:'🍤', tags:['shrimp','meal','seafood']},
+  {char:'🍱', tags:['bento','meal','lunch']},
+  {char:'🥡', tags:['takeout','meal','box']},
+  {char:'🍚', tags:['rice','staple','grain']},
+  {char:'🍙', tags:['riceball','snack','bento']},
+  {char:'🍘', tags:['cracker','snack','rice']},
+  {char:'🍥', tags:['naruto','soup','ramen']},
+  {char:'🥟', tags:['dumpling','meal','comfort']},
+  {char:'🧁', tags:['cupcake','dessert','treat']},
+  {char:'🍰', tags:['cake','dessert','celebration']},
+  {char:'🎂', tags:['birthday','cake','party']},
+  {char:'🍮', tags:['flan','dessert','custard']},
+  {char:'🍩', tags:['donut','dessert','snack']},
+  {char:'🍪', tags:['cookie','dessert','bake']},
+  {char:'🍫', tags:['chocolate','dessert','treat']},
+  {char:'🍬', tags:['candy','dessert','sweet']},
+  {char:'🍭', tags:['lollipop','dessert','sweet']},
+  {char:'🍯', tags:['honey','sweet','tea']},
+  {char:'🍼', tags:['babybottle','feeding','infant']},
+  {char:'🥤', tags:['soda','drink','refresh']},
+  {char:'🧋', tags:['bubbletea','drink','tapioca']},
+  {char:'🍹', tags:['cocktail','drink','party']},
+  {char:'🍸', tags:['martini','drink','evening']},
+  {char:'🍷', tags:['wine','drink','dinner']},
+  {char:'🍻', tags:['beer','drink','cheers']},
+  {char:'🥂', tags:['cheers','drink','celebrate']},
+  {char:'🍺', tags:['lager','drink','pub']},
+  {char:'🥃', tags:['whiskey','drink','nightcap']},
+  {char:'🍶', tags:['sake','drink','japanese']},
+  {char:'🍾', tags:['champagne','drink','celebration']},
+  {char:'🥢', tags:['chopsticks','utensil','eat']},
+  {char:'🍴', tags:['forkknife','utensil','dining']},
+  {char:'🥄', tags:['spoon','utensil','stir']},
+  {char:'🔪', tags:['knife','kitchen','prep']},
+  {char:'🧊', tags:['ice','chill','drink']},
+  {char:'🧃', tags:['juice','drink','box']},
+  {char:'🫗', tags:['pour','drink','kitchen']},
+  {char:'🍵', tags:['greentea','drink','calm']},
+  {char:'🧉', tags:['mate','drink','energy']},
+  {char:'🫕', tags:['fondue','meal','share']},
+  {char:'🍧', tags:['shaveice','dessert','cool']},
+  {char:'🍨', tags:['icecream','dessert','cold']},
+  {char:'🍦', tags:['softserve','dessert','treat']},
+  {char:'🍡', tags:['dango','dessert','sweet']},
+  {char:'🍢', tags:['oden','meal','winter']},
+  {char:'🍿', tags:['popcorn','snack','movie']},
+  {char:'🥫', tags:['canned','pantry','prep']},
+  {char:'🧂', tags:['salt','seasoning','kitchen']},
+  {char:'🧹', tags:['cleaning','broom','chores']},
+  {char:'🧽', tags:['cleaning','sponge','scrub']},
+  {char:'🧻', tags:['paper','restroom','supplies']},
+  {char:'🪠', tags:['plunger','bathroom','repair']},
+  {char:'🪣', tags:['bucket','cleaning','water']},
+  {char:'🧯', tags:['extinguisher','safety','home']},
+  {char:'🧷', tags:['pin','sewing','kit']},
+  {char:'🧖', tags:['sauna','relax','spa']},
+  {char:'🧖‍♂️', tags:['sauna','relax','steam']},
+  {char:'🧖‍♀️', tags:['sauna','relax','spa']},
+  {char:'💆', tags:['massage','relax','selfcare']},
+  {char:'💆‍♂️', tags:['massage','calm','selfcare']},
+  {char:'💆‍♀️', tags:['massage','pamper','relax']},
+  {char:'💇', tags:['haircut','style','salon']},
+  {char:'💇‍♂️', tags:['barber','hair','grooming']},
+  {char:'💇‍♀️', tags:['hair','salon','trim']},
+  {char:'💅', tags:['nails','beauty','selfcare']},
+  {char:'💄', tags:['makeup','lipstick','beauty']},
+  {char:'💈', tags:['barber','pole','shop']},
+  {char:'🗓️', tags:['calendar','plan','schedule']},
+  {char:'📆', tags:['calendar','monthly','plan']},
+  {char:'📅', tags:['calendar','daily','organize']},
+  {char:'🗒️', tags:['notepad','notes','plan']},
+  {char:'📋', tags:['clipboard','checklist','tasks']},
+  {char:'📌', tags:['pin','reminder','board']},
+  {char:'📎', tags:['paperclip','organize','desk']},
+  {char:'📐', tags:['draft','geometry','measure']},
+  {char:'📏', tags:['measure','length','craft']},
+  {char:'🧮', tags:['abacus','math','count']},
+  {char:'🖊️', tags:['pen','write','notes']},
+  {char:'✏️', tags:['pencil','sketch','notes']},
+  {char:'🖇️', tags:['paperclip','stack','desk']},
+  {char:'🖥️', tags:['computer','work','desk']},
+  {char:'⌨️', tags:['keyboard','type','office']},
+  {char:'🖱️', tags:['mouse','computer','navigate']},
+  {char:'🗃️', tags:['files','archive','storage']},
+  {char:'🗄️', tags:['cabinet','files','office']},
+  {char:'📊', tags:['chart','analytics','report']},
+  {char:'📈', tags:['chart','growth','stats']},
+  {char:'📉', tags:['chart','decline','analysis']},
+  {char:'🧾', tags:['receipt','budget','finance']},
+  {char:'🏋️', tags:['weights','gym','strength']},
+  {char:'🏋️‍♂️', tags:['weights','training','gym']},
+  {char:'🏋️‍♀️', tags:['weights','strength','fitness']},
+  {char:'🏊', tags:['swim','pool','cardio']},
+  {char:'🏊‍♂️', tags:['swim','exercise','pool']},
+  {char:'🏊‍♀️', tags:['swim','fitness','pool']},
+  {char:'🚴', tags:['cycle','outdoor','cardio']},
+  {char:'🚴‍♂️', tags:['cycling','fitness','ride']},
+  {char:'🚴‍♀️', tags:['cycling','fitness','ride']},
+  {char:'⛹️', tags:['dribble','sport','play']},
+  {char:'⛹️‍♂️', tags:['basketball','sport','play']},
+  {char:'⛹️‍♀️', tags:['fitness','basketball','sport']},
+  {char:'🤾', tags:['handball','sport','active']},
+  {char:'🤾‍♂️', tags:['sport','active','team']},
+  {char:'🤾‍♀️', tags:['sport','active','team']},
+  {char:'🏌️', tags:['golf','outdoor','focus']},
+  {char:'🏌️‍♂️', tags:['golf','practice','swing']},
+  {char:'🏌️‍♀️', tags:['golf','outdoor','sport']},
 ]
 
 let state = load() || seed()
@@ -311,12 +467,19 @@ state.ui.historyWeekStart = state.ui.historyWeekStart || currentWeekStart
 state.ui.currentView = state.ui.currentView || 'home'
 state.ui.currentCat = state.ui.currentCat || null
 state.ui.categoryWeekStart = state.ui.categoryWeekStart || currentWeekStart
+state.ui.categorySource = state.ui.categorySource || 'home'
 state.ui.editTaskId = null
+if(Array.isArray(state.tasks)){
+  for(const task of state.tasks){
+    if(task?.recur?.type==='weekly' && Object.prototype.hasOwnProperty.call(task.recur,'weekday')){
+      delete task.recur.weekday
+    }
+  }
+}
 save()
 
 const els={
   summaryWeekLabel: document.getElementById('summaryWeekLabel'),
-  summaryCells: document.getElementById('summaryCells'),
   pillGreen: document.getElementById('pillGreen'),
   pillYellow: document.getElementById('pillYellow'),
   pillRed: document.getElementById('pillRed'),
@@ -325,12 +488,13 @@ const els={
   home: document.getElementById('home'),
   history: document.getElementById('history'),
   category: document.getElementById('category'),
-  navHome: document.getElementById('navHome'),
-  navHistory: document.getElementById('navHistory'),
+  toggleNow: document.getElementById('toggleNow'),
+  toggleHistory: document.getElementById('toggleHistory'),
+  historyControls: document.getElementById('historyControls'),
+  historyWeekLabel: document.getElementById('historyWeekLabel'),
   quickAdd: document.getElementById('quickAdd'),
   historyPrev: document.getElementById('historyPrev'),
   historyNext: document.getElementById('historyNext'),
-  historyLabel: document.getElementById('historyLabel'),
   historyGrid: document.getElementById('historyGrid'),
   backBtn: document.getElementById('backBtn'),
   catTitle: document.getElementById('catTitle'),
@@ -347,8 +511,6 @@ const els={
   f_recur: document.getElementById('f_recur'),
   specificWrap: document.getElementById('specificWrap'),
   specificDays: document.getElementById('specificDays'),
-  weeklyWrap: document.getElementById('weeklyWrap'),
-  f_weekday: document.getElementById('f_weekday'),
   emojiSearch: document.getElementById('emojiSearch'),
   emojiResults: document.getElementById('emojiResults'),
   saveTask: document.getElementById('saveTask'),
@@ -358,12 +520,18 @@ const els={
 renderSummary()
 renderHome()
 renderHistory()
-if(state.ui.currentView==='category' && state.ui.currentCat){ openCategory(state.ui.currentCat, state.ui.categoryWeekStart) }
+if(state.ui.currentView==='category' && state.ui.currentCat){ openCategory(state.ui.currentCat, state.ui.categoryWeekStart, state.ui.categorySource) }
 updateView(state.ui.currentView)
 
-els.navHome.addEventListener('click', ()=>{ updateView('home') })
-els.navHistory.addEventListener('click', ()=>{ updateView('history') })
-els.backBtn.addEventListener('click', ()=>{ updateView('home'); state.ui.currentCat=null; save() })
+els.toggleNow.addEventListener('click', ()=>{ updateView('home') })
+els.toggleHistory.addEventListener('click', ()=>{ updateView('history') })
+els.backBtn.addEventListener('click', ()=>{
+  const target = state.ui.categorySource==='history' ? 'history' : 'home'
+  updateView(target)
+  state.ui.currentCat=null
+  state.ui.categorySource='home'
+  save()
+})
 els.addBtn.addEventListener('click', ()=> openTaskDialog('create'))
 els.quickAdd.addEventListener('click', ()=> openTaskDialog('create'))
 els.closeDialog.addEventListener('click', ()=> els.taskDialog.close())
@@ -381,11 +549,21 @@ onRecurChange()
 function updateView(view){
   state.ui.currentView=view
   save()
+  const fromHistory = view==='category' && state.ui.categorySource==='history'
+  const homeLike = view==='home' || (view==='category' && !fromHistory)
+  const historyActive = view==='history' || fromHistory
   els.home.classList.toggle('active', view==='home')
   els.history.classList.toggle('active', view==='history')
   els.category.classList.toggle('active', view==='category')
-  els.navHome.classList.toggle('active', view==='home')
-  els.navHistory.classList.toggle('active', view==='history')
+  if(els.toggleNow){
+    els.toggleNow.classList.toggle('active', homeLike)
+    els.toggleNow.setAttribute('aria-pressed', homeLike ? 'true' : 'false')
+  }
+  if(els.toggleHistory){
+    els.toggleHistory.classList.toggle('active', historyActive)
+    els.toggleHistory.setAttribute('aria-pressed', historyActive ? 'true' : 'false')
+  }
+  if(els.historyControls){ els.historyControls.hidden = view!=='history' }
   if(els.quickAdd){ els.quickAdd.style.display = view==='home' ? 'inline-flex' : 'none' }
   if(view==='home'){ renderSummary(); renderHome() }
   if(view==='history'){ renderHistory() }
@@ -426,7 +604,7 @@ function renderSummary(){
   const week = currentWeekStart
   const days = weekDays(week)
   const limit = limitDateForWeek(week)
-  els.summaryWeekLabel.textContent = `Week ${formatWeekRange(week)}`
+  els.summaryWeekLabel.textContent = `Current week · ${formatWeekRange(week)}`
   const counts={green:0,yellow:0,red:0}
   for(const task of state.tasks){
     const status = taskWeeklyStatus(task, days, limit)
@@ -435,14 +613,6 @@ function renderSummary(){
   els.pillGreen.textContent=counts.green
   els.pillYellow.textContent=counts.yellow
   els.pillRed.textContent=counts.red
-  els.summaryCells.innerHTML=''
-  const statuses = days.map((day,i)=> dayStatus(day, state.tasks, limit))
-  statuses.forEach((status,idx)=>{
-    const cell=document.createElement('div')
-    cell.className='week-cell status-'+status
-    cell.innerHTML=`<span>${WEEKDAY_SHORT[idx]}</span>`
-    els.summaryCells.appendChild(cell)
-  })
 }
 
 function renderHome(){
@@ -459,22 +629,37 @@ function renderHome(){
     card.dataset.cat=c.id
     card.innerHTML=`
       <div class="card-head">
-        <div class="dot" style="background:${c.color}"></div>
+        <span class="cat-emoji" aria-hidden="true">${escapeHtml(categoryEmoji(c.id))}</span>
         <h3>${escapeHtml(categoryLabel(c.id))}</h3>
         <span class="status">${statusLabel(statusFromDays(statuses))}</span>
       </div>
       <div class="count">${countsForCategory(tasks, days, limit)}</div>
       <div class="cell-row">${statuses.map((s,idx)=>`<div class="week-cell status-${s}"><span>${WEEKDAY_SHORT[idx]}</span></div>`).join('')}</div>
     `
-    card.addEventListener('click', ()=> openCategory(c.id, week))
+    card.addEventListener('click', ()=> openCategory(c.id, week, 'home'))
     els.catGrid.appendChild(card)
   }
 }
 
 function countsForCategory(tasks, days, limit){
   const relevantDays = days.filter(day=> !isFuture(day, limit))
-  const totalOcc=relevantDays.reduce((acc,day)=> acc + tasks.filter(t=>isDue(t,day)).length,0)
-  const doneOcc=relevantDays.reduce((acc,day)=> acc + tasks.filter(t=>isDue(t,day) && isDone(t,day)).length,0)
+  let totalOcc=0
+  let doneOcc=0
+  for(const task of tasks){
+    if(task.recur.type==='weekly'){
+      if(relevantDays.length===0) continue
+      totalOcc+=1
+      if(relevantDays.some(day=> isDone(task, day))){ doneOcc+=1 }
+    }else{
+      for(const day of relevantDays){
+        if(isDue(task, day)){
+          totalOcc+=1
+          if(isDone(task, day)){ doneOcc+=1 }
+        }
+      }
+    }
+  }
+  if(totalOcc===0) return 'No tasks due'
   return `${doneOcc}/${totalOcc} completions`
 }
 
@@ -482,7 +667,7 @@ function renderHistory(){
   const week = state.ui.historyWeekStart
   const days = weekDays(week)
   const limit = limitDateForWeek(week)
-  els.historyLabel.textContent = `Week ${formatWeekRange(week)}`
+  if(els.historyWeekLabel){ els.historyWeekLabel.textContent = `Week ${formatWeekRange(week)}` }
   els.historyGrid.innerHTML=''
   for(const c of CATS()){
     const tasks = state.tasks.filter(t=>t.cat===c.id)
@@ -492,14 +677,14 @@ function renderHistory(){
     card.className='card'
     card.innerHTML=`
       <div class="card-head">
-        <div class="dot" style="background:${c.color}"></div>
+        <span class="cat-emoji" aria-hidden="true">${escapeHtml(categoryEmoji(c.id))}</span>
         <h3>${escapeHtml(categoryLabel(c.id))}</h3>
         <span class="status">${statusLabel(statusFromDays(statuses))}</span>
       </div>
       <div class="count">${countsForCategory(tasks, days, limit)}</div>
       <div class="cell-row">${statuses.map((s,idx)=>`<div class="week-cell status-${s}"><span>${WEEKDAY_SHORT[idx]}</span></div>`).join('')}</div>
     `
-    card.addEventListener('click', ()=> openCategory(c.id, week))
+    card.addEventListener('click', ()=> openCategory(c.id, week, 'history'))
     els.historyGrid.appendChild(card)
   }
   const canGoNext = compareDate(week, currentWeekStart)<0
@@ -511,7 +696,7 @@ function renderCategory(cat, week){
   state.ui.categoryWeekStart = week
   save()
   const tasks = state.tasks.filter(t=>t.cat===cat)
-  els.catTitle.textContent = categoryLabel(cat)
+  els.catTitle.textContent = `${categoryEmoji(cat)} ${categoryLabel(cat)}`
   els.catWeek.textContent = formatWeekRange(week)
   const days = weekDays(week)
   const limit = limitDateForWeek(week)
@@ -533,7 +718,7 @@ function renderCategory(cat, week){
           <div class="badges">${badges.map(b=>`<span>${escapeHtml(b)}</span>`).join('')}</div>
         </div>
         <div class="task-actions">
-          <button type="button" data-act="edit">✏️ Edit</button>
+          <button type="button" data-act="edit" aria-label="Edit activity">✏️</button>
         </div>
       </div>
       <div class="task-week"></div>
@@ -580,7 +765,6 @@ function changeHistoryWeek(delta){
 function onRecurChange(){
   const v = els.f_recur.value
   els.specificWrap.style.display = v==='specific' ? 'block' : 'none'
-  els.weeklyWrap.style.display = v==='weekly' ? 'block' : 'none'
 }
 
 function initSpecificDayPicker(){
@@ -620,9 +804,10 @@ function populateCategorySelect(selected){
   if(!els.f_cat.value && els.f_cat.options.length>0){ els.f_cat.value = els.f_cat.options[0].value }
 }
 
-function openCategory(cat, week){
+function openCategory(cat, week, source){
   state.ui.categoryWeekStart = week
   state.ui.currentCat = cat
+  state.ui.categorySource = source || state.ui.categorySource || 'home'
   save()
   updateView('category')
 }
@@ -646,7 +831,7 @@ function openTaskDialog(mode, task){
     els.f_importance.value = task.importance
     if(task.recur.type==='daily'){ els.f_recur.value='daily' }
     else if(task.recur.type==='specific'){ els.f_recur.value='specific' }
-    else { els.f_recur.value='weekly'; els.f_weekday.value = String(task.recur.weekday ?? 1) }
+    else { els.f_recur.value='weekly' }
     onRecurChange()
     const boxes=[...els.specificDays.querySelectorAll('input')]
     boxes.forEach(box=>{ box.checked = task.recur.type==='specific' ? task.recur.days.includes(+box.value) : false })
@@ -656,7 +841,6 @@ function openTaskDialog(mode, task){
     els.f_cat.value = selectedCat || ''
     els.f_importance.value='must'
     els.f_recur.value='daily'
-    els.f_weekday.value='1'
     onRecurChange()
     els.specificDays.querySelectorAll('input').forEach(input=> input.checked=false)
   }
@@ -679,7 +863,7 @@ function submitTask(e){
     if(days.length===0){ alert('Select at least one day'); return }
     recur = {type:'specific', days}
   }
-  if(freq==='weekly'){ recur = {type:'weekly', weekday:+els.f_weekday.value} }
+  if(freq==='weekly'){ recur = {type:'weekly'} }
   const nowWeek = todayISO()
   if(state.ui.editTaskId){
     const task = state.tasks.find(t=>t.id===state.ui.editTaskId)
@@ -710,6 +894,14 @@ function deleteCurrentTask(){
 }
 
 function taskWeeklyStatus(task, days, limit){
+  if(task.recur.type==='weekly' && task.recur.weekday==null){
+    const pastDays = days.filter(day=> !isFuture(day, limit))
+    if(pastDays.length===0) return null
+    if(pastDays.some(day=> isDone(task, day))) return 'green'
+    const hasFuture = days.some(day=> isFuture(day, limit))
+    if(hasFuture) return 'yellow'
+    return task.importance==='must' ? 'red' : 'yellow'
+  }
   const dueDays = days.filter(day=> !isFuture(day, limit) && isDue(task, day))
   if(dueDays.length===0) return null
   const missing = dueDays.filter(day=> !isDone(task, day))
@@ -723,14 +915,26 @@ function dayStatus(day, tasks, limit){
   if(due.length===0) return 'off'
   const missing = due.filter(t=>!isDone(t, day))
   if(missing.length===0) return 'green'
-  const hasMust = missing.some(t=>t.importance==='must')
+  const hasMust = missing.some(t=>{
+    if(t.importance!=='must') return false
+    if(t.recur.type==='weekly' && t.recur.weekday==null){
+      const weekEnd = addDays(weekStart(day),6)
+      if(compareDate(limit, weekEnd)<0) return false
+    }
+    return true
+  })
   return hasMust ? 'red' : 'yellow'
 }
 
 function dayStatusForTask(task, day, limit){
   if(isFuture(day, limit)) return 'future'
   if(!isDue(task, day)) return 'off'
-  return isDone(task, day) ? 'green' : (task.importance==='must' ? 'red':'yellow')
+  if(isDone(task, day)) return 'green'
+  if(task.recur.type==='weekly' && task.recur.weekday==null){
+    const weekEnd = addDays(weekStart(day),6)
+    if(compareDate(limit, weekEnd)<0) return 'yellow'
+  }
+  return task.importance==='must' ? 'red':'yellow'
 }
 
 function statusLabel(status){
@@ -754,7 +958,15 @@ function isDue(task, ymd){
   const d = new Date(ymd+'T00:00:00')
   const w = d.getDay()
   if(task.recur.type==='daily') return true
-  if(task.recur.type==='weekly') return w === (task.recur.weekday ?? 1)
+  if(task.recur.type==='weekly'){
+    if(task.recur.weekday!=null){ return w === task.recur.weekday }
+    const start = weekStart(ymd)
+    const span = weekDays(start)
+    const idx = span.indexOf(ymd)
+    if(idx<0) return false
+    const doneBefore = span.slice(0, idx).some(day=> isDone(task, day))
+    return !doneBefore
+  }
   if(task.recur.type==='specific') return task.recur.days.includes(w)
   if(task.recur.type==='everyX'){ // fallback legacy
     const anchor = new Date((task.recur.anchor||task.createdAt)+'T00:00:00')
@@ -778,7 +990,7 @@ function toggleDone(task, ymd){
 
 function recurLabel(r){
   if(r.type==='daily') return 'Daily'
-  if(r.type==='weekly') return 'Weekly'
+  if(r.type==='weekly') return '1+ times / week'
   if(r.type==='specific'){
     return 'Days: '+ r.days.map(d=> WEEKDAY_SHORT[(d+6)%7]).join(', ')
   }
@@ -796,6 +1008,17 @@ function categoryLabel(id){
     Leisure:'Leisure'
   }
   return map[id] || id
+}
+function categoryEmoji(id){
+  const map={
+    Fitness:'💪',
+    Nutrition:'🥗',
+    Rest:'😴',
+    Connection:'🤝',
+    Learning:'📘',
+    Leisure:'🎉'
+  }
+  return map[id] || '📌'
 }
 function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])) }
 
@@ -836,7 +1059,7 @@ function seed(){
   S.push(mk('Rest','Air out bedroom','🪟','nice',{type:'daily'}))
 
   S.push(mk('Connection','Message a loved one','💬','nice',{type:'specific',days:[2,4]}))
-  S.push(mk('Connection','Call family','📞','must',{type:'weekly',weekday:0}))
+  S.push(mk('Connection','Call family','📞','must',{type:'weekly'}))
   S.push(mk('Connection','Shared lunch','🍽️','nice',{type:'specific',days:[3]}))
   S.push(mk('Connection','Give a sincere compliment','🤝','nice',{type:'daily'}))
   S.push(mk('Connection','Social outing','🕺','must',{type:'specific',days:[5]}))
@@ -845,7 +1068,7 @@ function seed(){
   S.push(mk('Learning','Online course','💻','must',{type:'specific',days:[1,3]}))
   S.push(mk('Learning','Review vocabulary','🗂️','nice',{type:'specific',days:[2,5]}))
   S.push(mk('Learning','Practice language','🗣️','nice',{type:'specific',days:[4]}))
-  S.push(mk('Learning','Learning journal','📝','nice',{type:'weekly',weekday:6}))
+  S.push(mk('Learning','Learning journal','📝','nice',{type:'weekly'}))
 
   S.push(mk('Leisure','Drawing session','🎨','nice',{type:'specific',days:[6]}))
   S.push(mk('Leisure','Play music','🎸','nice',{type:'specific',days:[2,5]}))
@@ -854,6 +1077,12 @@ function seed(){
   S.push(mk('Leisure','Watch a show','📺','nice',{type:'daily'}))
 
   return {tasks:S, done:{}, ui:{currentView:'home', historyWeekStart:currentWeekStart, categoryWeekStart:currentWeekStart, currentCat:null}}
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(err=> console.error('SW registration failed', err))
+  })
 }
 </script>
 </body>
