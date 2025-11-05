@@ -159,9 +159,9 @@ main>section{max-width:960px;width:100%;margin:0 auto}
     <section class="summary" id="summary">
       <div class="summary-line">
         <span class="week-label" id="summaryWeekLabel"></span>
-        <span class="summary-metric">🟩 On track <span id="pillGreen">0</span></span>
-        <span class="summary-metric">🟨 Keep up <span id="pillYellow">0</span></span>
-        <span class="summary-metric">🟥 Catch up <span id="pillRed">0</span></span>
+        <span class="summary-metric status">🟩 <span id="pillGreen">0</span></span>
+        <span class="summary-metric status">🟨 <span id="pillYellow">0</span></span>
+        <span class="summary-metric status">🟥 <span id="pillRed">0</span></span>
       </div>
     </section>
 
@@ -209,8 +209,8 @@ main>section{max-width:960px;width:100%;margin:0 auto}
       <div class="field">
         <label for="f_importance">Priority</label>
         <select id="f_importance">
-          <option value="must">🟥 Must (must have)</option>
-          <option value="should">🟨 Should (nice to have)</option>
+          <option value="must">🟥 Must</option>
+          <option value="should">🟨 Should</option>
         </select>
       </div>
       <div class="field">
@@ -604,7 +604,7 @@ function renderSummary(){
   const week = currentWeekStart
   const days = weekDays(week)
   const limit = limitDateForWeek(week)
-  els.summaryWeekLabel.textContent = `Current week · ${formatWeekRange(week)}`
+  els.summaryWeekLabel.textContent = `Current · ${formatWeekRange(week)}`
   const counts={green:0,yellow:0,red:0}
   for(const task of state.tasks){
     const status = taskWeeklyStatus(task, days, limit)
@@ -719,7 +719,7 @@ function renderCategory(cat, week){
       <div class="task-header">
         <span class="em">${escapeHtml(task.emoji||'🎯')}</span>
         <div class="task-info">
-          <div class="title">${escapeHtml(task.title)}${freqMark?` <span class="freq" aria-hidden="true">${freqMark}</span>`:''}</div>
+          <div class="title">${escapeHtml(task.title)}${freqMark?` <span class="freq" aria-hidden="true">${freqMark}✖️</span>`:''}</div>
         </div>
         <div class="task-actions">
           <button type="button" data-act="edit" aria-label="Edit activity">✏️</button>
