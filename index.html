@@ -719,7 +719,7 @@ function renderCategory(cat, week){
       <div class="task-header">
         <span class="em">${escapeHtml(task.emoji||'🎯')}</span>
         <div class="task-info">
-          <div class="title">${escapeHtml(task.title)}${freqMark?` <span class="freq" aria-hidden="true">${freqMark}✖️</span>`:''}</div>
+          <div class="title">${escapeHtml(task.title)}${freqMark?` <span class="freq" aria-hidden="true">${freqMark}x</span>`:''}</div>
         </div>
         <div class="task-actions">
           <button type="button" data-act="edit" aria-label="Edit activity">✏️</button>
