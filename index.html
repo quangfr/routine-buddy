@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="icon" href="icon-192.png" sizes="192x192" />
-<title>Routine Buddy · Prototype</title>
+<title>Routine Buddy</title>
 <style>
 :root{
   color-scheme:light;
@@ -74,13 +74,13 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:8px;display:flex;flex-direction:column;gap:8px;min-height:0;box-shadow:0 6px 14px rgba(15,23,42,.05);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;border-top:4px solid var(--border)}
 .card:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(15,23,42,.08)}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.card-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .card-title .card-mood{font-size:18px;line-height:1}
 .card h3{margin:0;font-size:15px;font-weight:700}
 .catchup-line{display:flex;gap:6px;font-size:16px}
 .catchup-line[aria-hidden="true"]{display:none}
 .count{font-size:12px;color:var(--muted);font-weight:600;text-align:right}
-.circle-progress{--progress:0;position:relative;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--accent) 0deg calc(360deg * var(--progress)),rgba(148,163,184,.35) calc(360deg * var(--progress)) 360deg);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--text);transition:background .3s ease}
+.circle-progress{--progress:0;position:relative;width:36px;height:36px;border-radius:50%;background:conic-gradient(var(--accent) 0deg calc(360deg * var(--progress)),rgba(148,163,184,.35) calc(360deg * var(--progress)) 360deg);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--text);transition:background .3s ease}
 .circle-progress::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--panel)}
 .circle-progress>span{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;line-height:1}
 .circle-progress>span small{font-size:11px;color:var(--muted);font-weight:600}
