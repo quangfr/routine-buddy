@@ -159,6 +159,7 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
       <button class="icon-btn" id="weekPrev" aria-label="Previous week">←</button>
       <div class="week-label" id="weekLabel"></div>
       <button class="icon-btn" id="weekNext" aria-label="Next week">→</button>
+      <button class="icon-btn" id="weekNow" aria-label="Go to current week">Now</button>
     </div>
   </div>
 
@@ -606,6 +607,7 @@ const els={
   weekLabel: document.getElementById('weekLabel'),
   weekPrev: document.getElementById('weekPrev'),
   weekNext: document.getElementById('weekNext'),
+  weekNow: document.getElementById('weekNow'),
   configBtn: document.getElementById('configBtn'),
   backBtn: document.getElementById('backBtn'),
   catTitle: document.getElementById('catTitle'),
@@ -670,6 +672,7 @@ els.closeCategoryDialog.addEventListener('click', ()=> els.categoryDialog.close(
 els.f_recur.addEventListener('change', onRecurChange)
 els.weekPrev.addEventListener('click', ()=>{ changeSelectedWeek(-1) })
 els.weekNext.addEventListener('click', ()=>{ changeSelectedWeek(1) })
+if(els.weekNow){ els.weekNow.addEventListener('click', goToCurrentWeek) }
 els.emojiSearch.addEventListener('input', updateEmojiResults)
 els.saveTask.addEventListener('click', submitTask)
 els.deleteTask.addEventListener('click', deleteCurrentTask)
@@ -953,6 +956,9 @@ function updateWeekLabel(){
     const canGoNext = compareDate(week, currentWeekStart)<0
     els.weekNext.disabled = !canGoNext
   }
+  if(els.weekNow){
+    els.weekNow.disabled = week===currentWeekStart
+  }
 }
 
 function changeSelectedWeek(delta){
@@ -961,6 +967,14 @@ function changeSelectedWeek(delta){
   if(delta>0 && compareDate(newWeek, currentWeekStart)>0) return
   state.ui.selectedWeekStart = newWeek
   state.ui.categoryWeekStart = newWeek
+  save()
+  refreshAll()
+}
+
+function goToCurrentWeek(){
+  if(state.ui.selectedWeekStart===currentWeekStart) return
+  state.ui.selectedWeekStart = currentWeekStart
+  state.ui.categoryWeekStart = currentWeekStart
   save()
   refreshAll()
 }
