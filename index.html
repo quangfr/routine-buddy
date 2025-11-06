@@ -37,10 +37,12 @@ button{font:inherit;color:inherit}
 .app{min-height:100svh;display:flex;flex-direction:column;}
 header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
 .head-wrap{display:flex;align-items:center;gap:10px;padding:8px 14px;max-width:960px;margin:0 auto;width:100%}
-.h-title{font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px}
+.h-title{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.h-logo{width:22px;height:22px;border-radius:6px;box-shadow:0 2px 6px rgba(15,23,42,.15)}
 .h-grow{flex:1}
 .icon-btn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s ease;font-size:14px;line-height:1}
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.08)}
 .icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .icon-btn:active{transform:translateY(1px)}
 .icon-btn.icon-only{width:36px;height:36px;justify-content:center;padding:0;font-size:18px}
@@ -51,8 +53,10 @@ header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.92);backdrop
 main{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px}
 main>section{max-width:960px;width:100%;margin:0 auto}
 .summary{border:1px solid var(--border);border-radius:var(--radius);padding:12px;background:var(--panel);box-shadow:0 8px 18px rgba(15,23,42,.06)}
-.summary-line{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start}
-.summary-metric{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--off);min-width:96px}
+.summary-line{display:flex;flex-wrap:nowrap;gap:8px;justify-content:flex-start;overflow-x:auto;padding-bottom:2px}
+.summary-line::-webkit-scrollbar{height:6px}
+.summary-line::-webkit-scrollbar-thumb{background:rgba(148,163,184,.5);border-radius:999px}
+.summary-metric{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--off);min-width:96px;flex:0 0 auto}
 .summary-metric.status-green{border-color:rgba(22,163,74,.24);background:rgba(22,163,74,.08)}
 .summary-metric.status-yellow{border-color:rgba(234,179,8,.26);background:rgba(234,179,8,.12)}
 .summary-metric.status-red{border-color:rgba(220,38,38,.28);background:rgba(220,38,38,.12)}
@@ -65,17 +69,17 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .week-cell.status-future{background:var(--future);color:#64748b;border:1px dashed rgba(148,163,184,.6)}
 .week-cell.status-off{background:var(--off);color:#94a3b8;border:1px dashed rgba(148,163,184,.35)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;max-width:960px;margin:0 auto;width:100%;align-content:start}
-.card{--card-color:var(--accent);background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;flex-direction:column;gap:8px;min-height:0;box-shadow:0 6px 14px rgba(15,23,42,.05);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;border-top:4px solid var(--card-color)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;max-width:960px;margin:0 auto;width:100%;align-content:start}
+.card{--card-color:var(--accent);background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:0;box-shadow:0 6px 14px rgba(15,23,42,.05);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;border-top:4px solid var(--card-color)}
 .card:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(15,23,42,.08)}
-.card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px}
+.card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px}
 .card-title{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px}
 .card-title .cat-symbol{font-size:18px}
 .card h3{margin:0;font-size:15px;font-weight:700}
 .catchup{display:flex;gap:4px;font-size:18px;min-height:24px;min-width:24px}
 .count{font-size:12px;color:var(--muted);font-weight:600;text-align:right}
-.cell-row{display:flex;gap:4px}
-.cell-row .week-cell{flex:1;min-width:0;cursor:default;height:30px;font-size:10px}
+.cell-row{display:flex;gap:3px}
+.cell-row .week-cell{flex:1;min-width:0;cursor:default;height:28px;font-size:10px}
 
 .view{display:none}
 .view.active{display:block}
@@ -107,6 +111,7 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .edit-cat{margin-left:0}
 
 dialog{border:1px solid #cbd5e1;border-radius:18px;padding:0;background:var(--panel);color:var(--text);width:min(440px,calc(100vw - 32px));max-width:440px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+dialog:not([open]){display:none}
 dialog::backdrop{background:rgba(15,23,42,.45)}
 
 /* Dialog */
@@ -128,11 +133,19 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
 .weekday-picker label{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font-size:13px}
 .weekday-picker input{accent-color:var(--accent)}
 
+.config-panel{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);padding:16px;box-shadow:0 10px 22px rgba(15,23,42,.06);display:grid;gap:16px;max-width:520px;margin:0 auto}
+.config-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.config-head h2{margin:0;font-size:18px}
+.config-actions{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.config-actions .icon-btn{width:100%;justify-content:center;padding:10px}
+.config-note{color:var(--muted);font-size:13px}
+
 @media (max-width:520px){
   .summary{padding:10px}
-  .summary-line{gap:8px}
-  .summary-metric{flex:1;min-width:120px}
-  .card{padding:10px}
+  .summary-line{gap:6px}
+  .summary-metric{min-width:110px;flex:0 0 auto}
+  .grid{gap:6px}
+  .card{padding:8px}
   .task-week .week-cell{height:34px}
   .week-controls{top:44px}
 }
@@ -142,10 +155,9 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
 <div class="app" id="app">
   <header>
     <div class="head-wrap">
-      <div class="h-title"><span aria-hidden="true">👥</span>Routine Buddy</div>
+      <div class="h-title"><img src="icon-192.png" alt="" class="h-logo" />Routine Buddy</div>
       <div class="h-grow"></div>
-      <button type="button" class="icon-btn" id="newCategory" aria-label="Add category">New category</button>
-      <button class="icon-btn icon-only" id="quickAdd" aria-label="Add activity">➕</button>
+      <button class="icon-btn icon-only" id="configBtn" aria-label="Open configuration">⚙️</button>
     </div>
   </header>
 
@@ -188,6 +200,22 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
         <button class="icon-btn icon-only add" id="addBtn" aria-label="Add activity">➕</button>
       </div>
       <div id="taskList"></div>
+    </section>
+
+    <section id="config" class="view">
+      <div class="config-panel">
+        <div class="config-head">
+          <h2>Configuration</h2>
+        </div>
+        <div class="config-actions">
+          <button class="icon-btn" id="configAddCategory">Add category</button>
+          <button class="icon-btn" id="configAddActivity">Add activity</button>
+          <button class="icon-btn" id="configImport">Import backup (replace)</button>
+          <button class="icon-btn" id="configExport">Export backup</button>
+        </div>
+        <p class="config-note">Importing a backup will replace your current routines and progress.</p>
+      </div>
+      <input type="file" id="configImportInput" accept="application/json" hidden />
     </section>
   </main>
 </div>
@@ -495,54 +523,89 @@ const DEFAULT_CATEGORIES=[
   {id:'Leisure', name:'Leisure', emoji:'🎉', color:'#f472b6'},
 ]
 
-let state = load() || seed()
-if(!state.ui){ state.ui={} }
-state.ui.selectedWeekStart = state.ui.selectedWeekStart || state.ui.historyWeekStart || currentWeekStart
-state.ui.currentView = state.ui.currentView === 'category' ? 'category' : 'home'
-state.ui.currentCat = state.ui.currentCat || null
-state.ui.categoryWeekStart = state.ui.selectedWeekStart
-state.ui.editTaskId = null
-state.ui.editCategoryId = null
-delete state.ui.historyWeekStart
-delete state.ui.categorySource
-
-if(!Array.isArray(state.categories) || state.categories.length===0){
-  state.categories = DEFAULT_CATEGORIES.map(c=>({...c}))
-}else{
-  const defaults = Object.fromEntries(DEFAULT_CATEGORIES.map(c=>[c.id,c]))
-  state.categories = state.categories.map(cat=>{
-    const base = defaults[cat.id] || {}
-    const id = cat.id || ('cat-'+uid())
-    return {
-      id,
-      name:cat.name || cat.label || base.name || id,
-      emoji:cat.emoji || base.emoji || '📌',
-      color:cat.color || base.color || '#2563eb',
+function cloneDoneMap(source){
+  const out={}
+  if(source && typeof source==='object'){
+    for(const [day, entries] of Object.entries(source)){
+      if(entries && typeof entries==='object'){
+        out[day]={...entries}
+      }
     }
+  }
+  return out
+}
+
+function normalizeState(raw){
+  const base = raw && typeof raw==='object' ? raw : {}
+  const allowedViews=new Set(['home','category','config'])
+  const next={
+    tasks:Array.isArray(base.tasks) ? base.tasks.map(task=>({...task})) : [],
+    done:cloneDoneMap(base.done),
+    categories:Array.isArray(base.categories) ? base.categories.map(cat=>({...cat})) : [],
+    ui: base.ui && typeof base.ui==='object' ? {...base.ui} : {},
+  }
+  next.ui.selectedWeekStart = next.ui.selectedWeekStart || next.ui.historyWeekStart || currentWeekStart
+  next.ui.currentView = allowedViews.has(next.ui.currentView) ? next.ui.currentView : 'home'
+  next.ui.currentCat = next.ui.currentCat || null
+  next.ui.categoryWeekStart = next.ui.categoryWeekStart || next.ui.selectedWeekStart
+  next.ui.editTaskId = null
+  next.ui.editCategoryId = null
+  delete next.ui.historyWeekStart
+  delete next.ui.categorySource
+
+  if(next.categories.length===0){
+    next.categories = DEFAULT_CATEGORIES.map(c=>({...c}))
+  }else{
+    const defaults = Object.fromEntries(DEFAULT_CATEGORIES.map(c=>[c.id,c]))
+    next.categories = next.categories.map(cat=>{
+      const baseCat = defaults[cat.id] || {}
+      const id = cat.id || ('cat-'+uid())
+      return {
+        id,
+        name:cat.name || cat.label || baseCat.name || id,
+        emoji:cat.emoji || baseCat.emoji || '📌',
+        color:cat.color || baseCat.color || '#2563eb',
+      }
+    })
+    for(const def of DEFAULT_CATEGORIES){
+      if(!next.categories.some(c=>c.id===def.id)){
+        next.categories.push({...def})
+      }
+    }
+  }
+
+  next.tasks = next.tasks.map(task=>{
+    const copy={...task}
+    copy.id = copy.id || uid()
+    if(copy.importance==='nice'){ copy.importance='should' }
+    if(copy.importance!=='must' && copy.importance!=='should'){ copy.importance='should' }
+    if(!copy.recur || typeof copy.recur!=='object'){ copy.recur={type:'daily'} }
+    if(copy?.recur?.type==='weekly' && Object.prototype.hasOwnProperty.call(copy.recur,'weekday')){
+      delete copy.recur.weekday
+    }
+    if(copy?.recur?.type==='weekly'){
+      if(typeof copy.recur.times!=='number' || copy.recur.times<1){ copy.recur.times=1 }
+      copy.recur.times = Math.min(6, Math.max(1, Math.round(copy.recur.times)))
+    }
+    if(copy?.recur?.type==='specific' && Array.isArray(copy.recur.days)){
+      copy.recur.days = copy.recur.days.map(d=> Number(d)).filter(d=> Number.isInteger(d))
+    }
+    if(!copy.cat){
+      copy.cat = next.categories[0]?.id || DEFAULT_CATEGORIES[0]?.id || 'General'
+    }
+    return copy
   })
-  for(const def of DEFAULT_CATEGORIES){
-    if(!state.categories.some(c=>c.id===def.id)){
-      state.categories.push({...def})
+
+  for(const task of next.tasks){
+    if(!next.categories.some(c=>c.id===task.cat)){
+      next.categories.push({id:task.cat, name:task.cat, emoji:task.emoji || '📌', color:'#2563eb'})
     }
   }
+
+  return next
 }
 
-if(Array.isArray(state.tasks)){
-  for(const task of state.tasks){
-    if(task.importance==='nice'){ task.importance='should' }
-    if(task.importance!=='must' && task.importance!=='should'){ task.importance='should' }
-    if(task?.recur?.type==='weekly' && Object.prototype.hasOwnProperty.call(task.recur,'weekday')){
-      delete task.recur.weekday
-    }
-    if(task?.recur?.type==='weekly'){
-      if(typeof task.recur.times!=='number' || task.recur.times<1){ task.recur.times=1 }
-      task.recur.times = Math.min(6, Math.max(1, Math.round(task.recur.times)))
-    }
-    if(!state.categories.some(c=>c.id===task.cat)){
-      state.categories.push({id:task.cat, name:task.cat, emoji:task.emoji || '📌', color:'#2563eb'})
-    }
-  }
-}
+let state = normalizeState(load() || seed())
 save()
 
 const els={
@@ -553,12 +616,12 @@ const els={
   catGrid: document.getElementById('catGrid'),
   home: document.getElementById('home'),
   category: document.getElementById('category'),
+  config: document.getElementById('config'),
   weekControls: document.getElementById('weekControls'),
   weekLabel: document.getElementById('weekLabel'),
   weekPrev: document.getElementById('weekPrev'),
   weekNext: document.getElementById('weekNext'),
-  quickAdd: document.getElementById('quickAdd'),
-  newCategory: document.getElementById('newCategory'),
+  configBtn: document.getElementById('configBtn'),
   backBtn: document.getElementById('backBtn'),
   catTitle: document.getElementById('catTitle'),
   catWeek: document.getElementById('catWeek'),
@@ -589,6 +652,11 @@ const els={
   c_emoji: document.getElementById('c_emoji'),
   c_color: document.getElementById('c_color'),
   saveCategory: document.getElementById('saveCategory'),
+  configAddActivity: document.getElementById('configAddActivity'),
+  configAddCategory: document.getElementById('configAddCategory'),
+  configImport: document.getElementById('configImport'),
+  configExport: document.getElementById('configExport'),
+  configImportInput: document.getElementById('configImportInput'),
 }
 
 renderSummary()
@@ -602,8 +670,21 @@ els.backBtn.addEventListener('click', ()=>{
   updateView('home')
 })
 els.addBtn.addEventListener('click', ()=> openTaskDialog('create'))
-els.quickAdd.addEventListener('click', ()=> openTaskDialog('create'))
-els.newCategory.addEventListener('click', ()=> openCategoryDialog('create'))
+if(els.configBtn){
+  els.configBtn.addEventListener('click', ()=>{
+    if(state.ui.currentView==='config'){
+      updateView('home')
+    }else{
+      state.ui.currentCat=null
+      updateView('config')
+    }
+  })
+}
+if(els.configAddActivity){ els.configAddActivity.addEventListener('click', ()=> openTaskDialog('create')) }
+if(els.configAddCategory){ els.configAddCategory.addEventListener('click', ()=> openCategoryDialog('create')) }
+if(els.configExport){ els.configExport.addEventListener('click', exportBackup) }
+if(els.configImport){ els.configImport.addEventListener('click', ()=>{ if(els.configImportInput) els.configImportInput.click() }) }
+if(els.configImportInput){ els.configImportInput.addEventListener('change', handleImportFile) }
 els.editCategory.addEventListener('click', ()=>{
   if(state.ui.currentCat){ openCategoryDialog('edit', state.ui.currentCat) }
 })
@@ -625,23 +706,40 @@ onRecurChange()
 
 function updateView(view){
   state.ui.currentView=view
-  save()
   if(view==='category' && !state.ui.currentCat){
     state.ui.currentView='home'
     view='home'
   }
   const isCategory = view==='category'
-  els.home.classList.toggle('active', !isCategory)
+  const isHome = view==='home'
+  const isConfig = view==='config'
+  if(!isCategory){
+    state.ui.currentCat=null
+  }
+  els.home.classList.toggle('active', isHome)
   els.category.classList.toggle('active', isCategory)
+  if(els.config){ els.config.classList.toggle('active', isConfig) }
+  if(els.weekControls){ els.weekControls.style.display = isConfig ? 'none' : '' }
+  if(els.summary){ els.summary.style.display = isConfig ? 'none' : '' }
   if(els.editCategory){
     els.editCategory.style.display = isCategory ? 'inline-flex' : 'none'
     els.editCategory.disabled = !isCategory
   }
   if(isCategory && state.ui.currentCat){
     renderCategory(state.ui.currentCat, state.ui.categoryWeekStart)
-  }else{
+  }else if(isHome){
     renderHome()
   }
+  updateConfigButton(view)
+  save()
+}
+
+function updateConfigButton(view){
+  if(!els.configBtn) return
+  const isConfig = view==='config'
+  els.configBtn.setAttribute('aria-label', isConfig ? 'Close configuration' : 'Open configuration')
+  els.configBtn.setAttribute('aria-pressed', isConfig ? 'true' : 'false')
+  els.configBtn.classList.toggle('active', isConfig)
 }
 
 function weekStart(ymd){
@@ -1180,6 +1278,55 @@ function CATS(){
 
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) }catch(e){return null}}
+
+function exportBackup(){
+  try{
+    const data = JSON.stringify(state, null, 2)
+    const blob = new Blob([data], {type:'application/json'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `routine-buddy-backup-${todayISO()}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }catch(err){
+    console.error('Export failed', err)
+  }
+}
+
+function handleImportFile(event){
+  const input = event.target
+  const file = input && input.files ? input.files[0] : null
+  if(!file) return
+  const reader = new FileReader()
+  reader.onload = e=>{
+    try{
+      const text = typeof e.target?.result==='string' ? e.target.result : ''
+      const parsed = JSON.parse(text)
+      if(!confirm('Importing this backup will replace your current data. Continue?')) return
+      const previousView = state.ui?.currentView || 'home'
+      state = normalizeState(parsed)
+      if(previousView==='config'){ state.ui.currentView='config' }
+      save()
+      renderSummary()
+      renderHome()
+      updateWeekLabel()
+      updateView(state.ui.currentView)
+    }catch(err){
+      console.error('Import failed', err)
+      alert('Could not import backup. Make sure the file is a valid Routine Buddy export.')
+    }finally{
+      input.value=''
+    }
+  }
+  reader.onerror = ()=>{
+    alert('Could not read the selected file.')
+    input.value=''
+  }
+  reader.readAsText(file)
+}
 
 function seed(){
   const today = todayISO()
