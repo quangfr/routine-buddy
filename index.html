@@ -111,6 +111,7 @@ main>section{max-width:960px;width:100%;margin:0 auto}
 .task .title{font-weight:600;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .task .title .freq{font-size:12px;color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:4px;line-height:1}
 .task .title .freq .freq-value{font-size:13px;font-weight:700}
+.task .title .reminder{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--accent);font-weight:600}
 .task-actions{display:flex;gap:6px;align-items:center;margin-left:auto}
 .task-actions button{padding:4px 6px;border-radius:8px;border:1px solid var(--border);background:var(--off);cursor:pointer;font-size:14px;line-height:1}
 .week-grid{display:flex;gap:6px;flex-wrap:wrap}
@@ -132,6 +133,9 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
 .modal-body{padding:12px 14px;display:grid;gap:12px;flex:1;overflow:auto;min-height:0;-webkit-overflow-scrolling:touch}
 .field{display:grid;gap:6px}
 .field label{font-weight:600;font-size:13px;color:#475569}
+.field-note{margin:0;font-size:12px;color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.toggle input{width:18px;height:18px}
 .modal-body input,.modal-body select,.modal-body textarea{background:var(--off);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:10px;font:inherit;font-size:14px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--border)}
 .modal-actions button{padding:6px 14px;border-radius:10px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font-weight:600;font-size:14px}
@@ -196,9 +200,9 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
         </div>
       </div>
       <div class="summary-status">
-        <span data-status="green"><span class="summary-count" id="pillGreen">0</span><span class="summary-label" id="labelGreen">Good</span></span>
-        <span data-status="yellow"><span class="summary-count" id="pillYellow">0</span><span class="summary-label" id="labelYellow">Careful</span></span>
-        <span data-status="red"><span class="summary-count" id="pillRed">0</span><span class="summary-label" id="labelRed">Bad</span></span>
+        <span data-status="green"><span class="summary-count" id="pillGreen">0</span><span class="summary-label" id="labelGreen">On track</span></span>
+        <span data-status="yellow"><span class="summary-count" id="pillYellow">0</span><span class="summary-label" id="labelYellow">Look up</span></span>
+        <span data-status="red"><span class="summary-count" id="pillRed">0</span><span class="summary-label" id="labelRed">Catch up</span></span>
       </div>
     </section>
 
@@ -210,6 +214,7 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
       <div class="cat-head">
         <button class="back" id="backBtn" aria-label="Go back">←</button>
         <h2 id="catTitle"></h2>
+        <button type="button" class="icon-btn icon-only" id="editCategoryBtn" aria-label="Edit category" title="Edit category">✏️</button>
       </div>
       <div class="cat-mood" id="catMood" role="group" aria-label="Select mood"></div>
       <div id="taskList"></div>
@@ -294,6 +299,13 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
         <label>Days of the week</label>
         <div class="weekday-picker" id="specificDays"></div>
       </div>
+      <div class="field" id="reminderField" style="display:none">
+        <label class="toggle">
+          <input type="checkbox" id="f_notifyDaily" />
+          <span id="reminderLabel">Daily reminder</span>
+        </label>
+        <p class="field-note" id="reminderNote">Send a notification every morning at 9:00.</p>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="icon-btn" value="cancel">Cancel</button>
@@ -314,6 +326,7 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
     </div>
     <div class="modal-actions">
       <button class="icon-btn" value="cancel">Cancel</button>
+      <button type="button" class="icon-btn danger" id="deleteCategory" style="display:none">Delete</button>
       <button type="button" class="icon-btn primary" id="saveCategory" value="default">Save</button>
     </div>
   </form>
@@ -324,6 +337,9 @@ const TZ = 'Europe/Paris'
 const fmtDate = (d)=> new Date(d).toLocaleDateString('en-CA',{timeZone:TZ})
 const todayISO = ()=> fmtDate(Date.now())
 const uid = ()=> Math.random().toString(36).slice(2,9)
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const supportsNotifications = typeof window!=='undefined' && typeof navigator!=='undefined' && 'Notification' in window && 'serviceWorker' in navigator
+const reminderTimers = new Map()
 const WEEKDAY_SHORT = ['Mo','Tu','We','Th','Fr','Sa','Su']
 const WEEKDAY_SHORT_LABELS = {
   en: WEEKDAY_SHORT,
@@ -553,8 +569,8 @@ const LANGUAGE_STRINGS={
     label:'English',
     weekPrefix:'W',
     locale:'en-US',
-    summary:{green:'Good',yellow:'Careful',red:'Bad'},
-    summaryDistribution:counts=>`Good: ${counts.green}, Careful: ${counts.yellow}, Bad: ${counts.red}`,
+    summary:{green:'On track',yellow:'Look up',red:'Catch up'},
+    summaryDistribution:counts=>`On track: ${counts.green}, Look up: ${counts.yellow}, Catch up: ${counts.red}`,
     progressLabel:(done,total)=>`${done} of ${total} completed`,
     emptyProgress:'No activities yet',
     noCategories:'Add a category to get started.',
@@ -570,6 +586,12 @@ const LANGUAGE_STRINGS={
     configImport:'Import backup (replace)',
     configExport:'Export backup',
     configNote:'Importing a backup will replace your current routines and progress.',
+    reminderLabel:'Daily reminder',
+    reminderNote:'Send a notification every morning at 9:00 to stay on track.',
+    reminderPermission:'Enable notifications in your browser to receive reminders.',
+    reminderUnsupported:'Daily reminders are not supported in this browser.',
+    reminderNotificationTitle:name=>`Daily reminder: ${name}`,
+    reminderNotificationBody:name=>`Take a moment for “${name}” today.`,
     dialogNewActivity:'New activity',
     dialogEditActivity:'Edit activity',
     dialogNewCategory:'New category',
@@ -582,19 +604,21 @@ const LANGUAGE_STRINGS={
     openConfig:'Open configuration',
     closeConfig:'Close configuration',
     moodPicker:'Select mood',
+    editCategory:'Edit category',
+    deleteCategoryConfirm:'Delete this category and its activities?',
   },
   fr:{
     label:'Français',
     weekPrefix:'S',
     locale:'fr-FR',
-    summary:{green:'Bon',yellow:'Attention',red:'Mauvais'},
-    summaryDistribution:counts=>`Bon : ${counts.green}, Attention : ${counts.yellow}, Mauvais : ${counts.red}`,
+    summary:{green:'À jour',yellow:'À voir',red:'À rattraper'},
+    summaryDistribution:counts=>`À jour : ${counts.green}, À voir : ${counts.yellow}, À rattraper : ${counts.red}`,
     progressLabel:(done,total)=>`${done} sur ${total} réalisés`,
     emptyProgress:'Aucune activité',
     noCategories:'Ajoutez une catégorie pour commencer.',
     noActivities:'Aucune activité dans cette catégorie pour le moment.',
-    weekNow:'Cette semaine',
-    weekNowAria:'Revenir à cette semaine',
+    weekNow:'Ajd',
+    weekNowAria:"Revenir à aujourd’hui",
     weeklyTimes:'Nombre de fois par semaine',
     languageTitle:'Choisissez votre langue',
     languageIntro:"Sélectionnez votre langue préférée pour personnaliser l’expérience.",
@@ -604,6 +628,12 @@ const LANGUAGE_STRINGS={
     configImport:'Importer une sauvegarde (remplace)',
     configExport:'Exporter une sauvegarde',
     configNote:'Importer une sauvegarde remplacera vos routines et progrès actuels.',
+    reminderLabel:'Rappel quotidien',
+    reminderNote:'Envoyer une notification chaque matin à 9h pour rester sur la bonne voie.',
+    reminderPermission:'Activez les notifications du navigateur pour recevoir les rappels.',
+    reminderUnsupported:'Les rappels quotidiens ne sont pas disponibles sur ce navigateur.',
+    reminderNotificationTitle:name=>`Rappel quotidien : ${name}`,
+    reminderNotificationBody:name=>`Prenez un instant pour « ${name} » aujourd’hui.`,
     dialogNewActivity:'Nouvelle activité',
     dialogEditActivity:"Modifier l’activité",
     dialogNewCategory:'Nouvelle catégorie',
@@ -616,6 +646,8 @@ const LANGUAGE_STRINGS={
     openConfig:'Ouvrir la configuration',
     closeConfig:'Fermer la configuration',
     moodPicker:'Choisir une ambiance',
+    editCategory:'Modifier la catégorie',
+    deleteCategoryConfirm:'Supprimer cette catégorie et ses activités ?',
   }
 }
 
@@ -701,6 +733,21 @@ function cloneDoneMap(source){
   return out
 }
 
+function sanitizeDateString(value){
+  if(typeof value!=='string') return null
+  return ISO_DATE_RE.test(value) ? value : null
+}
+
+function safeWeekStart(value){
+  const clean = sanitizeDateString(value)
+  return clean ? weekStart(clean) : null
+}
+
+function reminderEligible(recur){
+  const type = recur && recur.type
+  return type==='daily' || type==='weekly'
+}
+
 function normalizeState(raw){
   const base = raw && typeof raw==='object' ? raw : {}
   const allowedViews=new Set(['home','category','config'])
@@ -711,15 +758,34 @@ function normalizeState(raw){
     ui: base.ui && typeof base.ui==='object' ? {...base.ui} : {},
   }
   const lang = sanitizeLanguage(next.ui.language || base.language)
-  next.ui.selectedWeekStart = next.ui.selectedWeekStart || next.ui.historyWeekStart || currentWeekStart
+  const selectedWeek = safeWeekStart(next.ui.selectedWeekStart) || safeWeekStart(next.ui.historyWeekStart) || safeWeekStart(base.ui && base.ui.selectedWeekStart) || currentWeekStart
+  next.ui.selectedWeekStart = selectedWeek
   next.ui.currentView = allowedViews.has(next.ui.currentView) ? next.ui.currentView : 'home'
   next.ui.currentCat = next.ui.currentCat || null
-  next.ui.categoryWeekStart = next.ui.categoryWeekStart || next.ui.selectedWeekStart
+  next.ui.categoryWeekStart = safeWeekStart(next.ui.categoryWeekStart) || selectedWeek
   next.ui.editTaskId = null
   next.ui.editCategoryId = null
   next.ui.language = lang
   delete next.ui.historyWeekStart
   delete next.ui.categorySource
+
+  const startCandidates=[]
+  const addCandidate=value=>{ const week = safeWeekStart(value); if(week){ startCandidates.push(week) } }
+  addCandidate(next.ui.appStartWeek)
+  addCandidate(base.ui && base.ui.appStartWeek)
+  addCandidate(base.ui && base.ui.appStart)
+  addCandidate(base.appStartWeek)
+  addCandidate(base.appStart)
+  addCandidate(base.startedAt)
+  addCandidate(next.ui.selectedWeekStart)
+  addCandidate(next.ui.categoryWeekStart)
+  next.tasks.forEach(task=> addCandidate(task.createdAt))
+  for(const day of Object.keys(next.done)){ addCandidate(day) }
+  const earliest = startCandidates.length>0 ? startCandidates.reduce((min, week)=> compareDate(week, min)<0 ? week : min, startCandidates[0]) : selectedWeek
+  const startWeek = earliest || currentWeekStart
+  next.ui.appStartWeek = startWeek
+  if(compareDate(next.ui.selectedWeekStart, startWeek)<0){ next.ui.selectedWeekStart = startWeek }
+  if(compareDate(next.ui.categoryWeekStart, startWeek)<0){ next.ui.categoryWeekStart = startWeek }
 
   const defaultsList = defaultCategories(lang)
   if(next.categories.length===0){
@@ -765,6 +831,7 @@ function normalizeState(raw){
     if(!copy.cat){
       copy.cat = next.categories[0]?.id || defaultsList[0]?.id || 'General'
     }
+    copy.notifyDaily = !!copy.notifyDaily && reminderEligible(copy.recur) && supportsNotifications
     return copy
   })
 
@@ -809,6 +876,7 @@ const els={
   homeBtn: document.getElementById('homeBtn'),
   backBtn: document.getElementById('backBtn'),
   catTitle: document.getElementById('catTitle'),
+  editCategoryBtn: document.getElementById('editCategoryBtn'),
   catMood: document.getElementById('catMood'),
   taskList: document.getElementById('taskList'),
   taskDialog: document.getElementById('taskDialog'),
@@ -823,6 +891,10 @@ const els={
   f_weeklyTimes: document.getElementById('f_weeklyTimes'),
   specificWrap: document.getElementById('specificWrap'),
   specificDays: document.getElementById('specificDays'),
+  reminderField: document.getElementById('reminderField'),
+  reminderLabel: document.getElementById('reminderLabel'),
+  reminderNote: document.getElementById('reminderNote'),
+  f_notifyDaily: document.getElementById('f_notifyDaily'),
   emojiSearch: document.getElementById('emojiSearch'),
   emojiResults: document.getElementById('emojiResults'),
   saveTask: document.getElementById('saveTask'),
@@ -833,6 +905,7 @@ const els={
   closeCategoryDialog: document.getElementById('closeCategoryDialog'),
   c_name: document.getElementById('c_name'),
   saveCategory: document.getElementById('saveCategory'),
+  deleteCategory: document.getElementById('deleteCategory'),
   configAddActivity: document.getElementById('configAddActivity'),
   configAddCategory: document.getElementById('configAddCategory'),
   configImport: document.getElementById('configImport'),
@@ -881,9 +954,16 @@ function bindEvents(){
   if(els.configExport){ els.configExport.addEventListener('click', exportBackup) }
   if(els.configImport){ els.configImport.addEventListener('click', ()=>{ if(els.configImportInput) els.configImportInput.click() }) }
   if(els.configImportInput){ els.configImportInput.addEventListener('change', handleImportFile) }
+  if(els.editCategoryBtn){
+    els.editCategoryBtn.addEventListener('click', ()=>{
+      if(!state || !state.ui.currentCat) return
+      openCategoryDialog('edit', state.ui.currentCat)
+    })
+  }
   if(els.closeDialog){ els.closeDialog.addEventListener('click', ()=> els.taskDialog.close()) }
   if(els.closeCategoryDialog){ els.closeCategoryDialog.addEventListener('click', ()=> els.categoryDialog.close()) }
   if(els.f_recur){ els.f_recur.addEventListener('change', onRecurChange) }
+  if(els.f_notifyDaily){ els.f_notifyDaily.addEventListener('change', handleReminderToggle) }
   if(els.weekPrev){ els.weekPrev.addEventListener('click', ()=>{ changeSelectedWeek(-1) }) }
   if(els.weekNext){ els.weekNext.addEventListener('click', ()=>{ changeSelectedWeek(1) }) }
   if(els.weekNow){ els.weekNow.addEventListener('click', goToCurrentWeek) }
@@ -891,6 +971,7 @@ function bindEvents(){
   if(els.saveTask){ els.saveTask.addEventListener('click', submitTask) }
   if(els.deleteTask){ els.deleteTask.addEventListener('click', deleteCurrentTask) }
   if(els.saveCategory){ els.saveCategory.addEventListener('click', submitCategory) }
+  if(els.deleteCategory){ els.deleteCategory.addEventListener('click', deleteCurrentCategory) }
   if(els.categoryForm){ els.categoryForm.addEventListener('submit', e=>{ e.preventDefault(); submitCategory() }) }
   if(els.categoryDialog){ els.categoryDialog.addEventListener('close', ()=>{ if(state){ state.ui.editCategoryId=null } }) }
 }
@@ -898,6 +979,7 @@ function bindEvents(){
 updateEmojiResults()
 initSpecificDayPicker()
 onRecurChange()
+updateReminderVisibility()
 
 function initializeApp(){
   if(!state) return
@@ -916,9 +998,9 @@ function applyLanguage(){
     els.weekNow.textContent = strings.weekNow
     els.weekNow.setAttribute('aria-label', strings.weekNowAria || strings.weekNow)
   }
-  if(els.labelGreen){ els.labelGreen.textContent = strings.summary?.green || 'Good' }
-  if(els.labelYellow){ els.labelYellow.textContent = strings.summary?.yellow || 'Careful' }
-  if(els.labelRed){ els.labelRed.textContent = strings.summary?.red || 'Bad' }
+  if(els.labelGreen){ els.labelGreen.textContent = strings.summary?.green || 'On track' }
+  if(els.labelYellow){ els.labelYellow.textContent = strings.summary?.yellow || 'Look up' }
+  if(els.labelRed){ els.labelRed.textContent = strings.summary?.red || 'Catch up' }
   if(els.configAddCategory){ els.configAddCategory.textContent = strings.configAddCategory }
   if(els.configAddActivity){ els.configAddActivity.textContent = strings.configAddActivity }
   if(els.configImport){ els.configImport.textContent = strings.configImport }
@@ -928,6 +1010,11 @@ function applyLanguage(){
   if(els.weeklyTimesLabel){ els.weeklyTimesLabel.textContent = strings.weeklyTimes }
   if(els.languageDialogTitle){ els.languageDialogTitle.textContent = strings.languageTitle }
   if(els.languageDialogIntro){ els.languageDialogIntro.textContent = strings.languageIntro }
+  if(els.reminderLabel){ els.reminderLabel.textContent = strings.reminderLabel || 'Daily reminder' }
+  if(els.reminderNote){
+    const note = supportsNotifications ? strings.reminderNote : strings.reminderUnsupported
+    els.reminderNote.textContent = note || ''
+  }
   const taskCancel = els.taskDialog ? els.taskDialog.querySelector('button[value="cancel"]') : null
   if(taskCancel){ taskCancel.textContent = strings.cancel }
   if(els.saveTask){ els.saveTask.textContent = strings.save }
@@ -935,10 +1022,16 @@ function applyLanguage(){
   const categoryCancel = els.categoryDialog ? els.categoryDialog.querySelector('button[value="cancel"]') : null
   if(categoryCancel){ categoryCancel.textContent = strings.cancel }
   if(els.saveCategory){ els.saveCategory.textContent = strings.save }
+  if(els.deleteCategory){ els.deleteCategory.textContent = strings.delete }
+  if(els.editCategoryBtn){
+    els.editCategoryBtn.setAttribute('aria-label', strings.editCategory || 'Edit category')
+    els.editCategoryBtn.title = strings.editCategory || 'Edit category'
+  }
   if(els.homeBtn){ els.homeBtn.setAttribute('aria-label', strings.homeTitle || strings.weekNow) }
   if(els.backBtn){ els.backBtn.setAttribute('aria-label', strings.goBack || 'Go back') }
   updateConfigButton(state.ui.currentView || 'home')
   updateWeekLabel()
+  updateReminderVisibility()
 }
 
 function bindLanguageOptions(){
@@ -1212,15 +1305,20 @@ function renderCategory(cat, week){
   const targetWeek = week || state.ui.selectedWeekStart
   state.ui.categoryWeekStart = targetWeek
   save()
+  const strings = getStrings(currentLanguage())
   const catEntry = categoryById(cat)
   if(els.catTitle){ els.catTitle.textContent = catEntry ? catEntry.name : categoryLabel(cat) }
+  if(els.editCategoryBtn){
+    const canEdit = !!catEntry
+    els.editCategoryBtn.disabled = !canEdit
+    els.editCategoryBtn.style.visibility = canEdit ? 'visible' : 'hidden'
+  }
   renderMoodSelector(catEntry)
   const tasks = state.tasks.filter(t=>t.cat===cat)
   const days = weekDays(targetWeek)
   const limit = limitDateForWeek(targetWeek)
   els.taskList.innerHTML=''
   if(tasks.length===0){
-    const strings = getStrings(currentLanguage())
     els.taskList.innerHTML=`<p class="count">${escapeHtml(strings.noActivities)}</p>`
     return
   }
@@ -1230,11 +1328,13 @@ function renderCategory(cat, week){
     row.className='task'
     row.dataset.importance = task.importance
     const freqMark = frequencyLabel(task.recur, currentLanguage())
+    const freqHtml = freqMark?` <span class="freq"><span class="freq-value">${escapeHtml(freqMark)}</span></span>`:''
+    const reminderBadge = task.notifyDaily && reminderEligible(task.recur) ? ` <span class="reminder" title="${escapeHtml(strings.reminderLabel)}" aria-label="${escapeHtml(strings.reminderLabel)}">🔔</span>` : ''
     row.innerHTML=`
       <div class="task-header">
         <span class="em">${escapeHtml(task.emoji||'🎯')}</span>
         <div class="task-info">
-          <div class="title">${escapeHtml(task.title)}${freqMark?` <span class="freq"><span class="freq-value">${escapeHtml(freqMark)}</span></span>`:''}</div>
+          <div class="title">${escapeHtml(task.title)}${freqHtml}${reminderBadge}</div>
         </div>
         <div class="task-actions">
           <button type="button" data-act="edit" aria-label="Edit activity">✏️</button>
@@ -1316,6 +1416,7 @@ function refreshAll(){
   renderHome()
   if(state.ui.currentView==='category' && state.ui.currentCat){ renderCategory(state.ui.currentCat, state.ui.categoryWeekStart) }
   updateWeekLabel()
+  updateReminders()
 }
 
 function updateWeekLabel(){
@@ -1333,15 +1434,26 @@ function updateWeekLabel(){
   if(els.weekNow){
     els.weekNow.disabled = week===currentWeekStart
   }
+  if(els.weekPrev){
+    const minWeek = state.ui.appStartWeek || currentWeekStart
+    els.weekPrev.disabled = compareDate(week, minWeek)<=0
+  }
 }
 
 function changeSelectedWeek(delta){
   if(!state) return
   const current = state.ui.selectedWeekStart
-  const newWeek = addDays(current, delta*7)
-  if(delta>0 && compareDate(newWeek, currentWeekStart)>0) return
-  state.ui.selectedWeekStart = newWeek
-  state.ui.categoryWeekStart = newWeek
+  let target = addDays(current, delta*7)
+  const minWeek = state.ui.appStartWeek || currentWeekStart
+  if(compareDate(target, currentWeekStart)>0){
+    target = currentWeekStart
+  }
+  if(compareDate(target, minWeek)<0){
+    target = minWeek
+  }
+  if(target===current){ return }
+  state.ui.selectedWeekStart = target
+  state.ui.categoryWeekStart = target
   save()
   refreshAll()
 }
@@ -1359,6 +1471,7 @@ function onRecurChange(){
   const v = els.f_recur.value
   els.specificWrap.style.display = v==='specific' ? 'block' : 'none'
   els.weeklyWrap.style.display = v==='weekly' ? 'block' : 'none'
+  updateReminderVisibility()
 }
 
 function initSpecificDayPicker(){
@@ -1368,6 +1481,121 @@ function initSpecificDayPicker(){
     const wrapper=document.createElement('label')
     wrapper.innerHTML=`<input type="checkbox" value="${day}">${label}`
     els.specificDays.appendChild(wrapper)
+  })
+}
+
+function updateReminderVisibility(){
+  if(!els.reminderField){ return }
+  if(!supportsNotifications){
+    els.reminderField.style.display='none'
+    if(els.f_notifyDaily){ els.f_notifyDaily.checked=false }
+    return
+  }
+  const type = els.f_recur ? els.f_recur.value : ''
+  const eligible = type==='daily' || type==='weekly'
+  els.reminderField.style.display = eligible ? 'grid' : 'none'
+  if(els.f_notifyDaily){
+    els.f_notifyDaily.disabled = !eligible
+    if(!eligible){ els.f_notifyDaily.checked=false }
+  }
+  if(els.reminderNote){
+    const strings = getStrings(currentLanguage())
+    if(Notification.permission==='denied'){
+      els.reminderNote.textContent = strings.reminderPermission || ''
+    }else{
+      els.reminderNote.textContent = strings.reminderNote || ''
+    }
+  }
+}
+
+async function ensureNotificationPermission(){
+  if(!supportsNotifications) return false
+  if(Notification.permission==='granted') return true
+  if(Notification.permission==='denied') return false
+  try{
+    const result = await Notification.requestPermission()
+    return result==='granted'
+  }catch(err){
+    return false
+  }
+}
+
+function handleReminderToggle(){
+  if(!supportsNotifications || !els.f_notifyDaily) return
+  if(!els.f_notifyDaily.checked){
+    return
+  }
+  ensureNotificationPermission().then(granted=>{
+    if(!granted){
+      els.f_notifyDaily.checked=false
+      const strings = getStrings(currentLanguage())
+      alert(strings.reminderPermission || 'Enable notifications in your browser to receive reminders.')
+    }else{
+      updateReminders()
+    }
+    updateReminderVisibility()
+  })
+}
+
+function clearAllReminders(){
+  for(const handle of reminderTimers.values()){
+    clearTimeout(handle)
+  }
+  reminderTimers.clear()
+}
+
+function nextReminderDelay(){
+  const now = new Date()
+  const target = new Date()
+  target.setHours(9,0,0,0)
+  if(target<=now){
+    target.setDate(target.getDate()+1)
+  }
+  return target.getTime() - now.getTime()
+}
+
+function scheduleReminder(taskId){
+  if(!supportsNotifications || Notification.permission!=='granted') return
+  const delay = nextReminderDelay()
+  if(!(delay>0)) return
+  const handle = setTimeout(()=> triggerReminder(taskId), delay)
+  reminderTimers.set(taskId, handle)
+}
+
+function triggerReminder(taskId){
+  reminderTimers.delete(taskId)
+  if(!state) return
+  const task = state.tasks.find(t=> t.id===taskId)
+  if(!task || !task.notifyDaily || !reminderEligible(task.recur)){
+    updateReminders()
+    return
+  }
+  const strings = getStrings(currentLanguage())
+  const title = typeof strings.reminderNotificationTitle==='function' ? strings.reminderNotificationTitle(task.title) : "Routine reminder"
+  const body = typeof strings.reminderNotificationBody==='function' ? strings.reminderNotificationBody(task.title) : task.title
+  const tag = `task-${taskId}-daily-reminder`
+  const finalize = ()=> scheduleReminder(taskId)
+  navigator.serviceWorker.ready.then(reg=> reg.showNotification(title,{body, icon:'icon-192.png', tag})).catch(()=>{
+    if('Notification' in window && Notification.permission==='granted'){
+      try{ new Notification(title,{body, icon:'icon-192.png', tag}) }catch(err){ /* ignore */ }
+    }
+  }).then(finalize, finalize)
+}
+
+function updateReminders(){
+  if(!supportsNotifications){
+    clearAllReminders()
+    return
+  }
+  if(!state || Notification.permission!=='granted'){
+    clearAllReminders()
+    return
+  }
+  clearAllReminders()
+  state.tasks.forEach(task=>{
+    if(task.notifyDaily && reminderEligible(task.recur)){
+      scheduleReminder(task.id)
+    }
   })
 }
 
@@ -1400,7 +1628,16 @@ function populateCategorySelect(selected){
 
 function openCategory(cat, week){
   if(!state) return
-  state.ui.categoryWeekStart = week || state.ui.selectedWeekStart
+  const baseWeek = week || state.ui.selectedWeekStart
+  const minWeek = state.ui.appStartWeek || state.ui.selectedWeekStart || currentWeekStart
+  let targetWeek = baseWeek
+  if(compareDate(targetWeek, currentWeekStart)>0){
+    targetWeek = currentWeekStart
+  }
+  if(compareDate(targetWeek, minWeek)<0){
+    targetWeek = minWeek
+  }
+  state.ui.categoryWeekStart = targetWeek
   state.ui.currentCat = cat
   save()
   updateView('category')
@@ -1410,10 +1647,14 @@ function openCategoryDialog(mode, catId){
   if(!els.categoryDialog) return
   const isEdit = mode==='edit'
   const cat = isEdit ? state.categories.find(c=>c.id===catId) : null
+  if(isEdit && !cat) return
   const editing = !!cat
   state.ui.editCategoryId = editing ? cat.id : null
   const strings = getStrings(currentLanguage())
   els.catDialogTitle.textContent = editing ? strings.dialogEditCategory : strings.dialogNewCategory
+  if(els.deleteCategory){
+    els.deleteCategory.style.display = editing ? 'inline-flex' : 'none'
+  }
   if(editing){
     els.c_name.value = cat.name
   }else{
@@ -1447,6 +1688,7 @@ function openTaskDialog(mode, task){
     else { els.f_recur.value='weekly' }
     els.f_weeklyTimes.value = task.recur.type==='weekly' ? task.recur.times || 1 : 1
     onRecurChange()
+    if(els.f_notifyDaily){ els.f_notifyDaily.checked = !!task.notifyDaily }
     const boxes=[...els.specificDays.querySelectorAll('input')]
     boxes.forEach(box=>{ box.checked = task.recur.type==='specific' ? task.recur.days.includes(+box.value) : false })
   }else{
@@ -1457,6 +1699,7 @@ function openTaskDialog(mode, task){
     els.f_recur.value='daily'
     els.f_weeklyTimes.value=1
     onRecurChange()
+    if(els.f_notifyDaily){ els.f_notifyDaily.checked=false }
     els.specificDays.querySelectorAll('input').forEach(input=> input.checked=false)
   }
   updateEmojiResults()
@@ -1486,6 +1729,9 @@ function submitTask(e){
     recur = {type:'weekly', times}
   }
   const nowWeek = todayISO()
+  const canRemind = reminderEligible({type:freq})
+  const wantsReminder = !!(els.f_notifyDaily && els.f_notifyDaily.checked)
+  const notifyDaily = canRemind && wantsReminder && supportsNotifications && Notification.permission==='granted'
   if(state.ui.editTaskId){
     const task = state.tasks.find(t=>t.id===state.ui.editTaskId)
     if(task){
@@ -1494,9 +1740,10 @@ function submitTask(e){
       task.cat=cat
       task.importance=importance
       task.recur=recur
+      task.notifyDaily = notifyDaily
     }
   }else{
-    state.tasks.push({id:uid(), cat, title, emoji, importance, recur, createdAt:nowWeek})
+    state.tasks.push({id:uid(), cat, title, emoji, importance, recur, createdAt:nowWeek, notifyDaily})
   }
   save()
   els.taskDialog.close()
@@ -1534,6 +1781,48 @@ function deleteCurrentTask(){
   save()
   els.taskDialog.close()
   refreshAll()
+}
+
+function deleteCurrentCategory(){
+  if(!state || !state.ui.editCategoryId) return
+  const catId = state.ui.editCategoryId
+  const strings = getStrings(currentLanguage())
+  const confirmMessage = strings.deleteCategoryConfirm || 'Delete this category?'
+  if(!confirm(confirmMessage)) return
+  const catIndex = state.categories.findIndex(c=>c.id===catId)
+  if(catIndex<0) return
+  const removedTaskIds = new Set(state.tasks.filter(t=>t.cat===catId).map(t=>t.id))
+  if(removedTaskIds.size>0){
+    state.tasks = state.tasks.filter(t=>t.cat!==catId)
+    for(const day of Object.keys(state.done)){
+      if(!state.done[day]) continue
+      for(const taskId of Object.keys(state.done[day])){
+        if(removedTaskIds.has(taskId)){
+          delete state.done[day][taskId]
+        }
+      }
+      if(Object.keys(state.done[day]).length===0){
+        delete state.done[day]
+      }
+    }
+  }
+  state.categories.splice(catIndex,1)
+  const wasCurrentCategory = state.ui.currentCat===catId
+  const wasCategoryView = state.ui.currentView==='category'
+  state.ui.editCategoryId = null
+  if(wasCurrentCategory){
+    state.ui.currentCat = null
+    if(wasCategoryView){
+      state.ui.currentView='home'
+    }
+  }
+  save()
+  if(els.categoryDialog && typeof els.categoryDialog.close==='function'){
+    try{ els.categoryDialog.close() }catch(err){ /* dialog may not be open */ }
+  }
+  populateCategorySelect(state.ui.currentCat)
+  refreshAll()
+  updateView(state.ui.currentView || 'home')
 }
 
 function taskWeeklyStatus(task, days, limit){
@@ -1741,12 +2030,13 @@ function seed(lang){
     importance:task.importance,
     recur:cloneRecur(task.recur),
     createdAt:today,
+    notifyDaily:false,
   }))
   return {
     tasks,
     done:{},
     categories: defaultCategories(language).map(c=>({...c})),
-    ui:{currentView:'home', selectedWeekStart:currentWeekStart, categoryWeekStart:currentWeekStart, currentCat:null, language}
+    ui:{currentView:'home', selectedWeekStart:currentWeekStart, categoryWeekStart:currentWeekStart, currentCat:null, language, appStartWeek:currentWeekStart}
   }
 }
 
