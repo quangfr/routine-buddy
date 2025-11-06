@@ -1207,7 +1207,8 @@ function renderCategory(cat, week){
   const targetWeek = week || state.ui.selectedWeekStart
   state.ui.categoryWeekStart = targetWeek
   save()
-  const strings = getStrings(currentLanguage())
+  const lang = currentLanguage()
+  const strings = getStrings(lang)
   const catEntry = categoryById(cat)
   if(els.catTitle){ els.catTitle.textContent = catEntry ? catEntry.name : categoryLabel(cat) }
   if(els.editCategoryBtn){
