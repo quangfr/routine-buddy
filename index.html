@@ -58,6 +58,7 @@
       <div class="cat-head">
         <button class="back" id="backBtn" aria-label="Go back">←</button>
         <h2 id="catTitle"></h2>
+        <button type="button" class="icon-btn icon-only" id="catAddActivityBtn" aria-label="Add activity" title="Add activity">➕</button>
         <button type="button" class="icon-btn icon-only" id="editCategoryBtn" aria-label="Edit category" title="Edit category">✏️</button>
       </div>
       <div class="cat-mood" id="catMood" role="group" aria-label="Select mood"></div>
@@ -85,10 +86,16 @@
 <dialog id="languageDialog">
   <div class="modal-head"><span id="languageDialogTitle">Choose your language</span></div>
   <div class="modal-body language-body">
-    <p id="languageDialogIntro">Select your preferred language to personalize the experience.</p>
-    <div class="language-options">
-      <button type="button" class="icon-btn" data-lang="en">English</button>
-      <button type="button" class="icon-btn" data-lang="fr">Français</button>
+    <div class="language-select">
+      <p id="languageDialogIntro">Select your preferred language to personalize the experience.</p>
+      <div class="language-options" role="group" aria-label="Available languages">
+        <button type="button" class="icon-btn" data-lang="fr">Français</button>
+        <button type="button" class="icon-btn" data-lang="en">English</button>
+      </div>
+    </div>
+    <div class="language-description" id="languageDescription" tabindex="0" role="document"></div>
+    <div class="language-actions">
+      <button type="button" class="icon-btn" id="languageConfirm">Je suis prêt !</button>
     </div>
   </div>
 </dialog>

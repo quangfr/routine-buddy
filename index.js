@@ -254,6 +254,7 @@ const LANGUAGE_STRINGS={
     weeklyTimes:'Times per week',
     languageTitle:'Choose your language',
     languageIntro:'Select your preferred language to personalize the experience.',
+    languageConfirm:"I'm ready!",
     configTitle:'Configuration',
     configAddCategory:'Add category',
     configAddActivity:'Add activity',
@@ -282,6 +283,7 @@ const LANGUAGE_STRINGS={
     closeConfig:'Close configuration',
     moodPicker:'Select mood',
     editCategory:'Edit category',
+    addActivity:'Add activity',
     deleteCategoryConfirm:'Delete this category and its activities?',
   },
   fr:{
@@ -301,6 +303,7 @@ const LANGUAGE_STRINGS={
     weeklyTimes:'Nombre de fois par semaine',
     languageTitle:'Choisissez votre langue',
     languageIntro:"Sélectionnez votre langue préférée pour personnaliser l'expérience.",
+    languageConfirm:'Je suis prêt !',
     configTitle:'Configuration',
     configAddCategory:'Ajouter une catégorie',
     configAddActivity:'Ajouter une activité',
@@ -329,8 +332,36 @@ const LANGUAGE_STRINGS={
     closeConfig:'Fermer la configuration',
     moodPicker:'Choisir une ambiance',
     editCategory:'Modifier la catégorie',
+    addActivity:'Ajouter une activité',
     deleteCategoryConfirm:'Supprimer cette catégorie et ses activités ?',
   }
+}
+
+const LANGUAGE_DESCRIPTIONS={
+  en:`
+    <p><strong>🌱 Routines — Your week, simplified.</strong></p>
+    <p>A playful, minimalist app to stay consistent with what truly matters — your daily and weekly habits.<br />🕊️ 100% free, open source, offline &amp; private — no signup, no internet, just you.</p>
+    <ul>
+      <li>📅 <strong>Weekly dashboard</strong> — see your score and routines 🟥🟨🟩 at a glance.</li>
+      <li>💪 <strong>Easy to use</strong> — with emojis, mood and samples.</li>
+      <li>🎯 <strong>Practical tracking</strong> — tap days to mark done, get notifications.</li>
+      <li>📲 <strong>Install as an app</strong> — Chrome → ⋮ → “Add to Home screen”.</li>
+      <li>⚙️ <strong>Fully yours</strong> — customize and get your data anytime.</li>
+    </ul>
+    <p><em>✨ See your progress, one week at a time.</em></p>
+  `,
+  fr:`
+    <p><strong>🌱 Routines — Ta semaine, simplifiée.</strong></p>
+    <p>Une appli ludique et minimaliste pour rester régulier dans ce qui compte vraiment — tes habitudes du quotidien et de la semaine.<br />🕊️ 100&nbsp;% gratuit, open source, hors ligne et privée — aucun compte, aucun cloud, juste toi.</p>
+    <ul>
+      <li>📅 <strong>Vue hebdo claire</strong> — vois ton score et tes routines 🟥🟨🟩 d’un clin d’œil.</li>
+      <li>💪 <strong>Facile à utiliser</strong> — avec émojis, état d'humeur et exemples.</li>
+      <li>🎯 <strong>Suivi pratique</strong> — clique sur les jours réalisés, reçois des rappels.</li>
+      <li>📲 <strong>Installe-la comme une appli</strong> — Chrome → ⋮ → « Ajouter à l’écran d’accueil ».</li>
+      <li>⚙️ <strong>Entièrement personnalisable</strong> — personnalise et récupère tes données à tout moment.</li>
+    </ul>
+    <p><em>✨ Vois tes progrès, une semaine après l’autre.</em></p>
+  `,
 }
 
 const CATEGORY_DEFS = [
@@ -550,6 +581,7 @@ function normalizeState(raw){
 let state = null
 let eventsBound = false
 let languageEventsBound = false
+let pendingLanguage = 'fr'
 
 function currentLanguage(){ return state ? sanitizeLanguage(state.ui?.language) : 'en' }
 
@@ -581,6 +613,7 @@ const els={
   homeBtn: document.getElementById('homeBtn'),
   backBtn: document.getElementById('backBtn'),
   catTitle: document.getElementById('catTitle'),
+  catAddActivityBtn: document.getElementById('catAddActivityBtn'),
   editCategoryBtn: document.getElementById('editCategoryBtn'),
   catMood: document.getElementById('catMood'),
   taskList: document.getElementById('taskList'),
@@ -627,6 +660,9 @@ const els={
   languageDialog: document.getElementById('languageDialog'),
   languageDialogTitle: document.getElementById('languageDialogTitle'),
   languageDialogIntro: document.getElementById('languageDialogIntro'),
+  languageOptionsWrap: document.querySelector('#languageDialog .language-options'),
+  languageDescription: document.getElementById('languageDescription'),
+  languageConfirm: document.getElementById('languageConfirm'),
   weeklyTimesLabel: document.getElementById('weeklyTimesLabel'),
 }
 
@@ -640,6 +676,13 @@ function bindEvents(){
       if(!state) return
       state.ui.currentCat=null
       updateView('home')
+    })
+  }
+  if(els.catAddActivityBtn){
+    els.catAddActivityBtn.addEventListener('click', ()=>{
+      if(!state) return
+      if(!state.ui.currentCat) return
+      openTaskDialog('create')
     })
   }
   if(els.configBtn){
@@ -742,11 +785,45 @@ function applyLanguage(){
     els.editCategoryBtn.setAttribute('aria-label', strings.editCategory || 'Edit category')
     els.editCategoryBtn.title = strings.editCategory || 'Edit category'
   }
+  if(els.catAddActivityBtn){
+    const addLabel = strings.addActivity || strings.configAddActivity || 'Add activity'
+    els.catAddActivityBtn.setAttribute('aria-label', addLabel)
+    els.catAddActivityBtn.title = addLabel
+  }
   if(els.homeBtn){ els.homeBtn.setAttribute('aria-label', strings.homeTitle || strings.weekNow) }
   if(els.backBtn){ els.backBtn.setAttribute('aria-label', strings.goBack || 'Go back') }
+  if(els.languageConfirm){ els.languageConfirm.textContent = strings.languageConfirm || strings.save }
+  pendingLanguage = currentLanguage()
+  refreshLanguageDialog()
   updateConfigButton(state.ui.currentView || 'home')
   updateWeekLabel()
   updateReminderVisibility()
+}
+
+function refreshLanguageDialog(){
+  const lang = sanitizeLanguage(pendingLanguage)
+  const strings = getStrings(lang)
+  if(els.languageDialogTitle){ els.languageDialogTitle.textContent = strings.languageTitle }
+  if(els.languageDialogIntro){ els.languageDialogIntro.textContent = strings.languageIntro }
+  if(els.languageOptionsWrap){ els.languageOptionsWrap.setAttribute('aria-label', strings.languageTitle) }
+  if(els.languageDescription){
+    const markup = LANGUAGE_DESCRIPTIONS[lang] || ''
+    els.languageDescription.innerHTML = markup.trim()
+  }
+  if(els.languageConfirm){ els.languageConfirm.textContent = strings.languageConfirm || strings.save || 'OK' }
+  if(els.languageOptions){
+    Array.from(els.languageOptions).forEach(btn=>{
+      const btnLang = sanitizeLanguage(btn.dataset.lang)
+      const isActive = btnLang===lang
+      btn.classList.toggle('active', isActive)
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+    })
+  }
+}
+
+function setPendingLanguage(lang){
+  pendingLanguage = sanitizeLanguage(lang)
+  refreshLanguageDialog()
 }
 
 function bindLanguageOptions(){
@@ -754,22 +831,21 @@ function bindLanguageOptions(){
   Array.from(els.languageOptions).forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const choice = sanitizeLanguage(btn.dataset.lang)
-      chooseLanguage(choice)
+      setPendingLanguage(choice)
     })
   })
+  if(els.languageConfirm){
+    els.languageConfirm.addEventListener('click', ()=>{
+      chooseLanguage(pendingLanguage)
+    })
+  }
   languageEventsBound = true
-}
-
-function detectDefaultLanguage(){
-  if(typeof navigator==='undefined' || !navigator.language) return 'en'
-  return navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+  refreshLanguageDialog()
 }
 
 function showLanguageDialog(prefLang){
-  const lang = sanitizeLanguage(prefLang || detectDefaultLanguage())
-  const strings = getStrings(lang)
-  if(els.languageDialogTitle){ els.languageDialogTitle.textContent = strings.languageTitle }
-  if(els.languageDialogIntro){ els.languageDialogIntro.textContent = strings.languageIntro }
+  const lang = sanitizeLanguage(prefLang || 'fr')
+  setPendingLanguage(lang)
   if(els.languageDialog){
     els.languageDialog.showModal()
   }else{
@@ -779,6 +855,7 @@ function showLanguageDialog(prefLang){
 
 function chooseLanguage(lang){
   const selected = sanitizeLanguage(lang)
+  pendingLanguage = selected
   state = normalizeState(seed(selected))
   save()
   if(els.languageDialog && typeof els.languageDialog.close==='function'){
@@ -1071,6 +1148,11 @@ function renderCategory(cat, week){
     const canEdit = !!catEntry
     els.editCategoryBtn.disabled = !canEdit
     els.editCategoryBtn.style.visibility = canEdit ? 'visible' : 'hidden'
+  }
+  if(els.catAddActivityBtn){
+    const canAdd = !!catEntry
+    els.catAddActivityBtn.disabled = !canAdd
+    els.catAddActivityBtn.style.visibility = canAdd ? 'visible' : 'hidden'
   }
   renderMoodSelector(catEntry)
   const tasks = state.tasks.filter(t=>t.cat===cat)

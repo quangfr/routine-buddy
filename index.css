@@ -156,8 +156,19 @@ dialog form{display:flex;flex-direction:column;height:100%;min-height:0}
 .config-note{color:var(--muted);font-size:13px}
 
 .language-body{gap:16px}
-.language-options{display:grid;gap:10px}
+.language-select{display:grid;gap:8px}
+.language-options{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .language-options button{justify-content:center}
+.language-options button.active{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.08)}
+.language-description{border:1px solid var(--border);background:var(--off);border-radius:14px;padding:14px;max-height:260px;overflow:auto;line-height:1.55;display:grid;gap:12px;font-size:14px;color:#1f2937}
+.language-description p{margin:0}
+.language-description ul{margin:0;padding-left:0;list-style:none;display:grid;gap:10px}
+.language-description li{line-height:1.5}
+.language-description strong{font-weight:700}
+.language-description em{font-style:italic}
+.language-actions{display:flex;justify-content:flex-end}
+.language-actions .icon-btn{padding:8px 16px;font-weight:600;background:var(--accent);color:#fff;border-color:var(--accent)}
+.language-actions .icon-btn:hover{color:#fff;filter:brightness(1.05)}
 
 @media (max-width:520px){
   .summary{padding:10px}
