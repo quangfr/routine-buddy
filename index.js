@@ -260,7 +260,7 @@ const LANGUAGE_STRINGS={
     configAddActivity:'Add activity',
     configImport:'Import backup (replace)',
     configExport:'Export backup',
-    configNote:'Importing a backup will replace your current routines and progress.',
+    configNote:'Importing a backup will replace your current habits and progress.',
     reminderLabel:'Daily reminder',
     reminderNote:'Send a notification every day at your chosen time to stay on track.',
     reminderPermission:'Enable notifications in your browser to receive reminders.',
@@ -295,7 +295,7 @@ const LANGUAGE_STRINGS={
     summaryScore:'Score',
     summaryScoreAria:score=>`Score hebdomadaire : ${score} sur 100`,
     progressLabel:(done,total)=>`${done} sur ${total} réalisés`,
-    emptyProgress:'Aucune activité',
+    emptyProgress:'Aucune habitude',
     noCategories:'Ajoutez une catégorie pour commencer.',
     noActivities:'Aucune activité dans cette catégorie pour le moment.',
     weekNow:'Ajd',
@@ -309,7 +309,7 @@ const LANGUAGE_STRINGS={
     configAddActivity:'Ajouter une activité',
     configImport:'Importer une sauvegarde (remplace)',
     configExport:'Exporter une sauvegarde',
-    configNote:'Importer une sauvegarde remplacera vos routines et progrès actuels.',
+    configNote:'Importer une sauvegarde remplacera vos habitudes et progrès actuels.',
     reminderLabel:'Rappel quotidien',
     reminderNote:'Recevez une notification chaque jour à l’heure de votre choix pour rester motivé.',
     reminderPermission:'Activez les notifications du navigateur pour recevoir les rappels.',
@@ -339,10 +339,10 @@ const LANGUAGE_STRINGS={
 
 const LANGUAGE_DESCRIPTIONS={
   en:`
-    <p><strong>🌱 Routines — Your week, simplified.</strong></p>
+    <p><strong>🌱 Habitu.be — Your week, simplified.</strong></p>
     <p>A playful, minimalist app to stay consistent with what truly matters — your daily and weekly habits.<br />🕊️ 100% free, open source, offline &amp; private — no signup, no internet, just you.</p>
     <ul>
-      <li>📅 <strong>Weekly dashboard</strong> — see your score and routines 🟥🟨🟩 at a glance.</li>
+      <li>📅 <strong>Weekly dashboard</strong> — see your score and habits 🟥🟨🟩 at a glance.</li>
       <li>💪 <strong>Easy to use</strong> — with emojis, mood and samples.</li>
       <li>🎯 <strong>Practical tracking</strong> — tap days to mark done, get notifications.</li>
       <li>📲 <strong>Install as an app</strong> — Chrome → ⋮ → “Add to Home screen”.</li>
@@ -351,10 +351,10 @@ const LANGUAGE_DESCRIPTIONS={
     <p><em>✨ See your progress, one week at a time.</em></p>
   `,
   fr:`
-    <p><strong>🌱 Routines — Ta semaine, simplifiée.</strong></p>
+    <p><strong>🌱 Habitu.be — Ta semaine, simplifiée.</strong></p>
     <p>Une appli ludique et minimaliste pour rester régulier dans ce qui compte vraiment — tes habitudes du quotidien et de la semaine.<br />🕊️ 100&nbsp;% gratuit, open source, hors ligne et privée — aucun compte, aucun cloud, juste toi.</p>
     <ul>
-      <li>📅 <strong>Vue hebdo claire</strong> — vois ton score et tes routines 🟥🟨🟩 d’un clin d’œil.</li>
+      <li>📅 <strong>Vue hebdo claire</strong> — vois ton score et tes habitudes 🟥🟨🟩 d’un clin d’œil.</li>
       <li>💪 <strong>Facile à utiliser</strong> — avec émojis, état d'humeur et exemples.</li>
       <li>🎯 <strong>Suivi pratique</strong> — clique sur les jours réalisés, reçois des rappels.</li>
       <li>📲 <strong>Installe-la comme une appli</strong> — Chrome → ⋮ → « Ajouter à l’écran d’accueil ».</li>
