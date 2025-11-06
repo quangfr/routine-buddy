@@ -335,9 +335,9 @@ const LANGUAGE_STRINGS={
 
 const CATEGORY_DEFS = [
   { id: 'Body', name: { en: 'Body', fr: 'Corps' } },
-  { id: 'Home', name: { en: 'Home', fr: 'Maison' } },
-  { id: 'Care', name: { en: 'Care', fr: 'Soin' } },
-  { id: 'Connect', name: { en: 'Connect', fr: 'Lien' } },
+  { id: 'Home', name: { en: 'Home', fr: 'Vie' } },
+  { id: 'Care', name: { en: 'Care', fr: 'Soi' } },
+  { id: 'Connect', name: { en: 'Connect', fr: 'Social' } },
   { id: 'Work', name: { en: 'Work', fr: 'Travail' } },
   { id: 'Relax', name: { en: 'Relax', fr: 'Détente' } },
 ];
