@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Habitu.be — Prototype (drops v2)</title>
+<title>Habitu.be — Prototype (drops v3 • espaces)</title>
 <style>
   :root{
     --bg:#f7f3ea; --card:#fffdf8; --text:#1e1f1a;
@@ -26,7 +26,8 @@
        padding:6px var(--gap); display:flex; align-items:center; gap:8px}
   .brand{font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px}
   .brand .logo{font-size:18px}
-  .navbtn{font-size:14px;border:1px solid var(--border); background:var(--card); border-radius:var(--r); padding:6px 10px; box-shadow:var(--shadow); cursor:pointer}
+  .navbtn, .select{font-size:14px;border:1px solid var(--border); background:#f7f3ea; border-radius:var(--r); padding:6px 10px; box-shadow:var(--shadow); cursor:pointer}
+  .select{appearance:none}
   .spacer{flex:1}
 
   /* Day bar (← [date] Ajd →  |  compteur du jour) */
@@ -45,20 +46,20 @@
   .title{font-weight:700; display:flex; align-items:center; gap:4px; font-size:15px}
   .subtitle{color:#5b5b56; font-size:14px; min-height:18px}
   .friends{margin-top:auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
-  .badge{display:flex; align-items:center; gap:0px; padding:2px 4px; border:1px solid var(--border); border-radius:var(--r); background:var(--bg); font-size:11px}
+  .badge{display:flex; align-items:center; gap:0px; padding:2px 4px; border:1px solid var(--border); border-radius:var(--r); background:white; font-size:11px}
   .badge .streak{font-size:11px}
 
   /* Level column (à DROITE) */
   .levelCol{border-left:1px solid var(--border); display:flex; align-items:stretch; justify-content:stretch; padding:0}
   .levelBtn{
-    width:100%; height:100%; border-radius:var(--r); border:1px solid var(--border); background:var(--bg);
+    width:100%; height:100%; border-radius:var(--r); border:1px solid var(--border); background:#f7f3ea;
     display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; user-select:none; line-height:1.05; position:relative
   }
-  /* ⬇️ niveau du jour en bas */
+  /* ⬇️ niveau du jour (mode Individu) */
   .levelBtn .mini{
     font-size:17px; letter-spacing:-4px; position:absolute; bottom:4px; left:0; right:0; text-align:center; pointer-events:none
   }
-  /* ⬆️ avatar (emoji) utilisateur issu du score total (💧 + ☀️) */
+  /* ⬆️ avatar / statut (emoji) */
   .levelBtn .self{
     font-size:24px; letter-spacing:-4px; position:absolute; top:4px; left:0; right:0; text-align:center; pointer-events:none
   }
@@ -127,17 +128,25 @@
   <div class="top">
     <div class="brand" id="brand"><span class="logo">🌱</span>Habitu.be</div>
     <div class="spacer"></div>
+
+    <!-- Sélecteur d'espace -->
+    <select id="spaceSel" class="select" title="Changer d’espace">
+      <option value="E8D3F">Collectif (E8D3F)</option>
+      <option value="D0PWE" selected>Individu (D0PWE)</option>
+      <option value="__new__">Nouveau espace…</option>
+    </select>
+
     <!-- Renommé en ⓘ Info -->
     <button class="navbtn" id="settingsBtn" title="Info">ⓘ</button>
     <button class="navbtn" id="addBtn" title="Ajouter">＋</button>
   </div>
 
-  <!-- Day bar (← [date] Ajd → | 💧/☀️ d'aujourd'hui) -->
+  <!-- Day bar (← [date] Ajd → | 💧/🌞 d'aujourd'hui) -->
   <div class="daysWrap" id="daysWrap">
     <button class="navbtn" id="prevDay">←</button>
     <div style="display:flex; align-items:center; gap:6px">
       <div class="dateLabel" id="dateLabel">—</div>
-      <div class="todayCount" id="todayCount">💧0 ☀️0</div>
+      <div class="todayCount" id="todayCount">💧0 🌞0</div>
     </div>
     <div style="display:flex; gap:6px">
       <button class="navbtn" id="todayBtn">Ajd</button>
@@ -203,7 +212,7 @@
       <div class="sheetBody">
         <div class="grid">
           <div class="opt" id="addHabit"><div class="emoji">🌱</div><div><b>Nouvelle habitude</b><div class="subtitle">Rejoindre un défi</div></div></div>
-          <div class="opt" id="addFriend"><div class="emoji">☀️</div><div><b>Ajouter un ami</b><div class="subtitle">Rejoindre via code</div></div></div>
+          <div class="opt" id="addFriend"><div class="emoji">🌞</div><div><b>Ajouter un ami</b><div class="subtitle">Rejoindre via code</div></div></div>
         </div>
       </div>
     </div>
@@ -283,6 +292,36 @@
     </div>
   </div>
 
+  <!-- Modal: Nouveau espace -->
+  <div class="modal" id="modalSpace">
+    <div class="sheet">
+      <div class="sheetHeader">
+        <div>Créer / Rejoindre un espace</div>
+        <button class="closeX" id="closeSpace">⨉</button>
+      </div>
+      <div class="sheetBody">
+        <div class="grid">
+          <div class="field">
+            <label><b>Code (6 caractères alphanumériques)</b></label>
+            <div style="display:flex; gap:8px; align-items:center">
+              <input id="spaceCode" type="text" placeholder="ABC123" maxlength="6" style="text-transform:uppercase"/>
+              <button class="btn" id="spaceGen">Générer</button>
+            </div>
+          </div>
+          <div class="field">
+            <label><b>Ton prénom</b></label>
+            <input id="spaceName" type="text" placeholder="Prénom"/>
+          </div>
+          <div class="grid" style="grid-template-columns:1fr 1fr">
+            <button class="btn" id="spaceCancel">Annuler</button>
+            <button class="btn primary" id="spaceSave">Accéder</button>
+          </div>
+          <div class="subtitle">Prototype : l’espace créé affiche les mêmes données que “Individu”.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -296,21 +335,29 @@ const CATS=[
   {id:'loisirs',emoji:'🎨',nom:'Loisirs'},
   {id:'repos',emoji:'😌',nom:'Repos'}
 ];
-/* ⇩⇩ Habitudes détaillées avec 1–2 mots fictifs en plus ⇩⇩ */
-const CHALLENGES=[
-  {id:'screenoff',cat:'sante',emoji:'🛌',titre:'Pas d écran avant le coucher',levels:['10 min','30 min','1 h'],amis:['Anna','Ben','Chloé','Marc','Marie']},
-  {id:'repas',cat:'sante',emoji:'🥗',titre:'Repas sain fait maison',levels:['1 repas','2 repas','3 repas'],amis:['Ben','Duc']},
-  {id:'lire',cat:'esprit',emoji:'📖',titre:'Lire un livre ou un roman',levels:['5 min','15 min','30 min'],amis:['Chloé']},
-  {id:'etire',cat:'corps',emoji:'🤸',titre:'Étirements corporels',levels:['3 min','10 min','20 min'],amis:['Anna','Marc']},
-  {id:'ranger',cat:'vie',emoji:'🧽',titre:'Rangement ou ménage',levels:['5 min','10 min','20 min'],amis:['Chloé']},
-  {id:'creer',cat:'loisirs',emoji:'🎸',titre:'Créer ou jouer',levels:['5 min','15 min','30 min'],amis:['Ben','Pauline']},
-  {id:'respirer',cat:'repos',emoji:'🌬️',titre:'Respiration avec cohérence cardiaque',levels:['2 min','5 min','10 min'],amis:['Anna','Marie']}
-];
-const HOME_SELECTION=['screenoff','repas','lire','etire','ranger','creer','respirer'];
 
-const levelTxt2={0:'',1:'💧1',2:'💧2',3:'💧3'};
-const levelTxt={0:'',1:'💧',2:'💧💧',3:'💧💧💧'};
-const levelPts={0:0,1:1,2:2,3:3};
+/* ⇩⇩ Habitudes (type=private pour Individu) ⇩⇩ */
+const CHALLENGES=[
+  {type:'private',id:'screenoff',cat:'sante',emoji:'🛌',titre:'Pas d écran avant le coucher',levels:['10 min','30 min','1 h'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'private',id:'repas',cat:'sante',emoji:'🥗',titre:'Repas sain fait maison',levels:['1 repas','2 repas','3 repas'],amis:['Ben','Duc']},
+  {type:'private',id:'lire',cat:'esprit',emoji:'📖',titre:'Lire un livre ou un roman',levels:['5 min','15 min','30 min'],amis:['Chloé']},
+  {type:'private',id:'etire',cat:'corps',emoji:'🤸',titre:'Étirements corporels',levels:['3 min','10 min','20 min'],amis:['Anna','Marc']},
+  {type:'private',id:'ranger',cat:'vie',emoji:'🧽',titre:'Rangement ou ménage',levels:['5 min','10 min','20 min'],amis:['Chloé']},
+  {type:'private',id:'creer',cat:'loisirs',emoji:'🎸',titre:'Créer ou jouer',levels:['5 min','15 min','30 min'],amis:['Ben','Pauline']},
+  {type:'private',id:'respirer',cat:'repos',emoji:'🌬️',titre:'Respiration cohérence cardiaque',levels:['2 min','5 min','10 min'],amis:['Anna','Marie']}
+];
+
+/* ⇩⇩ Habitudes Collectif (type=group) ⇩⇩ */
+const GROUP_CHALLENGES=[
+  {type:'group',id:'silence_matin',cat:'coloc',emoji:'🤫',titre:'Silence matinal',levels:['Avant 9h','Avant 8h','Avant 7h'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'poubelles',cat:'coloc',emoji:'🗑️',titre:'Descendre les poubelles',levels:['1×/semaine','2×/semaine','3×/semaine ou dès besoin'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'cuisine',cat:'coloc',emoji:'🧽',titre:'Nettoyer la cuisine',levels:['10 min','20 min','30 min'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'communs',cat:'coloc',emoji:'🧺',titre:'Ranger les communs',levels:['15 min','10 min/jour','5 min matin + soir'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'apero_coloc',cat:'coloc',emoji:'🍷',titre:'Apéro ou repas coloc',levels:['Partage gastronomique','Apéro','Repas'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'energie',cat:'coloc',emoji:'⚡',titre:'Économie d’énergie',levels:['Électricité','Chauffage et Eau Chaude','Chauffage, Eau chaude et Électricité'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'wc_sdb',cat:'coloc',emoji:'🚽',titre:'Nettoyer WC et SDB',levels:['5 min','10 min ','15 min'],amis:['Anna','Ben','Chloé','Marc','Marie']},
+  {type:'group',id:'silence_nuit',cat:'coloc',emoji:'🌙',titre:'Silence nocturne',levels:['Après minuit','Après 23h','Après 22h sans exception'],amis:['Anna','Ben','Chloé','Marc','Marie']}
+];
 
 /* ======= Amis / événements (60 j) ======= */
 const FRIENDS=['Anna','Ben','Chloé','Duc','Marc','Marie','Pauline'];
@@ -322,7 +369,7 @@ const friendEvents={};
     for(let d=0; d<60; d++){
       if(Math.random()<0.45){
         const lvl=[1,1,2,3][Math.floor(Math.random()*4)];
-        friendEvents[n].push({ts: now - d*864e5, pts: levelPts[lvl]});
+        friendEvents[n].push({ts: now - d*864e5, pts: lvl});
       }
     }
   });
@@ -331,7 +378,8 @@ const friendEvents={};
 /* ======= Claps totaux par défi et par utilisateur (0–100, fixés aléatoirement) ======= */
 const challengeClaps={}; // {challengeId:{ 'Anna':42, ..., 'Moi':73 }}
 (function seedClaps(){
-  CHALLENGES.forEach(c=>{
+  const all=[...CHALLENGES,...GROUP_CHALLENGES];
+  all.forEach(c=>{
     challengeClaps[c.id]={};
     [...new Set([...c.amis,'Moi'])].forEach(n=>{
       challengeClaps[c.id][n]=Math.floor(Math.random()*101); // 0..100
@@ -345,6 +393,7 @@ const $$=s=>Array.from(document.querySelectorAll(s));
 const sumPeriod=(arr,period)=> period==='all' ? arr.reduce((a,e)=>a+e.pts,0)
                                              : arr.filter(e=>e.ts>=Date.now()-30*864e5).reduce((a,e)=>a+e.pts,0);
 function fmtDate(d){const m=['01','02','03','04','05','06','07','08','09','10','11','12'][d.getMonth()];const j=String(d.getDate()).padStart(2,'0');const J=['Di','Lu','Ma','Me','Je','Ve','Sa'][d.getDay()];return `${J} ${j}/${m}`;}
+function genCode(){ const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let s=''; for(let i=0;i<6;i++){ s+=chars[Math.floor(Math.random()*chars.length)]; } return s; }
 
 /* === Barème des niveaux (tooltips) === */
 function levelEmojiFromScore(v){
@@ -371,7 +420,7 @@ function scoreBreakdownTitle(drops,claps){
   return `${levelEmojiFromScore(total)} ${total}`;
 }
 
-/* ======= Score = 💧(défi) + ☀️(claps totaux) ======= */
+/* ======= Score = 💧(défi) + 🌞(claps totaux) ======= */
 function scoreFor(challengeId, name, drops){
   const cl=challengeClaps[challengeId]?.[name] ?? 0;
   return {total:(drops+cl), claps:cl, drops};
@@ -380,14 +429,22 @@ function scoreFor(challengeId, name, drops){
 /* ======= Période globale (paramètres) ======= */
 let periodSetting='30';
 
+/* ======= Sélection d’espace (prototype) ======= */
+const SPACES={
+  'D0PWE':{ label:'Individu', type:'private', challenges:CHALLENGES },
+  'E8D3F':{ label:'Collectif', type:'group', challenges:GROUP_CHALLENGES }
+};
+let currentSpaceId='D0PWE';
+let currentUserName='Moi'; // remplacé visuellement par le prénom saisi dans un espace créé
+
 /* ======= Sélecteur de date ======= */
 let dayOffset=0;
 function currentDate(){ const t=new Date(); t.setHours(0,0,0,0); t.setDate(t.getDate()+dayOffset); return t; }
 function renderDateBar(){
   $("#dateLabel").textContent = fmtDate(currentDate());
-  const dropsToday = $$('#cards .levelBtn').map(b=>levelPts[Number(b.dataset.level||0)]).reduce((a,b)=>a+b,0);
+  const dropsToday = $$('#cards .levelBtn').map(b=>Number(b.dataset.dropsToday||0)).reduce((a,b)=>a+b,0);
   const sunsToday = Math.floor(Math.random()*11); // 0..10 (démo)
-  $("#todayCount").textContent = `💧${dropsToday}  ☀️${sunsToday}`;
+  $("#todayCount").textContent = `💧${dropsToday}  🌞${sunsToday}`;
 }
 $("#prevDay").onclick=()=>{ dayOffset--; renderDateBar(); };
 $("#nextDay").onclick=()=>{ dayOffset++; renderDateBar(); };
@@ -399,12 +456,30 @@ function computeGlobalDrops(){ return $$('#cards .levelBtn .num').map(n=>Number(
 
 /* ======= Cartes ======= */
 let activeCardId=null, refBtn=null;
-function findById(id){ return CHALLENGES.find(c=>c.id===id); }
+
+function getSpace(){ return SPACES[currentSpaceId] || SPACES['D0PWE']; }
+function getChallengesForSpace(){ return getSpace().challenges; }
+
+function statusEmojiFromCount(n){
+  if(n>=8) return '🌱';       // 8–10
+  if(n>=5) return '🌾';       // 5–7
+  if(n>=2) return '🪵';       // 2–4
+  if(n>=1) return '🪹';       // 1 (spécifique)
+  return '🪹';                // 0 ou <1 → 🪹
+}
+function subtitleFromClicks(it, n){
+  if(n>=8) return it.levels[2];
+  if(n>=4) return it.levels[1];
+  if(n>=1) return it.levels[0];
+  return '';
+}
 
 function renderCards(){
+  const list=getChallengesForSpace();
+  const isGroup=(getSpace().type==='group');
+
   const root=$("#cards"); root.innerHTML='';
-  HOME_SELECTION.forEach(id=>{
-    const it=findById(id);
+  list.forEach(it=>{
     const card=document.createElement('article'); card.className='card';
 
     // Contenu (à gauche)
@@ -417,25 +492,26 @@ function renderCards(){
     friends.addEventListener('click', (e) => {
       if (e.target && e.target.nodeType === 3) return;
       const badge = e.target.closest('.badge');
-      if (badge) {
-        openDetail(it.id, btn, 'friends');
-        e.stopPropagation();
-      }
+      if (badge) { openDetail(it.id, btn, 'friends'); e.stopPropagation(); }
     });
 
     it.amis.forEach(n=>{
       const drops=sumPeriod(friendEvents[n]||[], periodSetting);
-      const {total,claps} = scoreFor(it.id, n, drops);
-
+      const {claps} = scoreFor(it.id, n, drops);
       const b=document.createElement('div'); b.className='badge';
       const name=document.createElement('span'); name.className='name'; name.textContent=n;
-      const maybeSun = (Math.random()>=0.5) ? (()=>{ const s=document.createElement('span'); s.className='sun'; s.textContent='☀️'; s.title = `${claps} claps (démo)`; return s; })() : null;
-      const hot=document.createElement('div'); hot.className='streak'; 
+      const hot=document.createElement('div'); hot.className='streak';
       const todayLvl = 1 + Math.floor(Math.random()*3);
-      hot.textContent = levelTxt2[todayLvl];
+      hot.textContent = `💧${todayLvl}`;
       hot.setAttribute('title','Niveau de réalisation du jour');
 
-      if(maybeSun){ b.append(name, maybeSun, hot); } else { b.append(name, hot); }
+      // 50% soleil déco
+      if(Math.random()>=0.5){
+        const sun=document.createElement('span'); sun.textContent='🌞'; sun.title=`${claps} claps (démo)`; 
+        b.append(name,sun,hot);
+      }else{
+        b.append(name,hot);
+      }
       friends.appendChild(b);
     });
     cont.append(title,sub,friends);
@@ -443,39 +519,75 @@ function renderCards(){
     // Colonne niveau (à DROITE)
     const col=document.createElement('div'); col.className='levelCol';
     const btn=document.createElement('button'); btn.className='levelBtn';
-    const startTotal = Math.floor(Math.random()*200)+1;
-    btn.dataset.level='0'; 
-    btn.dataset.total=String(startTotal);
     btn.dataset.cid=it.id;
-    btn.innerHTML=`<div class="self" title=""></div><div class="mini"></div><div class="big"><span class="num">${startTotal}</span></div>`;
 
-    const updateMini = ()=>{ const L=Number(btn.dataset.level); btn.querySelector('.mini').textContent = levelTxt[L]; };
-    const updateSelf = ()=>{ 
-      const drops = Number(btn.dataset.total||0); 
-      const claps = challengeClaps[btn.dataset.cid]?.['Moi'] ?? 0;
-      const score = drops + claps;
-      const el = btn.querySelector('.self');
-      el.textContent = levelEmojiFromScore(score); 
-      el.setAttribute('title', scoreBreakdownTitle(drops,claps));
-    };
-    updateMini(); updateSelf();
+    if(isGroup){
+      // MODE COLLECTIF : nombre 0..10 (cap 10) + emoji statut 🌱/🌾/🪵/🪹
+      const start = Math.floor(Math.random()*11); // 0..10
+      btn.dataset.count = String(start);
+      btn.dataset.dropsToday = '0'; // pour le compteur du jour
+      btn.innerHTML=`<div class="self" title=""></div><div class="mini"></div><div class="big"><span class="num">${start}</span></div>`;
 
-    btn.onclick=()=>{
-      const prev=Number(btn.dataset.level);
-      const next=(prev+1)%4; btn.dataset.level=String(next);
-      const delta = next===0 ? -levelPts[prev] : (levelPts[next]-levelPts[prev]);
-      const newDrops = Math.max(0, Number(btn.dataset.total) + delta);
-      btn.dataset.total=String(newDrops);
-      btn.querySelector('.num').textContent=String(newDrops);
+      const refresh=()=>{
+        const n = Number(btn.dataset.count||0);
+        btn.querySelector('.num').textContent = String(n);
+        btn.querySelector('.self').textContent = statusEmojiFromCount(n);
+        btn.querySelector('.self').setAttribute('title', `Indice ${n}/10`);
+        sub.textContent = subtitleFromClicks(it, n);
+        card.classList.toggle('done', n>0);
+      };
+      refresh();
+
+      btn.onclick=()=>{
+        let n = Number(btn.dataset.count||0);
+        if(n<10) n++;
+        btn.dataset.count = String(n);
+        // on compte chaque clic comme 1 💧 pour "aujourd’hui" (démo)
+        btn.dataset.dropsToday = String(Number(btn.dataset.dropsToday||0) + 1);
+        refresh();
+        setHeat(Math.min(100, computeGlobalDrops()));
+        renderDateBar();
+      };
+    }else{
+      // MODE INDIVIDU : logique existante 💧1/2/3 + total croissant
+      const levelTxt={0:'',1:'💧',2:'💧💧',3:'💧💧💧'};
+      const levelPts={0:0,1:1,2:2,3:3};
+      const startTotal = Math.floor(Math.random()*200)+1;
+      btn.dataset.level='0'; 
+      btn.dataset.total=String(startTotal);
+      btn.dataset.dropsToday='0';
+      btn.innerHTML=`<div class="self" title=""></div><div class="mini"></div><div class="big"><span class="num">${startTotal}</span></div>`;
+
+      const updateMini = ()=>{ const L=Number(btn.dataset.level); btn.querySelector('.mini').textContent = levelTxt[L]; };
+      const updateSelf = ()=>{ 
+        const drops = Number(btn.dataset.total||0); 
+        const claps = challengeClaps[btn.dataset.cid]?.['Moi'] ?? 0;
+        const score = drops + claps;
+        const el = btn.querySelector('.self');
+        el.textContent = levelEmojiFromScore(score); 
+        el.setAttribute('title', `${levelEmojiFromScore(score)} ${score}`);
+      };
       updateMini(); updateSelf();
-      if(next>0){ card.classList.add('done'); sub.textContent = `${it.levels[next-1]}`; } else { card.classList.remove('done'); sub.textContent=''; }
-      setHeat(Math.min(100, computeGlobalDrops()));
-      renderDateBar();
-    };
+
+      btn.onclick=()=>{
+        const levelPtsMap=levelPts;
+        const prev=Number(btn.dataset.level);
+        const next=(prev+1)%4; btn.dataset.level=String(next);
+        const delta = next===0 ? -levelPtsMap[prev] : (levelPtsMap[next]-levelPtsMap[prev]);
+        const newDrops = Math.max(0, Number(btn.dataset.total) + delta);
+        btn.dataset.total=String(newDrops);
+        btn.dataset.dropsToday = String(Number(btn.dataset.dropsToday||0) + Math.max(0,delta));
+        btn.querySelector('.num').textContent=String(newDrops);
+        updateMini(); updateSelf();
+        if(next>0){ card.classList.add('done'); sub.textContent = `${it.levels[next-1]}`; } else { card.classList.remove('done'); sub.textContent=''; }
+        setHeat(Math.min(100, computeGlobalDrops()));
+        renderDateBar();
+      };
+    }
 
     col.append(btn);
 
-    // Clics carte : ailleurs que sur amis => onglet Progression
+    // Clics carte : ailleurs que sur amis => onglet Amis par défaut
     card.addEventListener('click',(ev)=>{
       if(ev.target.closest('.levelBtn')) return;
       if(ev.target.closest('.friends')) return;
@@ -491,6 +603,7 @@ function renderCards(){
 }
 
 /* ======= Detail ======= */
+function findByIdAnywhere(id){ return [...CHALLENGES,...GROUP_CHALLENGES].find(c=>c.id===id); }
 function openDetail(id, btnRef, tab='friends'){
   activeCardId=id; refBtn=btnRef;
   $("#home").classList.remove('active'); $("#detail").classList.add('active');
@@ -501,8 +614,7 @@ function openDetail(id, btnRef, tab='friends'){
   $$('#detail .view').forEach(v=>v.classList.remove('active'));
   $(`#tab-${tab}`).classList.add('active');
 
-  const it=findById(id);
-  // 💧 retiré du titre
+  const it=findByIdAnywhere(id);
   $("#detailTitle").textContent=`${it.emoji} ${it.titre}`;
   renderRank();
   renderCalendar();
@@ -510,9 +622,9 @@ function openDetail(id, btnRef, tab='friends'){
 $("#backHome").onclick=()=>{ $("#detail").classList.remove('active'); $("#home").classList.add('active'); $("#daysWrap").style.display='flex'; };
 $("#brand").onclick=()=>{ $("#detail").classList.remove('active'); $("#home").classList.add('active'); $("#daysWrap").style.display='flex'; };
 
-/* Classement (scoreEmoji = scoreBreakdownTitle) */
+/* Classement */
 function renderRank(){
-  const it=findById(activeCardId);
+  const it=findByIdAnywhere(activeCardId);
   const period=$("#periodSel").value;
 
   const rows = [
@@ -523,10 +635,19 @@ function renderRank(){
       return {n, drops, claps, total, me:false};
     }),
     (function meRow(){
-      const drops = Number(refBtn?.dataset.total||0);
+      let drops = 0;
+      // lecture from button if visible on la home
+      if(refBtn){
+        const spaceType=getSpace().type;
+        if(spaceType==='group'){
+          drops = Number(refBtn.dataset.count||0); // interprété comme "activité" pour la démo
+        }else{
+          drops = Number(refBtn.dataset.total||0);
+        }
+      }
       const claps = challengeClaps[it.id]?.['Moi'] ?? 0;
       const total = drops + claps;
-      return {n:'Moi', drops, claps, total, me:true};
+      return {n:currentUserName||'Moi', drops, claps, total, me:true};
     })()
   ].sort((a,b)=>b.total-a.total);
 
@@ -537,9 +658,6 @@ function renderRank(){
     const left=document.createElement('div');
     left.style.display='flex'; left.style.alignItems='center'; left.style.gap='8px';
 
-    const av=document.createElement('span');
-    av.title=scoreBreakdownTitle(drops,claps);
-
     const bigScore=document.createElement('span');
     bigScore.className='scoreEmoji';
     bigScore.textContent=scoreBreakdownTitle(drops,claps); 
@@ -547,7 +665,7 @@ function renderRank(){
     const name=document.createElement('b');
     name.textContent=`${n}${me?' (toi)':''}`;
 
-    left.append(av, bigScore, name);
+    left.append(bigScore, name);
 
     const right=document.createElement('div');
     right.style.display='flex'; right.style.alignItems='center'; right.style.gap='12px';
@@ -560,15 +678,15 @@ function renderRank(){
     const clapBtn=document.createElement('button');
     clapBtn.className='clap navbtn';
     clapBtn.dataset.liked='0';
-    clapBtn.title='☀️ claps';
-    clapBtn.textContent=`☀️ ${claps}`;
+    clapBtn.title='🌞 claps';
+    clapBtn.textContent=`🌞 ${claps}`;
 
     clapBtn.onclick=()=>{
-      if(clapBtn.dataset.liked==='1') return;
+      if(clapBtn.dataset.liked==='1') return{};
       clapBtn.dataset.liked='1'; 
       const cur=parseInt(clapBtn.textContent.replace(/[^\d]/g,''))||0;
-      clapBtn.textContent=`☀️ ${cur+1}`; 
-      clapBtn.style.opacity=.7;
+      clapBtn.textContent=`🌞 ${cur+1}`; 
+      clapBtn.style.outline=`2px solid var(--green)`;
     };
 
     right.append(dropsSpan, clapBtn);
@@ -579,7 +697,7 @@ function renderRank(){
 }
 $("#periodSel").addEventListener('change',renderRank);
 
-/* Calendrier (☀️ en haut, 💧 en bas, totaux mois dans label) */
+/* Calendrier (démo) */
 let calMonthOffset=0;
 function monthInfo(offset=0){
   const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+offset);
@@ -599,24 +717,20 @@ function renderCalendar(){
   for(let d=1; d<=days; d++){
     const c=document.createElement('div'); c.className='cell';
 
-    // numéro du jour
     const dn=document.createElement('div'); dn.className='dayNum'; dn.textContent=String(d); c.appendChild(dn);
 
-    // 💧 niveau du jour (démo)
     const lvl=[0,1,1,2,3,0][Math.floor(Math.random()*6)];
     const drops = lvl;
-    const dropEl=document.createElement('div'); dropEl.className='dropMark'; dropEl.textContent=levelTxt2[lvl]||''; c.appendChild(dropEl);
+    const dropEl=document.createElement('div'); dropEl.className='dropMark'; dropEl.textContent=lvl?`💧${lvl}`:''; c.appendChild(dropEl);
     monthDrops += drops;
 
-    // ☀️ claps du jour : 50% -> 0, sinon 1..4
     let claps=0;
     if(Math.random()>=0.5){ claps = 1 + Math.floor(Math.random()*4); }
-    const clapEl=document.createElement('div'); clapEl.className='clapMark'; clapEl.textContent=claps?`☀️${claps}`:''; c.appendChild(clapEl);
+    const clapEl=document.createElement('div'); clapEl.className='clapMark'; clapEl.textContent=claps?`🌞${claps}`:''; c.appendChild(clapEl);
     monthClaps += claps;
 
     if(isThisMonth && d===today.getDate()){ c.style.outline=`2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--green')}`; }
 
-    // clic jour => aller à ce jour dans l'accueil
     c.onclick=()=>{
       const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+calMonthOffset);
       const target=new Date(base.getFullYear(), base.getMonth(), d);
@@ -629,8 +743,7 @@ function renderCalendar(){
     wrap.appendChild(c);
   }
 
-  // Label mois + totaux
-  $("#monthLabel").textContent=`${monthNames[m]} ${y} · ☀️${monthClaps} 💧${monthDrops}`;
+  $("#monthLabel").textContent=`${monthNames[m]} ${y} · 🌞${monthClaps} 💧${monthDrops}`;
 }
 $("#prevMonth").onclick=()=>{ calMonthOffset--; renderCalendar(); };
 $("#nextMonth").onclick=()=>{ calMonthOffset++; renderCalendar(); };
@@ -647,7 +760,7 @@ $$('.tab').forEach(t=>{
 });
 
 /* ======= Modals ======= */
-const modalAdd=$("#modalAdd"), modalHabit=$("#modalHabit"), modalFriend=$("#modalFriend"), modalSettings=$("#modalSettings");
+const modalAdd=$("#modalAdd"), modalHabit=$("#modalHabit"), modalFriend=$("#modalFriend"), modalSettings=$("#modalSettings"), modalSpace=$("#modalSpace");
 const open = m => m.classList.add('on');
 const close = m => m.classList.remove('on');
 
@@ -658,7 +771,6 @@ $("#addFriend").onclick=()=>{ close(modalAdd); open(modalFriend); };
 // Bouton Info (ex-Paramètres)
 $("#settingsBtn").onclick=()=>{
   open(modalSettings);
-  // Remplir la légende au vol
   $("#legendText").innerHTML = emojiScaleLegend();
 };
 $("#closeSettings").onclick=()=>close(modalSettings);
@@ -668,7 +780,6 @@ $("#closeFriend").onclick=()=>close(modalFriend);
 $("#cancelFriend").onclick=()=>close(modalFriend);
 $("#validateFriend").onclick=()=>{ alert("Ami ajouté (démo)"); close(modalFriend); };
 
-function genCode(){ const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let s=''; for(let i=0;i<6;i++){ s+=chars[Math.floor(Math.random()*chars.length)]; } return s; }
 $("#myCode").value=genCode();
 $("#regenCode").onclick=()=>{ $("#myCode").value=genCode(); };
 
@@ -700,11 +811,61 @@ $$('#modalSettings .btn[data-period]').forEach(b=>{
   b.onclick=()=>{ periodSetting=b.dataset.period; close(modalSettings); renderCards(); if($("#detail").classList.contains('active')) renderRank(); };
 });
 
+/* ======= Sélecteur d’espace ======= */
+const sel=$("#spaceSel");
+sel.addEventListener('change', ()=>{
+  const val=sel.value;
+  if(val==='__new__'){
+    // Ouvrir la création d’espace
+    $("#spaceCode").value = genCode();
+    $("#spaceName").value = '';
+    open(modalSpace);
+    // remettre l’option précédente visuellement si on ferme
+    sel.value = currentSpaceId;
+  }else{
+    currentSpaceId = val;
+    renderCards();
+    if($("#detail").classList.contains('active')){ $("#detail").classList.remove('active'); $("#home").classList.add('active'); $("#daysWrap").style.display='flex'; }
+  }
+});
+
+/* ======= Modal Nouveau espace ======= */
+$("#spaceGen").onclick=()=>{ $("#spaceCode").value=genCode(); };
+$("#spaceCancel").onclick=()=>{ close(modalSpace); };
+$("#closeSpace").onclick=()=>{ close(modalSpace); };
+$("#spaceSave").onclick=()=>{
+  const code = ($("#spaceCode").value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6) || genCode();
+  const name = ($("#spaceName").value||'').trim() || 'Moi';
+  // Prototype : nouvel espace = copie du mode Individu
+  if(!SPACES[code]){
+    SPACES[code] = { label:`Espace ${code}`, type:'private', challenges: CHALLENGES };
+  }
+  currentSpaceId = code;
+  currentUserName = name;
+  close(modalSpace);
+  // MAJ UI
+  // Injecte l’option si elle n’existe pas
+  if(!Array.from(sel.options).some(o=>o.value===code)){
+    const opt=document.createElement('option');
+    opt.value=code; opt.textContent=`${SPACES[code].label} (${code})`;
+    sel.insertBefore(opt, sel.querySelector('option[value="__new__"]'));
+  }
+  sel.value=code;
+  renderCards();
+  if($("#detail").classList.contains('active')){ $("#detail").classList.remove('active'); $("#home").classList.add('active'); $("#daysWrap").style.display='flex'; }
+};
+
 /* ======= Init ======= */
 function renderCalendarAndKeepMonth(){ renderCalendar(); }
-renderDateBar();
+let dayInitRendered=false;
+function renderDateOnce(){ if(!dayInitRendered){ renderDateBar(); dayInitRendered=true; } }
+
 renderCards();
 renderCalendarAndKeepMonth();
+renderDateOnce();
+
+/* ======= Info modal legend on open ======= */
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ [modalAdd,modalHabit,modalFriend,modalSettings,modalSpace].forEach(close); } });
 </script>
 </body>
 </html>
