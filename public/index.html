@@ -16,11 +16,11 @@ button,.select,.tab,.stab,.btn,.btnToggle,.navbtn,.calBtn,.backMini{font:600 13p
 .card{border:1px solid var(--border);background:var(--bg);border-radius:var(--r);display:grid;grid-template-columns:1fr 64px;overflow:hidden}
 .card.done{border:2px solid var(--green)}
 .content{padding:4px;display:flex;flex-direction:column;gap:4px}
-.title{font-weight:700;display:flex;align-items:center;gap:4px;font-size:13px;min-height:22px;justify-content:left}
+.title{font-weight:700;display:flex;align-items:center;gap:4px;font-size:14px;min-height:22px;justify-content:left}
 .title .left{display:flex;align-items:center;gap:4px}
 .title .hint{color:#5b5b56;font-weight:500}
 .editPen{background-color:transparent;border-color:var(--border);padding:4px;cursor:pointer}
-.desc{font-size:12px;color:#5b5b56;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:default}
+.desc{font-size:11px;color:#8f8f8c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:default}
 .desc.open{-webkit-line-clamp:unset;display:block;white-space:pre-line;overflow:visible}
 .friends{margin-top:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .badge{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--r);background:#fff;font-size:11px;line-height:1.2;cursor:pointer}
@@ -614,7 +614,7 @@ const TOUR_STEPS=[
   {sel:"#brand", title:"Bienvenue dans ton jardin d’habitudes 🌿", text:"• Chaque habitude est une plante à faire grandir 🌰 → 🌱\n• Les jardiniers 💧 arrosent \n• Les encouragements 🌞 réchauffent.\n\nBon courage dans l'entretien de notre jardin à tous !"},
   {sel:"#cards .content", title:"1/ Instructions détaillées", text:"Clique une carte pour lire la description complète de l’habitude."},
   {sel:"#cards .card .friends", title:"2/ Participations des jardiniers", text:"Ici, vois qui a arrosé (💧) et qui a encouragé (🌞)."},
-  {sel:"#cards .card .levelBtn", title:"3/ Marquer la réalisation", text:"Clique pour valider. Re-clique pour augmenter la durée d'entretien effective\nAu départ, arrose les 🌰 régulièrement pour les faire grandir en 🌱. Si l’habitude est délaissée, la plante peut se désécher 🌾."},
+  {sel:"#cards .card .levelBtn", title:"3/ Marquer la réalisation", text:"Clique pour valider. Re-clique pour augmenter la durée d'entretien effective\nAu départ, arrose les 🌰 régulièrement pour les faire grandir en 🌱 puis en 🌻.\nSi l’habitude est délaissée, la plante peut se désécher 🍃🍂🌾."},
   {sel:"#spaceSel", title:"4/ Changer de jardin", text:"Bascule entre Individu, Colocation, etc. depuis ce sélecteur."},
   {sel:"#addBtn", title:"5/ Ajouter", text:"Ajoute une habitude, un jardinier ou rejoins/crées un jardin."}
 ];
