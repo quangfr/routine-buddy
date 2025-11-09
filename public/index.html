@@ -81,8 +81,8 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
   <div class="top">
     <div class="brand" id="brand"><span class="logo">🌱</span>Habitu.be</div>
     <div class="spacer"></div>
-    <select id="spaceSel" class="select" title="Changer d’espace"></select>
-    <button class="navbtn" id="openSpace" title="Espace">ⓘ</button>
+    <select id="spaceSel" class="select" title="Changer de jardin"></select>
+    <button class="navbtn" id="openSpace" title="Jardin">ⓘ</button>
   </div>
 
   <div class="daysWrap" id="daysWrap">
@@ -105,14 +105,14 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
       <div class="detailTitle" id="detailTitle"></div>
     </div>
     <div class="tabs">
-      <button class="tab active" data-tab="members">👥 Participants</button>
+      <button class="tab active" data-tab="members">👨‍🌾 Jardiniers</button>
       <button class="tab" data-tab="history">📅 Historique</button>
       <button class="tab" data-tab="settings">✏️ Édition</button>
     </div>
     <div class="section">
       <div class="view active" id="tab-members">
         <div class="rankHeader">
-          <b>Classement</b>
+          <b>Durée</b>
           <div style="font-size:12px;display:flex;gap:8px;align-items:center">
             Période:
             <div style="display:flex;gap:8px">
@@ -168,16 +168,25 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
       <div class="detailTitle" id="spaceHeaderTitle"></div>
     </div>
     <div class="tabs">
-      <button class="tab active" data-stab="sprofile">👥 Participants</button>
+      <button class="tab active" data-stab="sprofile">👨‍🌾 Jardiniers</button>
       <button class="tab" data-stab="shistory">📅 Historique</button>
       <button class="tab" data-stab="sparams">✏️ Édition</button>
     </div>
     <div class="section">
-      <div class="view active" id="sprofile">
-        <div class="rankHeader"><b>Classement (toutes habitudes)</b></div>
-        <div class="miniInfo">Démo : likes proportionnels aux heures.</div>
-        <div class="rank" id="spaceRank"></div>
+   <div class="view active" id="sprofile">
+  <div class="rankHeader">
+    <b>Durée</b>
+    <div style="font-size:12px;display:flex;gap:8px;align-items:center">
+      Période:
+      <div style="display:flex;gap:8px">
+        <button class="btnToggle" data-speriod="7" id="sBtnP7">7 jours</button>
+        <button class="btnToggle active" data-speriod="30" id="sBtnP30">30 jours</button>
+        <button class="btnToggle" data-speriod="all" id="sBtnPAll">Total</button>
       </div>
+    </div>
+  </div>
+  <div class="rank" id="spaceRank"></div>
+</div>
       <div class="view" id="shistory">
         <div class="calendarWrap">
           <div class="calTop">
@@ -198,10 +207,10 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
         <div class="grid">
           <div class="field">
             <label><b>Description</b></label>
-            <textarea id="spaceDescInfo" placeholder="Présentez l’espace, les règles et l’état d’esprit. Cliquez pour éditer."></textarea>
+            <textarea id="spaceDescInfo" placeholder="Présentez le jardin, les règles et l’état d’esprit. Cliquez pour éditer."></textarea>
           </div>
           <div class="field"><label><b>Mon pseudo</b></label><input id="paramName" type="text" value="Moi"/></div>
-          <div class="field"><label><b>Nom de l'espace</b></label><input id="paramSpaceLabel" type="text"/></div>
+          <div class="field"><label><b>Nom du jardin</b></label><input id="paramSpaceLabel" type="text"/></div>
           <div class="field"><label><b>Accès</b></label><select class="select"><option>Public</option><option>Sur invitation</option></select></div>
           <div class="field"><label><b>Droits d'édition</b></label><select class="select"><option>Admin</option><option>Tous</option></select></div>
           <div style="margin-top:12px"><button class="btn danger" id="quitSpaceBtn">Quitter</button></div>
@@ -216,8 +225,8 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
       <div class="sheetBody">
         <div class="grid">
           <div class="opt" id="addHabit"><div class="emoji">🌱</div><div><b>Nouvelle habitude</b><div class="subtitle">Rejoindre un défi</div></div></div>
-          <div class="opt" id="inviteFriend"><div class="emoji">🌞</div><div><b>Inviter un membre</b><div class="subtitle">Lien à partager</div></div></div>
-          <div class="opt" id="joinSpace"><div class="emoji">🤝</div><div><b>Rejoindre un espace</b><div class="subtitle">Entrer un code</div></div></div>
+          <div class="opt" id="inviteFriend"><div class="emoji">🌞</div><div><b>Inviter un jardinier</b><div class="subtitle">Lien à partager</div></div></div>
+          <div class="opt" id="joinSpace"><div class="emoji">🤝</div><div><b>Rejoindre un jardin</b><div class="subtitle">Entrer un code</div></div></div>
         </div>
       </div>
     </div>
@@ -231,7 +240,7 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
           <div class="field">
             <label><b>Lien à partager</b></label>
             <div class="rowInline"><input id="inviteLink" type="text" readonly/><button class="btn copyOnly" id="copyInvite" title="Copier">🔗</button></div>
-            <div class="subtitle">Le lien contient le code de ton espace.</div>
+            <div class="subtitle">Le lien contient le code de ton jardin.</div>
           </div>
         </div>
       </div>
@@ -247,7 +256,7 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
 
   <div class="modal" id="modalSpace">
     <div class="sheet">
-      <div class="sheetHeader"><div>Créer / Rejoindre un espace</div><button class="closeX" id="closeSpace">⨉</button></div>
+      <div class="sheetHeader"><div>Créer / Rejoindre un jardin</div><button class="closeX" id="closeSpace">⨉</button></div>
       <div class="sheetBody">
         <div class="grid">
           <div class="field"><label><b>Code (6 caractères alphanumériques)</b></label>
@@ -301,15 +310,15 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function buildDesc(){return shuffle([...GENERIC_TIPS]).slice(0,7).join('\n')}
 function oneLiner(s){return (s||'').replace(/\s*\n\s*/g,' · ')}
 let period='30', spaceId='D0PWE3', userName='Moi', dayOff=0;
-const SPACES={'D0PWE3':{emoji:'👤',label:'👤 Individu',type:'private',ch:CHALLENGES,desc:'Espace personnel.'},'E8D3FS':{emoji:'🏠',label:'🏠 Colocation',type:'group',ch:GROUP_CHALLENGES,desc:'Espace partagé à la maison.'},'AS50CI':{emoji:'🏛️',label:'🏛️ Association',type:'group',ch:ASSOCIATION_CHALLENGES,desc:'Rituels d’équipe pour une asso.'},'WS32D7':{emoji:'❤️',label:'❤️ Famille',type:'group',ch:FAMILY_CHALLENGES,desc:'Routines familiales au quotidien.'},'SR3S0D':{emoji:'🏫',label:'🏫 Classe',type:'group',ch:CLASS_CHALLENGES,desc:'Vie de classe et rituels pédagogiques.'},'PD03XZ':{emoji:'🏢',label:'🏢 Bureau',type:'group',ch:OFFICE_CHALLENGES,desc:'Rituels simples pour mieux travailler.'}};
+const SPACES={'D0PWE3':{emoji:'👤',label:'👤 Individu',type:'private',ch:CHALLENGES,desc:'Jardin personnel.'},'E8D3FS':{emoji:'🏠',label:'🏠 Colocation',type:'group',ch:GROUP_CHALLENGES,desc:'Jardin partagé à la maison.'},'AS50CI':{emoji:'🏛️',label:'🏛️ Association',type:'group',ch:ASSOCIATION_CHALLENGES,desc:'Rituels d’équipe pour une asso.'},'WS32D7':{emoji:'🌞',label:'🌞 Famille',type:'group',ch:FAMILY_CHALLENGES,desc:'Routines familiales au quotidien.'},'SR3S0D':{emoji:'🏫',label:'🏫 Classe',type:'group',ch:CLASS_CHALLENGES,desc:'Vie de classe et rituels pédagogiques.'},'PD03XZ':{emoji:'🏢',label:'🏢 Bureau',type:'group',ch:OFFICE_CHALLENGES,desc:'Rituels simples pour mieux travailler.'}};
 const HABIT_DESC={}, SPACE_DESC_TXT={};
 const claps={};(()=>{const all=[...CHALLENGES,...GROUP_CHALLENGES,...FAMILY_CHALLENGES,...CLASS_CHALLENGES,...OFFICE_CHALLENGES,...ASSOCIATION_CHALLENGES];all.forEach(c=>{claps[c.id]={};[...new Set([...c.amis,'Moi'])].forEach(n=>claps[c.id][n]=Math.floor(Math.random()*101));});})();
 const FREQ={};function defaultFreqFor(h){return h.type==='group'?(Math.random()<0.6?1:2):(Math.random()<0.4?1:rint(2,5))}
 ;[...CHALLENGES,...GROUP_CHALLENGES,...FAMILY_CHALLENGES,...CLASS_CHALLENGES,...OFFICE_CHALLENGES,...ASSOCIATION_CHALLENGES].forEach(h=>{FREQ[h.id]=FREQ[h.id]||defaultFreqFor(h)});
 const BASE_MINUTES={}, HISTORY_MIN={}, STATE_TODAY={};
 function ensureHabit(hid){if(!BASE_MINUTES[hid]) BASE_MINUTES[hid]=pickQuarterUpTo75(); if(!HISTORY_MIN[hid]) HISTORY_MIN[hid]={}; if(!HABIT_DESC[hid]) HABIT_DESC[hid]=buildDesc();}
-function parseSeedNames(text){return text.replace(/^🌱\s*/,'').split(',').map(s=>s.trim()).filter(Boolean)}
-function setSeedBadge(namesEl, arr){if(!arr.length){namesEl.parentElement?.remove();return}namesEl.textContent=`🌱 ${names(arr,3)}`}
+function parseSeedNames(text){return text.replace(/^💧\s*/,'').split(',').map(s=>s.trim()).filter(Boolean)}
+function setSeedBadge(namesEl, arr){if(!arr.length){namesEl.parentElement?.remove();return}namesEl.textContent=`💧 ${names(arr,3)}`}
 function daySerial(d){return Math.floor(d.getTime()/86400000)}
 function curDate(){const t=new Date();t.setHours(0,0,0,0);t.setDate(t.getDate()+dayOff);return t;}
 function randDay(hid,serial){let h=0;const s=hid+':'+serial;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return (h%100)/100}
@@ -334,14 +343,28 @@ function sumTodayMinutes(){
 function renderDateBar(){$("#dateLabel").textContent=fmtDate(curDate());$("#todayCount").textContent=m2txt(round15(sumTodayMinutes()));}
 
 let activeId=null, refBtn=null;
+
+/* Emoji override logic for levelBtn: 🍃(20%), 🍂(10%), 🌾(10%). Reset on click */
+function decideOverrideEmoji(){
+  const r=Math.random();
+  if(r<0.20) return '🍃';
+  if(r<0.30) return '🍂';
+  if(r<0.40) return '🌾';
+  return '';
+}
+function currentBigEmoji(btn,tot){
+  const ov=btn.dataset.override||'';
+  return ov || lvlEmoji(tot);
+}
+
 function drawBtn(btn){
   const p=+btn.dataset.plants||0, s=+btn.dataset.suns||0, tot=p+s;
   const state=+btn.dataset.state||0, base=+btn.dataset.baseMin||0;
   const val=state===0?'-':m2txtShort(minutesFromState(base,state));
-  btn.innerHTML=`<div class="big">${lvlEmoji(tot)}</div><div class="scoreText">${val}</div>`;
+  btn.innerHTML=`<div class="big">${currentBigEmoji(btn,tot)}</div><div class="scoreText">${val}</div>`;
 }
 
-/* Collapse / expand gestion via .content (et plus via .desc) */
+/* Collapse / expand via .content */
 function collapseAllDescs(){
   $$('.desc.open').forEach(d=>{d.classList.remove('open');d.textContent=d.dataset.short||''});
   $$('.editPen').forEach(p=>p.remove());
@@ -385,8 +408,8 @@ function renderCards(){
     title.append(left);
     const desc=document.createElement('div');desc.className='desc';setupDesc(desc,it.id);
     const friends=document.createElement('div');friends.className='friends';
-    // Garantir au moins un badge sur la première carte (pour le tuto)
-    if(!firstCard || Math.random()<.5){const n=rint(1,2);const seed=[...it.amis].sort(()=>Math.random()-.5).slice(0,n);const b=document.createElement('div');b.className='badge seed-badge';b.textContent=`🌱 ${names(seed)}`;friends.appendChild(b)}
+    // Au moins un badge sur la première carte (pour le tuto)
+    if(!firstCard || Math.random()<.5){const n=rint(1,2);const seed=[...it.amis].sort(()=>Math.random()-.5).slice(0,n);const b=document.createElement('div');b.className='badge seed-badge';b.textContent=`💧 ${names(seed)}`;friends.appendChild(b)}
     if(!firstCard || Math.random()<.7){const n=rint(2,5),sun=[...it.amis].sort(()=>Math.random()-.5).slice(0,n);const b=document.createElement('div');b.className='badge sun-badge';b.textContent=`🌞 ${names(sun)}`;friends.appendChild(b)}
     friends.addEventListener('click',(e)=>{const badge=e.target.closest('.badge');if(badge){openDetail(it.id,btn);}})
 
@@ -413,10 +436,15 @@ function renderCards(){
     const btn=document.createElement('button');btn.className='levelBtn';btn.dataset.cid=it.id;
     const basePlants=Math.floor(Math.random()*65), suns=claps[it.id]?.['Moi']??0;
     btn.dataset.basePlants=String(basePlants);btn.dataset.plants=String(basePlants);btn.dataset.suns=String(suns);
-    btn.dataset.baseMin=String(BASE_MINUTES[it.id]);btn.dataset.state='0';drawBtn(btn);
+    btn.dataset.baseMin=String(BASE_MINUTES[it.id]);btn.dataset.state='0';
+    // decide initial override (🍃/🍂/🌾/none)
+    btn.dataset.override = decideOverrideEmoji();
+    drawBtn(btn);
 
-    /* Cycle 0->1->2->3->0 et gestion badge Moi + style done */
+    /* Cycle 0->1->2->3->0 & badge Moi + style done; reset emoji override on first click */
     const cycle=()=>{
+      // reset any override when the gardener marque la réalisation
+      if(btn.dataset.override){btn.dataset.override='';}
       const st=+btn.dataset.state||0;
       const next=(st+1)%4;
       btn.dataset.state=String(next);
@@ -451,7 +479,7 @@ function renderCalendar(){
     const dn=document.createElement('div');dn.className='dayNum';dn.textContent=String(d);c.appendChild(dn);
     if(Math.random()<0.6){
       const min=pickQuarterUpTo75();
-      const mark=document.createElement('div');mark.className='seedMark';mark.textContent='🌱';c.appendChild(mark);
+      const mark=document.createElement('div');mark.className='seedMark';mark.textContent='💧';c.appendChild(mark);
       const dur=document.createElement('div');dur.className='dur';dur.textContent=m2txtShort(min);c.appendChild(dur);
       monthMinutes+=min;
     }
@@ -459,7 +487,7 @@ function renderCalendar(){
     c.onclick=()=>{const b=new Date();b.setDate(1);b.setMonth(b.getMonth()+calOff);const tgt=new Date(b.getFullYear(),b.getMonth(),d),now=new Date();now.setHours(0,0,0,0);dayOff=Math.round((tgt-now)/86400000);showHome();renderCards();renderDateBar();window.scrollTo({top:0,behavior:'smooth'})};
     wrap.appendChild(c);
   }
-  $("#monthLabel").textContent=`${months[m]} ${y}  🌱${m2txt(round15(monthMinutes))}`;
+  $("#monthLabel").textContent=`${months[m]} ${y}  💧${m2txt(round15(monthMinutes))}`;
 }
 $("#prevMonth").onclick=()=>{calOff--;renderCalendar()};$("#nextMonth").onclick=()=>{calOff++;renderCalendar()};$("#calWho")?.addEventListener('change',renderCalendar);
 
@@ -484,10 +512,38 @@ function updSpaceHeader(){const sp=getSpace();$("#spaceHeaderTitle").textContent
 function setupSpaceInfo(){const sp=getSpace();const t=$("#spaceDescInfo");t.value=SPACE_DESC_TXT[spaceId]??(sp.desc||'');setupEditableTextarea(t,val=>{SPACE_DESC_TXT[spaceId]=val;sp.desc=val})}
 function allMembersOfSpace(){const ch=listChallenges();const set=new Set(['Moi']);ch.forEach(c=>c.amis.forEach(a=>set.add(a)));return Array.from(set)}
 function renderSpaceRank(){
-  const root=$("#spaceRank");root.innerHTML='';
-  const rows=allMembersOfSpace().map(n=>{const min=round15(rint(30,25*60));const txt=m2txt(min);const baseLikes=Math.max(0,Math.round(min/60*likeFactorFromMin(min)));return {n,txt,min,me:(n===userName||n==='Moi'),likes:baseLikes};}).sort((a,b)=>b.min-a.min);
-  rows.forEach(({n,txt,min,me,likes})=>{const row=document.createElement('div');row.className='row';const left=document.createElement('div');left.className='leftRank';const big=document.createElement('span');big.className='scoreEmoji';big.textContent=`${lvlEmoji(Math.min(65,Math.round(min/60)))} ${txt}`;const name=document.createElement('b');name.textContent=`${n}${me?' (toi)':''}`;left.append(big,name);const like=makeLikeBtn(likes);row.append(left,like);root.appendChild(row);});
+  const root = $("#spaceRank"); root.innerHTML = '';
+  const days = sPeriod==='7' ? 7 : (sPeriod==='30' ? 30 : 120);
+  const rows = allMembersOfSpace()
+    .map(n=>{
+      const v = demoHM(days);
+      const baseLikes = Math.max(0, Math.round(v.min/60 * likeFactorFromMin(v.min)));
+      return { n, txt:v.txt, min:v.min, me:(n===userName||n==='Moi'), likes:baseLikes };
+    })
+    .sort((a,b)=>b.min-a.min);
+
+  rows.forEach(({n,txt,min,me,likes})=>{
+    const row=document.createElement('div'); row.className='row';
+    const left=document.createElement('div'); left.className='leftRank';
+    const big=document.createElement('span'); big.className='scoreEmoji';
+    big.textContent = `${lvlEmoji(Math.min(65,Math.round(min/60)))} ${txt}`;
+    const name=document.createElement('b'); name.textContent = `${n}${me?' (toi)':''}`;
+    left.append(big,name);
+    const like = makeLikeBtn(likes);
+    row.append(left, like);
+    root.appendChild(row);
+  });
 }
+/* ====== Space period selector (mirrors habit selector) ====== */
+let sPeriod = '30';
+function updSpacePeriodBtns(){
+  $$('#sBtnP7,#sBtnP30,#sBtnPAll')
+    .forEach(b=>b.classList.toggle('active', b.dataset.speriod===sPeriod));
+}
+$('#sBtnP7').onclick = ()=>{ sPeriod='7';  updSpacePeriodBtns(); renderSpaceRank(); };
+$('#sBtnP30').onclick= ()=>{ sPeriod='30'; updSpacePeriodBtns(); renderSpaceRank(); };
+$('#sBtnPAll').onclick = ()=>{ sPeriod='all';updSpacePeriodBtns(); renderSpaceRank(); };
+
 let sCalOff=0;
 function populateSpaceWho(){const sel=$("#sCalWho");sel.innerHTML='';sel.add(new Option('Tous','__all__'));allMembersOfSpace().forEach(n=>sel.add(new Option(n,n)));sel.value='__all__';}
 function renderSpaceCalendar(){
@@ -495,10 +551,10 @@ function renderSpaceCalendar(){
   for(let i=0;i<fd;i++){const c=document.createElement('div');c.className='cell';c.style.opacity=.35;wrap.appendChild(c)}
   for(let d=1;d<=days;d++){
     const c=document.createElement('div');c.className='cell';const dn=document.createElement('div');dn.className='dayNum';dn.textContent=String(d);c.appendChild(dn);
-    if(Math.random()<0.65){const mins=pickQuarterUpTo75();const mark=document.createElement('div');mark.className='seedMark';mark.textContent='🌱';c.appendChild(mark);const dur=document.createElement('div');dur.className='dur';dur.textContent=m2txtShort(mins);c.appendChild(dur);monthMinutes+=mins;}
+    if(Math.random()<0.65){const mins=pickQuarterUpTo75();const mark=document.createElement('div');mark.className='seedMark';mark.textContent='💧';c.appendChild(mark);const dur=document.createElement('div');dur.className='dur';dur.textContent=m2txtShort(mins);c.appendChild(dur);monthMinutes+=mins;}
     wrap.appendChild(c);
   }
-  $("#sMonthLabel").textContent=`${months[m]} ${y}  🌱${m2txt(round15(monthMinutes))}`;
+  $("#sMonthLabel").textContent=`${months[m]} ${y}  💧${m2txt(round15(monthMinutes))}`;
 }
 $("#sPrevMonth").onclick=()=>{sCalOff--;renderSpaceCalendar()};$("#sNextMonth").onclick=()=>{sCalOff++;renderSpaceCalendar()};$("#sCalWho").addEventListener('change',renderSpaceCalendar);
 
@@ -513,10 +569,18 @@ $("#addHabit").onclick=()=>{close(mAdd);open(mHabit);step1()};$("#inviteFriend")
 function openInvite(){const code=spaceId;$("#inviteLink").value=`https://habitu.be/?code=${code}`;open(mInvite)}
 $("#closeInvite").onclick=()=>close(mInvite);$("#copyInvite").onclick=async()=>{try{await navigator.clipboard.writeText($("#inviteLink").value);alert("Lien copié !")}catch(e){alert("Copie impossible")}}
 $("#spaceGen").onclick=()=>{$("#spaceCode").value=genCode()};$("#spaceCancel").onclick=()=>close(mSpace);$("#closeSpace").onclick=()=>close(mSpace);
-$("#spaceSave").onclick=()=>{const code=($("#spaceCode").value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6), name=($("#spaceName").value||'').trim()||'Moi'; if(!code){alert("Entre un code d’espace.");return} if(SPACES[code]){spaceId=code;userName=name;updSel();renderCards();close(mSpace)} else{close(mSpace);launchWizard(code,name)}};
+$("#spaceSave").onclick=()=>{const code=($("#spaceCode").value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6), name=($("#spaceName").value||'').trim()||'Moi'; if(!code){alert("Entre un code de jardin.");return} if(SPACES[code]){spaceId=code;userName=name;updSel();renderCards();close(mSpace)} else{close(mSpace);launchWizard(code,name)}};
 let wiz={code:'',name:'',type:'private',profile:'Autre'};
 function launchWizard(code,name){wiz={code,name,type:'private',profile:'Autre'};open(mWizard);wizProfileStep()}
-function wizProfileStep(){const root=$("#wizStep");$("#wizTitle").textContent="Type de profil";root.innerHTML='';[{emoji:'👤',label:'Individu',apply:()=>({emoji:'👤',label:'👤 Individu',type:'private',ch:CHALLENGES,desc:'Espace personnel.'})},{emoji:'🏠',label:'Colocation',apply:()=>({emoji:'🏠',label:'🏠 Colocation',type:'group',ch:GROUP_CHALLENGES,desc:'Espace partagé à la maison.'})},{emoji:'🏛️',label:'Association',apply:()=>({emoji:'🏛️',label:'🏛️ Association',type:'group',ch:ASSOCIATION_CHALLENGES,desc:'Rituels d’équipe pour une asso.'})},{emoji:'❤️',label:'Famille',apply:()=>({emoji:'❤️',label:'❤️ Famille',type:'group',ch:FAMILY_CHALLENGES,desc:'Routines familiales au quotidien.'})},{emoji:'🏫',label:'Classe',apply:()=>({emoji:'🏫',label:'🏫 Classe',type:'group',ch:CLASS_CHALLENGES,desc:'Vie de classe.'})},{emoji:'🏢',label:'Bureau',apply:()=>({emoji:'🏢',label:'🏢 Bureau',type:'group',ch:OFFICE_CHALLENGES,desc:'Rituels simples pour mieux travailler.'})},{emoji:'✨',label:'Autre',apply:()=>({emoji:'✨',label:'✨ Autre',type:'group',ch:GROUP_CHALLENGES,desc:'Espace partagé.'})}].forEach(o=>{const el=document.createElement('div');el.className='opt';el.innerHTML=`<div class="emoji">${o.emoji}</div><div><b>${o.label}</b></div>`;el.onclick=()=>{const d=o.apply();SPACES[wiz.code]=d;spaceId=wiz.code;userName=wiz.name;updSel();close(mWizard);renderCards();};root.appendChild(el);});}
+function wizProfileStep(){const root=$("#wizStep");$("#wizTitle").textContent="Type de profil";root.innerHTML='';[
+  {emoji:'👤',label:'Individu',apply:()=>({emoji:'👤',label:'👤 Individu',type:'private',ch:CHALLENGES,desc:'Jardin personnel.'})},
+  {emoji:'🏠',label:'Colocation',apply:()=>({emoji:'🏠',label:'🏠 Colocation',type:'group',ch:GROUP_CHALLENGES,desc:'Jardin partagé à la maison.'})},
+  {emoji:'🏛️',label:'Association',apply:()=>({emoji:'🏛️',label:'🏛️ Association',type:'group',ch:ASSOCIATION_CHALLENGES,desc:'Rituels d’équipe pour une asso.'})},
+  {emoji:'🌞',label:'Famille',apply:()=>({emoji:'🌞',label:'🌞 Famille',type:'group',ch:FAMILY_CHALLENGES,desc:'Routines familiales au quotidien.'})},
+  {emoji:'🏫',label:'Classe',apply:()=>({emoji:'🏫',label:'🏫 Classe',type:'group',ch:CLASS_CHALLENGES,desc:'Vie de classe.'})},
+  {emoji:'🏢',label:'Bureau',apply:()=>({emoji:'🏢',label:'🏢 Bureau',type:'group',ch:OFFICE_CHALLENGES,desc:'Rituels simples pour mieux travailler.'})},
+  {emoji:'✨',label:'Autre',apply:()=>({emoji:'✨',label:'✨ Autre',type:'group',ch:GROUP_CHALLENGES,desc:'Jardin partagé.'})}
+].forEach(o=>{const el=document.createElement('div');el.className='opt';el.innerHTML=`<div class="emoji">${o.emoji}</div><div><b>${o.label}</b></div>`;el.onclick=()=>{const d=o.apply();SPACES[wiz.code]=d;spaceId=wiz.code;userName=wiz.name;updSel();close(mWizard);renderCards();};root.appendChild(el);});}
 $("#closeWizard").onclick=()=>close(mWizard);
 $("#quitSpaceBtn").onclick=()=>{const sp=getSpace();if(confirm(`Quitter ${sp.label} ?`)){spaceId='D0PWE3';updSel();renderCards();showHome()}};
 
@@ -547,11 +611,12 @@ document.querySelectorAll('#space .tabs [data-stab]').forEach(btn=>{btn.addEvent
 /* ===== Simple guided tour (first launch only) ===== */
 const tourEl=$("#tour"), focusEl=$("#tourFocus"), tipEl=$("#tourTip");
 const TOUR_STEPS=[
+  {sel:"#brand", title:"Bienvenue dans ton jardin d’habitudes 🌿", text:"• Chaque habitude est une plante à faire grandir 🌰 → 🌱\n• Les jardiniers 💧 arrosent \n• Les encouragements 🌞 réchauffent.\n\nBon courage dans l'entretien de notre jardin à tous !"},
   {sel:"#cards .content", title:"1/ Instructions détaillées", text:"Clique une carte pour lire la description complète de l’habitude."},
-  {sel:"#cards .card .friends", title:"2/ Participations des membres", text:"Ici, vois qui a participé (🌱) et encourage (🌞)."},
-  {sel:"#cards .card .levelBtn", title:"3/ Marquer la réalisation", text:"Clique pour valider. Re-clique pour +15 min, puis encore +15 min."},
-  {sel:"#spaceSel", title:"4/ Changer d’espace", text:"Bascule entre Individu, Colocation, etc. depuis ce sélecteur."},
-  {sel:"#addBtn", title:"5/ Ajouter", text:"Ajoute une habitude, un membre ou rejoins/crées un espace."}
+  {sel:"#cards .card .friends", title:"2/ Participations des jardiniers", text:"Ici, vois qui a arrosé (💧) et qui a encouragé (🌞)."},
+  {sel:"#cards .card .levelBtn", title:"3/ Marquer la réalisation", text:"Clique pour valider. Re-clique pour augmenter la durée d'entretien effective\nAu départ, arrose les 🌰 régulièrement pour les faire grandir en 🌱. Si l’habitude est délaissée, la plante peut se désécher 🌾."},
+  {sel:"#spaceSel", title:"4/ Changer de jardin", text:"Bascule entre Individu, Colocation, etc. depuis ce sélecteur."},
+  {sel:"#addBtn", title:"5/ Ajouter", text:"Ajoute une habitude, un jardinier ou rejoins/crées un jardin."}
 ];
 let tourIdx=0;
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
@@ -560,8 +625,8 @@ function placeFocusFor(el){
   const pad=8, br=10;
   const top=clamp(r.top-pad,6,window.innerHeight-40), left=clamp(r.left-pad,6,window.innerWidth-40);
   const w=clamp(r.width+pad*2,40,window.innerWidth-12), h=clamp(r.height+pad*2,30,window.innerHeight-12);
-  Object.assign(focusEl.style,{top:top+"px",left:left+"px",width:w+"px",height:h+"px",borderRadius:br+"px"});
-  // Tip positioning (below preferred, else above)
+  Object.assign(focusEl.style,{top:top+"px",left:left+"px",width:w+"px",height:h+"px",borderRadius:br+"px",display:"block"});
+  // Tip positioning
   const tipW=300, spaceBelow=window.innerHeight-(top+h), spaceAbove=top;
   let tipTop, tipLeft=clamp(left,8,window.innerWidth-tipW-8);
   if(spaceBelow>120){tipTop=top+h+10}else{tipTop=clamp(top-10-110,8,window.innerHeight-118)}
@@ -569,14 +634,26 @@ function placeFocusFor(el){
 }
 function showStep(idx){
   // Skip missing targets gracefully
-  while(idx<TOUR_STEPS.length && !document.querySelector(TOUR_STEPS[idx].sel)) idx++;
+  while(idx<TOUR_STEPS.length && TOUR_STEPS[idx].sel && !document.querySelector(TOUR_STEPS[idx].sel)) idx++;
   tourIdx=idx;
   if(tourIdx>=TOUR_STEPS.length){endTour();return}
-  const step=TOUR_STEPS[tourIdx], target=document.querySelector(step.sel);
+  const step=TOUR_STEPS[tourIdx];
+
+  if(step.intro){
+    focusEl.style.display="none";
+    const centerTop=Math.max(20,(window.innerHeight-220)/3);
+    Object.assign(tipEl.style,{top:centerTop+"px",left:clamp((window.innerWidth-300)/2,8,window.innerWidth-308)+"px"});
+    tipEl.innerHTML=`<b>${step.title}</b><div>${step.html}</div><div class="tourActions"><button class="tourBtn tourSkip" id="tourSkipBtn">Passer</button><button class="tourBtn tourNext" id="tourNextBtn">Commencer →</button></div>`;
+    $("#tourNextBtn").onclick=(e)=>{e.stopPropagation();showStep(tourIdx+1)};
+    $("#tourSkipBtn").onclick=(e)=>{e.stopPropagation();endTour()};
+    return;
+  }
+
+  const target=document.querySelector(step.sel);
   target?.scrollIntoView({block:'center',behavior:'smooth'});
   setTimeout(()=>{if(!target){showStep(tourIdx+1);return}
     placeFocusFor(target);
-    tipEl.innerHTML=`<b>${step.title}</b><div>${step.text}</div><div class="tourActions"><button class="tourBtn tourSkip" id="tourSkipBtn">Passer</button><button class="tourBtn tourNext" id="tourNextBtn">${tourIdx===TOUR_STEPS.length-1?'Terminer':'Suivant →'}</button></div>`;
+    tipEl.innerHTML=`<b>${step.title}</b><div>${(step.text||'').replace(/\n/g,'<br>')}</div><div class="tourActions"><button class="tourBtn tourSkip" id="tourSkipBtn">Passer</button><button class="tourBtn tourNext" id="tourNextBtn">${tourIdx===TOUR_STEPS.length-1?'Terminer':'Suivant →'}</button></div>`;
     $("#tourNextBtn").onclick=(e)=>{e.stopPropagation();showStep(tourIdx+1)};
     $("#tourSkipBtn").onclick=(e)=>{e.stopPropagation();endTour()};
   },220);
@@ -594,10 +671,8 @@ function endTour(){
   localStorage.setItem('tourDone','1');
 }
 tourEl.addEventListener('click',()=>showStep(tourIdx+1));
-window.addEventListener('resize',()=>{ // recalcule focus si la fenêtre change
-  const step=TOUR_STEPS[tourIdx];const el=document.querySelector(step?.sel||'');if(el) placeFocusFor(el);
-});
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && tourEl.classList.contains('on')) { const el=document.querySelector(TOUR_STEPS[tourIdx]?.sel||''); if(el) placeFocusFor(el);} });
+window.addEventListener('resize',()=>{ const step=TOUR_STEPS[tourIdx]; if(step && step.sel){ const el=document.querySelector(step.sel); if(el) placeFocusFor(el);} });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && tourEl.classList.contains('on')) { const step=TOUR_STEPS[tourIdx]; if(step && step.sel){ const el=document.querySelector(step.sel); if(el) placeFocusFor(el);} }});
 setTimeout(startTour,450);
 </script>
 </body></html>
