@@ -44,6 +44,28 @@ button,.select,.tab,.stab,.btn,.btnToggle,.navbtn,.calBtn,.backMini{
 .desc{font-size:11px;color:#8f8f8c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:default}
 .desc.open{-webkit-line-clamp:unset;display:block;white-space:pre-line;overflow:visible}
 .desc.hidden{display:none}
+textarea#habitDesc{
+  min-height:calc(1.35em*3.5);
+  line-height:1.35;
+  resize:vertical;
+  padding:6px;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  font:400 var(--fs)/1.35 system-ui,-apple-system,Roboto,sans-serif;
+}
+.weekSummary{
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:var(--r);
+  background:#f4e0c7;
+  color:#5b3f21;
+  font-weight:600;
+  font-size:12px;
+  border:1px solid rgba(132,98,61,.35);
+}
 
 /* Badges */
 .friends{margin-top:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -196,11 +218,11 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
           </div>
 
           <div class="field">
-            <label><b>Description</b></label>
-            <textarea id="habitDesc" placeholder="Décris ton habitude (objectif, contexte, tips). Clique pour éditer."></textarea>
+            <label><b>Note</b></label>
+            <textarea id="habitDesc" placeholder="Étapes, conseils, instructions spécifiques..."></textarea>
           </div>
 
-          <div class="field">
+          <div class="field" id="freqField">
             <label><b>Fréquence</b></label>
             <div class="grid" style="gap:6px">
               <select id="freqType" class="select">
@@ -222,6 +244,19 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
                 <label><input type="checkbox" value="0">Di</label>
               </div>
             </div>
+          </div>
+
+          <div class="field hide" id="weekFreqField">
+            <label><b>Fréquence hebdomadaire</b></label>
+            <select id="weekFreqSelect" class="select">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+            </select>
           </div>
 
           <div class="field">
@@ -311,6 +346,14 @@ textarea.editing{background:#fff;border:1px solid var(--border)}
             <select id="spaceOrgMode" class="select" disabled>
               <option value="day">À la journée</option>
               <option value="week">À la semaine</option>
+            </select>
+          </div>
+          <div class="field hide" id="autoWeekField">
+            <label><b>Affection hebdomadaire automatique</b></label>
+            <select id="autoWeekAffection" class="select">
+              <option value="none" selected>Non (par défaut)</option>
+              <option value="random">Aléatoire</option>
+              <option value="same">Identique</option>
             </select>
           </div>
           <div class="field"><label><b>Accès</b></label><select class="select"><option>Public</option><option>Sur invitation</option></select></div>
@@ -403,14 +446,7 @@ const CHALLENGES = [
    amis:['Ben','Duc','Nicolas','David','Jonas','Julie','Alicia','Franck']},
   {type:'private',id:'lire',cat:'esprit',emoji:'📖',titre:'Lire un livre ou un roman',
    amis:['Chloé','Nicolas','David','Jonas','Julie','Alicia','Franck']},
-  {type:'private',id:'etire',cat:'corps',emoji:'🤸',titre:'Étirements corporels',
-   amis:['Anna','Nicolas','David','Jonas','Julie','Alicia','Franck']},
-  {type:'private',id:'ranger',cat:'vie',emoji:'🧽',titre:'Rangement ou ménage',
-   amis:['Chloé','Nicolas','David','Jonas','Julie','Alicia','Franck']},
-  {type:'private',id:'creer',cat:'loisirs',emoji:'🎸',titre:'Créer ou jouer',
-   amis:['Ben','Pauline','Nicolas','David','Jonas','Julie','Alicia','Franck']},
-  {type:'private',id:'respirer',cat:'repos',emoji:'🌬️',titre:'Respiration cohérence cardiaque',
-   amis:['Anna','Marie','Nicolas','David','Jonas','Julie','Alicia','Franck']}
+
 ];
 
 // Colocation
@@ -456,1346 +492,19 @@ const CLASS_CHALLENGES = [
 ];
 
 // Bibliothèque logistique : 20 habitudes non numériques, organisées en 10 catégories
-const LIBRARY_HABITS = [
-  /* =========================
-   * INDIVIDUEL (10)
-   * ========================= */
-  {
-    id:'lib_indiv_lit',
-    cat:'individuel',
-    emoji:'🛏️',
-    titre:'Lit fait au réveil',
-    type:'private',
-    scope:'indiv',
-    modeDefault:'libre',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:7,
-    desc:"Commence par lisser la couette et aligner les oreillers.\nRègle-toi une mini règle : lit fait avant de sortir de la chambre.\nObserve la différence de sensation le soir en revenant te coucher."
-  },
-  {
-    id:'lib_indiv_sac',
-    cat:'individuel',
-    emoji:'🎒',
-    titre:'Sac / affaires pour demain préparés',
-    type:'private',
-    scope:'indiv',
-    modeDefault:'libre',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:5,
-    desc:"Prépare ton sac toujours au même endroit (entrée, bureau...).\nVérifie les 3 essentiels : documents, clés, bouteille d’eau.\nTermine en posant le sac là où tu ne pourras pas l’oublier."
-  },
-  {
-    id:'lib_indiv_tenue',
-    cat:'individuel',
-    emoji:'👕',
-    titre:'Tenue du lendemain prête',
-    type:'private',
-    scope:'indiv',
-    modeDefault:'libre',
-    freqDefault:'quotidien',
-    baseMin:8,
-    recurrence:5,
-    desc:"Choisis une tenue adaptée à la météo et à ton agenda.\nPose les vêtements à un endroit visible, prêts à être enfilés.\nDécide une fois pour toutes pour éviter de réfléchir le matin."
-  },
-  {
-    id:'lib_indiv_rangement_10',
-    cat:'individuel',
-    emoji:'🧹',
-    titre:'10 minutes de rangement perso',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:5,
-    desc:"Choisis une mini-zone : bureau, table de chevet, commode.\nMets un timer de 10 minutes et ne fais qu’une seule catégorie d’objets.\nArrête-toi à la sonnerie même si ce n’est pas parfait."
-  },
-  {
-    id:'lib_indiv_lavabo',
-    cat:'individuel',
-    emoji:'🚿',
-    titre:'Lavabo et miroir propres',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'hebdo',
-    baseMin:8,
-    recurrence:2,
-    desc:"Passe un coup d’éponge rapide sur le lavabo après la douche.\nEssuie les projections sur le miroir avec un chiffon microfibre.\nGarde un produit et un chiffon visibles pour diminuer la friction."
-  },
-  {
-    id:'lib_indiv_papiers',
-    cat:'individuel',
-    emoji:'📂',
-    titre:'Tri express des papiers perso',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Sépare en trois piles : à garder, à traiter, à jeter.\nRange uniquement la pile « à garder » dans un classeur simple.\nNote sur un post-it ce qu’il reste à faire pour les papiers « à traiter »."
-  },
-  {
-    id:'lib_indiv_lavage_main',
-    cat:'individuel',
-    emoji:'🧺',
-    titre:'Petite lessive rapide à la main',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Repère 2–3 pièces légères à laver (chaussettes, sous-vêtements).\nRemplis un lavabo avec un peu de lessive et de l’eau tiède.\nEssore doucement et suspends tout de suite sur un cintre ou un séchoir."
-  },
-  {
-    id:'lib_indiv_vidange_sac',
-    cat:'individuel',
-    emoji:'👜',
-    titre:'Sac vidé et réorganisé',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Vide tout le contenu sur une table.\nJette tickets et papiers inutiles, range les objets par thème.\nDécide d’un emplacement fixe pour clés, portefeuille et téléphone."
-  },
-  {
-    id:'lib_indiv_tiroir',
-    cat:'individuel',
-    emoji:'🗄️',
-    titre:'Un tiroir mis en ordre',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Choisis un seul tiroir et engage-toi à n’en faire qu’un.\nRegroupe les objets par usage (bureau, salle de bain, cuisine…).\nGarde une petite boîte ou pot pour les petits éléments qui se perdent."
-  },
-  {
-    id:'lib_indiv_don',
-    cat:'individuel',
-    emoji:'🎁',
-    titre:'Un sac pour donner / recycler',
-    type:'private',
-    scope:'individuel',
-    modeDefault:'libre',
-    freqDefault:'mensuel',
-    baseMin:15,
-    recurrence:1,
-    desc:"Prends un sac dédié aux objets à donner.\nChoisis 5 à 10 objets que tu n’utilises plus mais encore en bon état.\nNote un jour précis pour déposer le sac en point de collecte ou association."
-  },
 
-  /* =========================
-   * COLOCATION (10)
-   * ========================= */
-  {
-    id:'lib_coloc_plan_cuisine',
-    cat:'coloc',
-    emoji:'🍲',
-    titre:'Plan rapide de la cuisine partagée',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Ensemble, regardez l’état du plan de travail, de l’évier et du frigo.\nNotez 3 actions simples pour que la cuisine soit « prête à vivre ».\nRépartissez les actions entre vous pour que ça reste léger."
-  },
-  {
-    id:'lib_coloc_entree',
-    cat:'coloc',
-    emoji:'🚪',
-    titre:'Entrée dégagée (chaussures, colis)',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Ramenez toutes les chaussures à un endroit défini.\nEmpilez ou rangez les colis pour libérer l’espace au sol.\nTerminez en vérifiant que la porte s’ouvre sans obstacle."
-  },
-  {
-    id:'lib_coloc_poubelles',
-    cat:'coloc',
-    emoji:'🗑️',
-    titre:'Tour des poubelles et tri',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:2,
-    desc:"Vérifiez toutes les poubelles de l’appartement en une fois.\nSéparez bien recyclables, verre et ordures ménagères.\nDésignez à l’avance qui sort quoi pour éviter les malentendus."
-  },
-  {
-    id:'lib_coloc_lv',
-    cat:'coloc',
-    emoji:'🍽️',
-    titre:'Lave-vaisselle lancé ou vidé',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:5,
-    desc:"Décidez une règle simple : lancer ou vider avant de se coucher.\nRangez la vaisselle propre à un endroit cohérent pour tous.\nUtilisez un petit magnet « propre / sale » pour éviter les doutes."
-  },
-  {
-    id:'lib_coloc_plantes',
-    cat:'coloc',
-    emoji:'🪴',
-    titre:'Plantes de la coloc arrosées',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Faites un tour rapide de toutes les plantes visibles.\nTouchez la terre pour décider si un arrosage est nécessaire.\nNotez sur un post-it la date du dernier arrosage pour la prochaine fois."
-  },
-  {
-    id:'lib_coloc_surface_salon',
-    cat:'coloc',
-    emoji:'🛋️',
-    titre:'Surfaces du salon dégagées',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Videz la table basse et les accoudoirs de canapé.\nRangez livres, consoles et câbles chacun à leur place.\nFinissez par un coup de chiffon rapide sur la table principale."
-  },
-  {
-    id:'lib_coloc_frigo_commun',
-    cat:'coloc',
-    emoji:'🥫',
-    titre:'Zone « commun » du frigo rangée',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Repérez la partie du frigo dédiée aux produits partagés.\nJetez ce qui est clairement périmé et regroupez par type.\nCollez un petit papier pour noter les produits à racheter bientôt."
-  },
-  {
-    id:'lib_coloc_calendrier',
-    cat:'coloc',
-    emoji:'📅',
-    titre:'Point calendrier coloc de la semaine',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"En 10 minutes, partagez vos gros événements de la semaine.\nNotez les moments où l’appart sera très occupé ou très calme.\nDécidez d’un soir « calme » pour ménage ou temps commun."
-  },
-  {
-    id:'lib_coloc_coin_depot',
-    cat:'coloc',
-    emoji:'📦',
-    titre:'Coin dépôt organisé (livres, colis, prêts)',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Choisissez un coin unique pour tout ce qui doit « repartir ».\nSéparez ce qui est à rendre, à renvoyer, à donner.\nNotez un jour cible pour vider ce coin toutes les 1–2 semaines."
-  },
-  {
-    id:'lib_coloc_bain',
-    cat:'coloc',
-    emoji:'🧴',
-    titre:'Salle de bain prête pour le suivant',
-    type:'group',
-    scope:'coloc',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:8,
-    recurrence:5,
-    desc:"Ramassez cheveux, serviettes et vêtements laissés au sol.\nEssuyez rapidement le lavabo ou la douche s’ils sont très mouillés.\nGardez une éponge ou un chiffon toujours accessible dans la salle de bain."
-  },
-
-  /* =========================
-   * FAMILLE (10)
-   * ========================= */
-  {
-    id:'lib_fam_table',
-    cat:'famille',
-    emoji:'🍽️',
-    titre:'Table mise / débarrassée ensemble',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:15,
-    recurrence:7,
-    desc:"Attribuez à chacun un rôle simple : couverts, assiettes, eau.\nUtilisez toujours le même ordre : mettre, manger, débarrasser, essuyer.\nTerminez par un petit « merci à tous » pour ancrer le rituel."
-  },
-  {
-    id:'lib_fam_cartable',
-    cat:'famille',
-    emoji:'🎒',
-    titre:'Cartables et manteaux à leur place',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:5,
-    desc:"Fixez une zone d’accrochage unique pour manteaux et sacs.\nVérifiez chaque soir si le cartable est prêt pour le lendemain.\nLaissez les enfants cocher eux-mêmes leur mini check-list."
-  },
-  {
-    id:'lib_fam_pyjama_dent',
-    cat:'famille',
-    emoji:'🪥',
-    titre:'Routine du soir enfants coordonnée',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:15,
-    recurrence:7,
-    desc:"Enchaînez toujours dans le même ordre : douche, pyjama, dents.\nUtilisez un minuteur ludique pour le brossage.\nTerminez par un moment calme pour éviter les allers-retours."
-  },
-  {
-    id:'lib_fam_jouets',
-    cat:'famille',
-    emoji:'🧸',
-    titre:'Jouets rangés dans leur « maison »',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:6,
-    desc:"Donnez à chaque type de jouet une boîte ou un panier dédié.\nInstallez un jeu : tout doit « rentrer à la maison » avant le dîner.\nValorisez les efforts plutôt que le résultat parfait."
-  },
-  {
-    id:'lib_fam_course_rapide',
-    cat:'famille',
-    emoji:'🛒',
-    titre:'Petite liste de courses en famille',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Parcourez le frigo et les placards avec un carnet.\nDemandez aux enfants de nommer ce qu’ils veulent garder comme habitude saine.\nSéparez clairement « indispensable » et « bonus » sur la liste."
-  },
-  {
-    id:'lib_fam_linge',
-    cat:'famille',
-    emoji:'👕',
-    titre:'Panier à linge vidé ensemble',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Choisissez un moment fixe pour lancer les machines en famille.\nLaissez les enfants trier clair / foncé avec votre supervision.\nTransformez le pliage en activité courte avec musique ou histoire."
-  },
-  {
-    id:'lib_fam_frigo',
-    cat:'famille',
-    emoji:'🥦',
-    titre:'Frigo trié et prêt pour la semaine',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Regroupez ensemble les restes à finir en priorité.\nJetez ce qui n’est plus consommable sans culpabiliser.\nImaginez un ou deux repas simples à partir de ce qui reste."
-  },
-  {
-    id:'lib_fam_papiers_ecole',
-    cat:'famille',
-    emoji:'📑',
-    titre:'Papiers d’école traités et rangés',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Ouvrez tous les cahiers de liaison en une seule fois.\nRemplissez immédiatement ce qui prend moins de 2 minutes.\nPréparez une chemise dédiée aux papiers à traiter plus tard."
-  },
-  {
-    id:'lib_fam_point_agenda',
-    cat:'famille',
-    emoji:'📆',
-    titre:'Mini point agenda familial',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Notez sur un tableau les grandes activités de la semaine.\nRepérez les soirs chargés pour organiser repas ou trajets.\nLaissez un espace pour que chacun ajoute un souhait ou un besoin."
-  },
-  {
-    id:'lib_fam_dimanche_rgt',
-    cat:'famille',
-    emoji:'🏡',
-    titre:'15 minutes « maison prête pour lundi »',
-    type:'group',
-    scope:'famille',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Choisissez 2 à 3 zones prioritaires : entrée, salon, cuisine.\nMettez un timer et gardez une ambiance légère.\nL’objectif est de rendre le lundi matin plus fluide, pas d’être parfait."
-  },
-
-  /* =========================
-   * ASSOCIATION (10)
-   * ========================= */
-  {
-    id:'lib_asso_stock',
-    cat:'asso',
-    emoji:'📦',
-    titre:'Vérification rapide du stock matériel',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Listez les 5 familles d’objets clés (gobelets, feuilles, câbles…).\nComptez de manière approximative et notez ce qui descend vite.\nMettez à jour une liste partagée pour les prochains achats."
-  },
-  {
-    id:'lib_asso_salle_plan',
-    cat:'asso',
-    emoji:'🪑',
-    titre:'Salle remise selon le plan prévu',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Gardez une photo ou un schéma de la salle « en ordre ».\nReplacez les chaises et tables comme sur la référence.\nVérifiez sol, tableau et poubelles avant de quitter la salle."
-  },
-  {
-    id:'lib_asso_accueil',
-    cat:'asso',
-    emoji:'🤝',
-    titre:'Zone d’accueil prête pour les membres',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Préparez une table claire pour l’émargement ou l’accueil.\nRangez sacs et cartons derrière un même repère.\nAffichez clairement les infos essentielles de la séance."
-  },
-  {
-    id:'lib_asso_buvette',
-    cat:'asso',
-    emoji:'☕',
-    titre:'Coin boisson / buvette rangé',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Essuyez les surfaces collantes ou tachées.\nRangez gobelets, verres et boissons dans un ordre logique.\nJetez les restes clairement impropres à la consommation."
-  },
-  {
-    id:'lib_asso_com',
-    cat:'asso',
-    emoji:'📣',
-    titre:'Point communication de la semaine',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Listez les infos à transmettre aux membres cette semaine.\nDécidez de 1 ou 2 canaux seulement (mail, groupe, affiche).\nNotez qui est responsable d’envoyer chaque message."
-  },
-  {
-    id:'lib_asso_rangement_casier',
-    cat:'asso',
-    emoji:'🗃️',
-    titre:'Casier de l’association trié',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:25,
-    recurrence:1,
-    desc:"Videz le casier sur une table pour tout voir.\nJetez ou recyclez les documents périmés ou inutiles.\nClassez le reste en 3 pochettes : administratif, com, matériel."
-  },
-  {
-    id:'lib_asso_suivi_event',
-    cat:'asso',
-    emoji:'📝',
-    titre:'Mini débrief matériel après événement',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'ponctuelle',
-    baseMin:15,
-    recurrence:1,
-    desc:"Notez à chaud ce qui a manqué ou été en surplus.\nAjoutez ces remarques dans un document partagé.\nDécidez d’un point à tester ou améliorer pour le prochain événement."
-  },
-  {
-    id:'lib_asso_affichage',
-    cat:'asso',
-    emoji:'🧾',
-    titre:'Panneau d’affichage mis à jour',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Retirez les annonces obsolètes ou passées.\nPlacez les infos essentielles à hauteur de regard.\nLaissez un espace clair pour les prochaines affiches."
-  },
-  {
-    id:'lib_asso_clefs',
-    cat:'asso',
-    emoji:'🔑',
-    titre:'Clés et accès contrôlés',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:10,
-    recurrence:1,
-    desc:"Listez qui possède quelles clés ou codes d’accès.\nVérifiez si certaines personnes n’en ont plus besoin.\nNotez un rappel pour récupérer ou changer les accès si nécessaire."
-  },
-  {
-    id:'lib_asso_securite',
-    cat:'asso',
-    emoji:'🧯',
-    titre:'Petit check sécurité de la salle',
-    type:'group',
-    scope:'asso',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:15,
-    recurrence:1,
-    desc:"Vérifiez que les issues de secours sont dégagées.\nRepérez l’emplacement de l’extincteur et de la trousse de secours.\nNotez toute anomalie à signaler au gestionnaire du lieu."
-  },
-
-  /* =========================
-   * CLASSE (10)
-   * ========================= */
-  {
-    id:'lib_classe_tableau',
-    cat:'classe',
-    emoji:'🧽',
-    titre:'Tableau nettoyé et lisible',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:5,
-    desc:"Effacez complètement le tableau à la fin du cours.\nRangez feutres ou craies à un endroit unique.\nÉcrivez déjà un titre ou la date pour la séance suivante si besoin."
-  },
-  {
-    id:'lib_classe_coin_doc',
-    cat:'classe',
-    emoji:'📚',
-    titre:'Coin documents trié',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Séparez documents pour les élèves et pour l’enseignant.\nJetez les photocopies inutiles ou trop abîmées.\nRangez les polycopiés dans des dossiers clairement étiquetés."
-  },
-  {
-    id:'lib_classe_bancs',
-    cat:'classe',
-    emoji:'🪑',
-    titre:'Tables et chaises alignées',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:5,
-    desc:"Demandez à chaque élève de remettre sa chaise bien en place.\nVérifiez que les tables permettent de circuler facilement.\nFaites un dernier tour pour dégager les sacs des passages."
-  },
-  {
-    id:'lib_classe_materiel_eleve',
-    cat:'classe',
-    emoji:'✏️',
-    titre:'Matériel d’élève prêt pour le prochain cours',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:8,
-    recurrence:5,
-    desc:"Prenez 2 minutes pour vérifier stylos, cahiers, trousse.\nRangez ce qui traîne au fond du sac dans un seul cahier.\nEncouragez les élèves à cocher une mini check-list de matériel."
-  },
-  {
-    id:'lib_classe_etageres',
-    cat:'classe',
-    emoji:'📦',
-    titre:'Étagères de classe rangées',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Assignez à quelques élèves la responsabilité d’une étagère.\nRangez les manuels et cahiers par niveau ou matière.\nGardez une zone « à ranger plus tard » clairement identifiée."
-  },
-  {
-    id:'lib_classe_tech',
-    cat:'classe',
-    emoji:'💻',
-    titre:'Matériel numérique prêt',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Testez rapidement l’ordinateur, le vidéoprojecteur ou les enceintes.\nPréparez le fichier ou le diaporama du début de séance.\nNotez les éventuels soucis techniques dans un carnet."
-  },
-  {
-    id:'lib_classe_affichage',
-    cat:'classe',
-    emoji:'🖼️',
-    titre:'Affichages muraux actualisés',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Retirez les affiches qui ne servent plus ou sont abîmées.\nMettez en avant les productions récentes des élèves.\nLaissez un espace libre pour les prochains projets."
-  },
-  {
-    id:'lib_classe_coin_calme',
-    cat:'classe',
-    emoji:'🧘‍♀️',
-    titre:'Petit coin calme rangé',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Définissez une zone fixe pour le coin calme ou lecture.\nRangez coussins, livres et jeux à un endroit clair.\nRappelez en début de semaine à quoi sert cet espace."
-  },
-  {
-    id:'lib_classe_retu',
-    cat:'classe',
-    emoji:'📬',
-    titre:'Pochettes de retours / devoirs organisées',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Séparez clairement devoirs à rendre, devoirs corrigés et à distribuer.\nCollez une étiquette simple sur chaque pochette.\nVérifiez qu’aucune copie ne reste coincée dans le fond d’un sac."
-  },
-  {
-    id:'lib_classe_couloir',
-    cat:'classe',
-    emoji:'🚶‍♂️',
-    titre:'Couloir devant la classe dégagé',
-    type:'group',
-    scope:'classe',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:5,
-    recurrence:1,
-    desc:"Vérifiez qu’aucun cartable ou banc ne bloque l’entrée.\nRangez le matériel de sport ou d’arts plastiques à l’intérieur.\nAssurez-vous que les issues restent faciles à utiliser."
-  },
-
-  /* =========================
-   * BUREAU (10)
-   * ========================= */
-  {
-    id:'lib_bureau_postes',
-    cat:'bureau',
-    emoji:'🧹',
-    titre:'Postes de travail dégagés',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Videz les surfaces des bureaux des papiers inutiles.\nRegroupez câbles et chargeurs dans une boîte ou un tiroir.\nGardez au moins un coin de table totalement libre par poste."
-  },
-  {
-    id:'lib_bureau_salle_reu',
-    cat:'bureau',
-    emoji:'🏢',
-    titre:'Salle de réunion remise en ordre',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Rangez chaises et tables comme sur la configuration de base.\nÉvacuez gobelets, papiers et marqueurs usés.\nLaissez le support de présentation prêt pour la prochaine réunion."
-  },
-  {
-    id:'lib_bureau_inbox',
-    cat:'bureau',
-    emoji:'📥',
-    titre:'Inbox papier triée',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Rassemblez toutes les feuilles qui traînent dans une bannette.\nClassez-les en trois piles : à traiter, à archiver, à jeter.\nRangez immédiatement ce qui est à archiver."
-  },
-  {
-    id:'lib_bureau_point_agenda',
-    cat:'bureau',
-    emoji:'🗓️',
-    titre:'Point agenda d’équipe rapide',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Passez les 10 prochaines journées en revue avec l’équipe.\nRepérez les périodes de forte charge ou de réunions serrées.\nDécidez d’une priorité claire pour la semaine."
-  },
-  {
-    id:'lib_bureau_print',
-    cat:'bureau',
-    emoji:'🖨️',
-    titre:'Coin imprimante rangé',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Rangez ramettes de papier, toners et bacs de sortie.\nSupprimez les impressions oubliées et confidentielles.\nAffichez une petite consigne pour éviter le gâchis de papier."
-  },
-  {
-    id:'lib_bureau_snack',
-    cat:'bureau',
-    emoji:'🍏',
-    titre:'Zone snack / café propre',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Essuyez la machine à café, la table et les taches visibles.\nJetez les emballages vides et capsules usagées.\nRangez sucre, thé et tasses dans un ordre simple."
-  },
-  {
-    id:'lib_bureau_casiers',
-    cat:'bureau',
-    emoji:'🗄️',
-    titre:'Casiers ou placards d’équipe triés',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:25,
-    recurrence:1,
-    desc:"Videz un casier à la fois pour éviter le chaos.\nDécidez ce qui sert vraiment encore à l’équipe.\nRangez par thématique : papeterie, informatique, archives."
-  },
-  {
-    id:'lib_bureau_todolist',
-    cat:'bureau',
-    emoji:'✅',
-    titre:'To-do physique mise à jour',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Passez en revue les tâches affichées au mur ou sur un tableau.\nBarrez clairement ce qui est terminé.\nChoisissez 3 tâches maximum à mettre en avant pour la semaine."
-  },
-  {
-    id:'lib_bureau_zone_repos',
-    cat:'bureau',
-    emoji:'🛋️',
-    titre:'Coin pause agréable',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Rassemblez magazines, jeux, coussins ou plantes dans la zone.\nEnlevez les dossiers de travail pour limiter la pollution visuelle.\nAjoutez un petit rappel pour garder l’espace propre après usage."
-  },
-  {
-    id:'lib_bureau_sortie_jour',
-    cat:'bureau',
-    emoji:'🚪',
-    titre:'Bureau prêt pour le lendemain en partant',
-    type:'group',
-    scope:'bureau',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:5,
-    desc:"Avant de partir, libérez la moitié de votre surface de travail.\nRangez le dossier en cours dans une chemise unique.\nNotez la toute prochaine action sur un post-it visible."
-  },
-
-  /* =========================
-   * CUISINE (10)
-   * ========================= */
-  {
-    id:'lib_cuisine_plan',
-    cat:'cuisine',
-    emoji:'🧽',
-    titre:'Plan de travail vidé & essuyé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:7,
-    desc:"Rangez tout ce qui n’a rien à faire sur le plan de travail.\nPassez une éponge ou un chiffon rapidement après le repas.\nGardez un petit panier pour les objets « à ranger plus tard »."
-  },
-  {
-    id:'lib_cuisine_frigo',
-    cat:'cuisine',
-    emoji:'🥦',
-    titre:'Frigo trié (rapide)',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Regroupez devant ce qui est à consommer rapidement.\nJetez ce qui est clairement périmé.\nProfitez-en pour essuyer une étagère si elle est collante."
-  },
-  {
-    id:'lib_cuisine_vaisselle',
-    cat:'cuisine',
-    emoji:'🍽️',
-    titre:'Évier vidé avant de se coucher',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:7,
-    desc:"Rincez ou lavez la vaisselle avant d’aller dormir.\nRangez ce qui sèche dès que possible pour libérer la place.\nL’objectif : se réveiller avec un évier confortable."
-  },
-  {
-    id:'lib_cuisine_hot',
-    cat:'cuisine',
-    emoji:'🔥',
-    titre:'Plaques et hotte essuyées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Après une cuisson, laissez refroidir puis essuyez projections et graisse.\nConcentrez-vous sur les zones les plus visibles.\nGardez une éponge dédiée pour éviter d’abîmer la surface."
-  },
-  {
-    id:'lib_cuisine_tiroir_couverts',
-    cat:'cuisine',
-    emoji:'🍴',
-    titre:'Tiroir à couverts organisé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:15,
-    recurrence:1,
-    desc:"Videz le tiroir et nettoyez le fond si besoin.\nTriez les couverts par type et retirez les doublons inutiles.\nAjoutez un séparateur simple si tout se mélange."
-  },
-  {
-    id:'lib_cuisine_epices',
-    cat:'cuisine',
-    emoji:'🌶️',
-    titre:'Épices et condiments triés',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Regroupez les épices au même endroit pour mieux les voir.\nNotez celles que vous utilisez vraiment.\nJetez ou recyclez les anciens pots vides ou cassés."
-  },
-  {
-    id:'lib_cuisine_reserve_seche',
-    cat:'cuisine',
-    emoji:'🥫',
-    titre:'Réserves sèches rangées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:25,
-    recurrence:1,
-    desc:"Rassemblez pâtes, riz, légumineuses et conserves.\nPlacez devant ce qui est déjà entamé ou à finir.\nCollez une petite note avec 2–3 idées de repas simples."
-  },
-  {
-    id:'lib_cuisine_poubelle',
-    cat:'cuisine',
-    emoji:'♻️',
-    titre:'Poubelles cuisine propres et triées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Videz toutes les poubelles de la cuisine en une seule fois.\nNettoyez rapidement bac et couvercle si odeur ou traces.\nCollez un rappel des consignes de tri à proximité."
-  },
-  {
-    id:'lib_cuisine_table',
-    cat:'cuisine',
-    emoji:'🍽',
-    titre:'Table de repas prête',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:7,
-    desc:"Dégagez complètement la table avant de mettre la nourriture.\nPosez couverts, verres et serviettes avant d’appeler tout le monde.\nRangez immédiatement ce qui n’est pas lié au repas."
-  },
-  {
-    id:'lib_cuisine_machine',
-    cat:'cuisine',
-    emoji:'🧼',
-    titre:'Machine (lave-vaisselle ou lave-linge) programmée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:2,
-    desc:"Regroupez ce que vous voulez laver ou nettoyer.\nLancez ou programmez la machine à un horaire pertinent.\nNotez mentalement un moment pour vider dès la fin du cycle."
-  },
-
-  /* =========================
-   * LINGE (10)
-   * ========================= */
-  {
-    id:'lib_linge_panier',
-    cat:'linge',
-    emoji:'🧺',
-    titre:'Panier à linge vidé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:25,
-    recurrence:1,
-    desc:"Choisissez un créneau fixe pour lancer les machines.\nRemplissez la machine sans trop la surcharger.\nL’objectif : repartir chaque semaine d’un panier presque vide."
-  },
-  {
-    id:'lib_linge_rangement',
-    cat:'linge',
-    emoji:'👔',
-    titre:'Linge propre plié et rangé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:25,
-    recurrence:1,
-    desc:"Regroupez les vêtements par personne ou par type.\nPliez tout de suite ce qui est sec pour éviter le froissage.\nRangez dans les placards sans laisser de panier plein à côté."
-  },
-  {
-    id:'lib_linge_lit',
-    cat:'linge',
-    emoji:'🛏️',
-    titre:'Draps changés',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:20,
-    recurrence:1,
-    desc:"Choisissez un jour dédié au changement des draps.\nPréparez le nouveau jeu de linge avant de retirer l’ancien.\nProfitez du lit nu pour secouer oreillers et matelas rapidement."
-  },
-  {
-    id:'lib_linge_serviettes',
-    cat:'linge',
-    emoji:'🧻',
-    titre:'Serviettes de toilette renouvelées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Récupérez toutes les serviettes humides dans la maison.\nLancez une machine dédiée si possible.\nAccrochez tout de suite les serviettes propres pour qu’elles sèchent bien."
-  },
-  {
-    id:'lib_linge_garde_robe',
-    cat:'linge',
-    emoji:'👗',
-    titre:'Vêtements peu portés remis en avant',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Recherchez les vêtements oubliés au fond du placard.\nMettez-en quelques-uns en première ligne pour les porter.\nNotez ce que vous ne mettez vraiment plus pour un futur don."
-  },
-  {
-    id:'lib_linge_cintres',
-    cat:'linge',
-    emoji:'🪝',
-    titre:'Cintres libérés et ordonnés',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:10,
-    recurrence:1,
-    desc:"Enlevez les cintres inutilisés des portes et dossiers de chaise.\nRegroupez-les près du séchoir ou du placard principal.\nGardez un nombre réaliste selon vos habitudes."
-  },
-  {
-    id:'lib_linge_taches',
-    cat:'linge',
-    emoji:'🧴',
-    titre:'Taches traitées avant lavage',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Repérez rapidement les vêtements avec des taches voyantes.\nPassez un détachant simple sur les zones critiques.\nLancez ensuite la machine pour améliorer le résultat."
-  },
-  {
-    id:'lib_linge_paires_chaussettes',
-    cat:'linge',
-    emoji:'🧦',
-    titre:'Chaussettes appairées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Regroupez toutes les chaussettes propres au même endroit.\nFaites des paires et mettez de côté les « solitaires ».\nDécidez après quelques semaines quoi faire des orphelines."
-  },
-  {
-    id:'lib_linge_produits',
-    cat:'linge',
-    emoji:'🧴',
-    titre:'Produits de lessive vérifiés',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:10,
-    recurrence:1,
-    desc:"Vérifiez le niveau de lessive, adoucissant et détachant.\nNotez ce qu’il faudra racheter avant de tomber à zéro.\nRepérez les bidons vides ou presque pour les recycler."
-  },
-  {
-    id:'lib_linge_planning',
-    cat:'linge',
-    emoji:'📆',
-    titre:'Planning lessive posé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:15,
-    recurrence:1,
-    desc:"Décidez des jours « machines » en fonction de vos rythmes.\nRépartissez qui lance et qui étend.\nAffichez le planning près du panier ou de la machine."
-  },
-
-  /* =========================
-   * RANGEMENT (10)
-   * ========================= */
-  {
-    id:'lib_rgt_15',
-    cat:'rangement',
-    emoji:'🧹',
-    titre:'15 minutes de rangement ciblé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Choisissez une seule zone : bureau, étagère, entrée.\nMettez un timer de 15 minutes pour rester concentré.\nL’objectif est de « mieux qu’avant », pas de finir la pièce."
-  },
-  {
-    id:'lib_rgt_papiers',
-    cat:'rangement',
-    emoji:'📂',
-    titre:'Papiers triés dans un classeur',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:25,
-    recurrence:1,
-    desc:"Rassemblez tous les papiers dispersés dans la maison.\nClassez-les par grand thème : maison, santé, travail.\nRangez-les dans un classeur simple avec des intercalaires."
-  },
-  {
-    id:'lib_rgt_chaos_tiroir',
-    cat:'rangement',
-    emoji:'🧰',
-    titre:'Tiroir « fourre-tout » dompté',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Videz entièrement le tiroir sur une surface.\nJetez ce qui est clairement inutile ou cassé.\nRangez par petites boîtes ou pots pour retrouver facilement."
-  },
-  {
-    id:'lib_rgt_entree',
-    cat:'rangement',
-    emoji:'🚪',
-    titre:'Entrée désencombrée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Rangez chaussures, sacs et manteaux à des places dédiées.\nLibérez le chemin jusqu’à la porte.\nAjoutez un panier pour les objets à emporter lors de la prochaine sortie."
-  },
-  {
-    id:'lib_rgt_salon',
-    cat:'rangement',
-    emoji:'🛋️',
-    titre:'Salon visuellement apaisé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Dégagez la table basse et les surfaces principales.\nRangez câbles, chargeurs et objets électroniques.\nLaissez quelques éléments décoratifs que vous aimez vraiment."
-  },
-  {
-    id:'lib_rgt_placard',
-    cat:'rangement',
-    emoji:'🚪',
-    titre:'Un placard passé en revue',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:25,
-    recurrence:1,
-    desc:"Choisissez un placard précis et évitez d’en ouvrir d’autres.\nRegroupez les objets par fonction.\nPréparez un sac pour ce qui peut être donné ou vendu."
-  },
-  {
-    id:'lib_rgt_jouets_communs',
-    cat:'rangement',
-    emoji:'🧸',
-    titre:'Coin jeux commun rangé',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Mettez les jeux de société complets dans des boîtes fermées.\nRangez les pièces mélangées dans des sachets transparents.\nLaissez les jeux les plus utilisés accessibles en premier."
-  },
-  {
-    id:'lib_rgt_bureau_papier',
-    cat:'rangement',
-    emoji:'📝',
-    titre:'Surface de bureau libérée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Faites un tas unique avec tout ce qui traîne sur le bureau.\nRangez dans des dossiers ou jetez ce qui ne sert plus.\nGardez seulement les 2–3 choses utiles pour la journée."
-  },
-  {
-    id:'lib_rgt_coins_invisibles',
-    cat:'rangement',
-    emoji:'🧺',
-    titre:'Un coin « qu’on ne voit jamais » traité',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Choisissez un coin discret : dessus d’armoire, dessous de lit.\nDépoussiérez et triez ce qui y est stocké.\nDécidez ce qui mérite vraiment d’y rester."
-  },
-  {
-    id:'lib_rgt_don_regulier',
-    cat:'rangement',
-    emoji:'📦',
-    titre:'Sac de dons rempli et sorti',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Gardez un sac dédié aux objets à donner.\nAjoutez-y régulièrement vêtements ou objets en bon état.\nPlanifiez un trajet pour le déposer dans un point de collecte."
-  },
-
-  /* =========================
-   * PLANNING / ORGANISATION (10)
-   * ========================= */
-  {
-    id:'lib_org_agenda',
-    cat:'planning',
-    emoji:'🗓️',
-    titre:'Mini point agenda de la semaine',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Passez ensemble les gros rendez-vous de la semaine.\nRepérez les jours les plus chargés.\nChoisissez une seule priorité par jour au lieu de tout faire."
-  },
-  {
-    id:'lib_org_liste_courses',
-    cat:'planning',
-    emoji:'🧾',
-    titre:'Liste de courses commune à jour',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Regardez frigo et placards avec la liste sous la main.\nAjoutez les produits qui manquent vraiment.\nNotez un symbole pour ce qu’il faut acheter en urgence."
-  },
-  {
-    id:'lib_org_retro',
-    cat:'planning',
-    emoji:'🔍',
-    titre:'Petit bilan de la semaine',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:15,
-    recurrence:1,
-    desc:"Notez 3 choses qui ont bien fonctionné cette semaine.\nRepérez 1 point à alléger ou simplifier.\nChoisissez une petite expérimentation pour la semaine suivante."
-  },
-  {
-    id:'lib_org_tache_critique',
-    cat:'planning',
-    emoji:'⚠️',
-    titre:'Tâche critique identifiée et planifiée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Repérez la tâche qui aura le plus d’impact si elle est faite.\nBloquez un créneau réel dans l’agenda pour la traiter.\nDécoupez-la si nécessaire en deux sous-étapes."
-  },
-  {
-    id:'lib_org_vision_mois',
-    cat:'planning',
-    emoji:'📆',
-    titre:'Vue globale du mois',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Affichez votre calendrier sur 4 semaines.\nSurvolez les périodes chargées pour anticiper.\nDécidez d’un week-end ou d’une soirée plus « off »."
-  },
-  {
-    id:'lib_org_recurrences',
-    cat:'planning',
-    emoji:'♻️',
-    titre:'Rituels fixés dans le calendrier',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'mensuel',
-    baseMin:20,
-    recurrence:1,
-    desc:"Listez les habitudes ou rencontres que vous voulez voir revenir.\nProgrammez-les comme événements récurrents.\nVérifiez qu’il reste encore des plages libres."
-  },
-  {
-    id:'lib_org_point_5min',
-    cat:'planning',
-    emoji:'⏱️',
-    titre:'Point 5 minutes en début de journée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:5,
-    recurrence:5,
-    desc:"Regardez rapidement la journée qui arrive.\nChoisissez une seule chose à absolument terminer.\nNotez-la sur un post-it ou en haut de votre to-do."
-  },
-  {
-    id:'lib_org_mail_batch',
-    cat:'planning',
-    emoji:'📧',
-    titre:'Bloc mails groupés',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:15,
-    recurrence:5,
-    desc:"Choisissez deux créneaux pour traiter les mails plutôt qu’en continu.\nCommencez par supprimer et archiver ce qui n’a pas besoin de réponse.\nRépondez d’abord aux messages qui débloquent d’autres personnes."
-  },
-  {
-    id:'lib_org_delegation',
-    cat:'planning',
-    emoji:'🤝',
-    titre:'Tâches à déléguer identifiées',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'hebdo',
-    baseMin:10,
-    recurrence:1,
-    desc:"Repérez les tâches qui ne nécessitent pas absolument votre présence.\nNotez à qui elles pourraient être confiées.\nClarifiez le résultat attendu plutôt que la manière de faire."
-  },
-  {
-    id:'lib_org_pause_programmee',
-    cat:'planning',
-    emoji:'☕',
-    titre:'Pause réelle planifiée',
-    type:'group',
-    scope:'commun',
-    modeDefault:'commun',
-    freqDefault:'quotidien',
-    baseMin:10,
-    recurrence:5,
-    desc:"Choisissez au moins une pause dans la journée et inscrivez-la.\nÉloignez-vous réellement de l’écran pendant ce temps.\nUtilisez ce moment pour respirer, marcher ou boire un verre d’eau."
-  }
+const LIBRARY_HABITS = [];
+const LIBRARY_DEFAULT_ENTRIES = [
+  {nom:'Routine respiration',émoji:'🌬️',durée:'5 min',note:'',catégorie:'individuel'},
+  {nom:'Rotation de corvées',émoji:'🧹',durée:'10 min',note:'',catégorie:'coloc'},
+  {nom:'Bilan famille',émoji:'🪞',durée:'15 min',note:'',catégorie:'famille'},
+  {nom:'Briefing associatif',émoji:'🗣️',durée:'20 min',note:'',catégorie:'asso'},
+  {nom:'Rituels de classe',émoji:'📚',durée:'12 min',note:'',catégorie:'classe'},
+  {nom:'Pause stand-up',émoji:'💼',durée:'8 min',note:'',catégorie:'bureau'},
+  {nom:'Prépa cuisine',émoji:'🍳',durée:'25 min',note:'',catégorie:'cuisine'},
+  {nom:'Triage linge',émoji:'🧺',durée:'15 min',note:'',catégorie:'linge'},
+  {nom:'Rangement express',émoji:'📦',durée:'10 min',note:'',catégorie:'rangement'},
+  {nom:'Planif rétro',émoji:'🗓️',durée:'18 min',note:'',catégorie:'planning'}
 ];
 
 // Catégories lisibles pour le filtre d’ajout
@@ -1810,17 +519,76 @@ const LIB_CAT_LABELS = {
   cuisine:'Cuisine',
   linge:'Linge',
   rangement:'Rangement',
-  planning:'Organisation / planning'
+  planning:'Planning'
 };
 
 const claps={};
-(()=>{ // "likes" de démo
+
+function pickField(raw,...keys){
+  for(const key of keys){ if(raw && raw[key]!==undefined) return raw[key]; }
+  return undefined;
+}
+function slugify(value){
+  return String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'habitude';
+}
+function parseDuration(value){
+  if(!value) return null;
+  const match=String(value).match(/(\d+)/);
+  if(!match) return null;
+  return Math.max(1,parseInt(match[1],10));
+}
+function buildLibraryHabit(raw,idx){
+  const nom=pickField(raw,'nom','Nom')||'Nouvelle habitude';
+  const emoji=pickField(raw,'emoji','émoji','Emoji')||'🌱';
+  const categorie=(String(pickField(raw,'categorie','catégorie','Categorie')||'individuel').toLowerCase()||'individuel');
+  const duration=parseDuration(pickField(raw,'durée','duree'))||15;
+  const note=pickField(raw,'note','Note')||'';
+  const slug=slugify(nom);
+  const id=`lib_${categorie}_${slug}_${idx}`;
+  return {
+    type:'library',
+    id,
+    cat:categorie,
+    emoji,
+    titre:nom,
+    desc:note,
+    baseMin:duration,
+    freqDefault:'quotidien',
+    modeDefault:'libre',
+    recurrence:1,
+    amis:[]
+  };
+}
+function initializeLibraryHabits(entries){
+  LIBRARY_HABITS.length=0;
+  if(!Array.isArray(entries)) return;
+  entries.forEach((raw,idx)=>LIBRARY_HABITS.push(buildLibraryHabit(raw,idx+1)));
+}
+function initializeLibraryDependents(){
+  Object.keys(claps).forEach(k=>delete claps[k]);
+  Object.keys(FREQ_MODE).forEach(k=>delete FREQ_MODE[k]);
   const all=[...CHALLENGES,...GROUP_CHALLENGES,...FAMILY_CHALLENGES,...CLASS_CHALLENGES,...OFFICE_CHALLENGES,...ASSOCIATION_CHALLENGES,...LIBRARY_HABITS];
   all.forEach(c=>{
     claps[c.id]={};
     [...new Set([...(c.amis||[]),'Moi'])].forEach(n=>claps[c.id][n]=Math.floor(Math.random()*101));
+    FREQ_MODE[c.id]={type:(c.freqDefault||'quotidien')};
   });
-})();
+}
+async function loadLibraryJson(){
+  if(window.fetch){
+    try{
+      const res=await fetch('library.json');
+      if(res.ok){
+        const data=await res.json();
+        if(Array.isArray(data)&&data.length){
+          initializeLibraryHabits(data);
+          return;
+        }
+      }
+    }catch(e){}
+  }
+  initializeLibraryHabits(LIBRARY_DEFAULT_ENTRIES);
+}
 
 /* États / stock */
 const HABIT_DESC={}, HABIT_TITLE_CUSTOM={}, SPACE_DESC_TXT={};
@@ -1836,15 +604,29 @@ function weekLabel(d){
   const monday=new Date(d);monday.setDate(d.getDate()-((day+6)%7));
   const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
   const f=x=>`${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}`;
-  return `Semaine du ${f(monday)} au ${f(sunday)}`;
+  return `Du ${f(monday)} au ${f(sunday)}`;
 }
 function genCode(){const c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 const round15=m=>Math.round(m/15)*15;function rint(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pickQuarterUpTo75(){return 15*rint(1,5)}
 function lvlEmoji(v){if(v<=7)return'🌰';if(v<=14)return'🌱';if(v<=21)return'🍀';if(v<=28)return'🌼';if(v<=35)return'🌻';if(v<=42)return'🌷';if(v<=49)return'🌹';if(v<=56)return'🪻';if(v<=64)return'💐';return'🎋';}
 function names(xs,m=3){if(xs.length<=m)return xs.join(', ');const s=xs.slice(0,m).join(', ');return `${s}… et ${xs.length-m} autres`;}
-function m2txt(m){const h=Math.floor(m/60),mn=m%60;return `${h}h${String(mn).padStart(2,'0')}`;}
-function m2txtShort(m){if(!m)return'0m';const h=(m/60)|0, mn=m%60;return h?`${h}h${String(mn).padStart(2,'0')}`:`${mn}m`;}
+function m2txt(m){
+  if(!m) return '0h00';
+  const h=Math.floor(m/60), mn=m%60;
+  if(h){
+    return mn?`${h}h${String(mn).padStart(2,'0')}`:`${h}h`;
+  }
+  return `0h${String(mn).padStart(2,'0')}`;
+}
+function m2txtShort(m){
+  if(!m) return '0m';
+  const h=(m/60)|0, mn=m%60;
+  if(h){
+    return mn?`${h}h${String(mn).padStart(2,'0')}`:`${h}h`;
+  }
+  return `${mn}m`;
+}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const GENERIC_TIPS=["Commence petit et régulier.","Prépare ton matériel à l’avance.","Bloque un créneau fixe au calendrier.","Annonce ton objectif à un ami.","Trace tes progrès chaque jour.","Célèbre chaque micro-victoire.","Réduis la friction: rends l’action évidente.","Associe l’habitude à un déclencheur simple.","Fais-le même 2 minutes les jours difficiles.","Rends l’environnement compatible.","Supprime une distraction évidente.","Crée une check-list de 3 étapes.","Plan B si tu rates ton horaire.","Ferme la boucle: fais un petit bilan.","Prépare une version ‘voyage’ minimaliste.","Utilise un rappel doux (alarme ou post-it).","Vis au rythme: respire avant de commencer.","Visualise le résultat attendu.","Ralentis pour être précis, puis accélère.","Note une difficulté & une solution.","Partage un retour d’expérience avec un pair.","Automatise ce qui peut l’être.","Range immédiatement après l’action.","Récompense-toi sans culpabilité.","Passe en mode avion 20 minutes."];
 
@@ -1910,7 +692,13 @@ function ensureHelperBadge(friends,helpers){
   helpers=[...new Set(helpers||[])];
   let b=friends.querySelector('.helper-badge');
   if(helpers.length===0){ if(b) b.remove(); return; }
-  if(!b){ b=document.createElement('div'); b.className='badge helper-badge'; friends.appendChild(b); }
+  if(!b){
+    b=document.createElement('div');
+    b.className='badge helper-badge';
+    const heart=friends.querySelector('.heart-badge');
+    if(heart) friends.insertBefore(b,heart);
+    else friends.appendChild(b);
+  }
   b.textContent=`🤝 ${names(helpers,3)}`;
 }
 function ensureHeartBadge(friends,shouldShow,namesList,btnRef){
@@ -1999,21 +787,25 @@ function drawBtn(btn){
   let val='';
 
   if(st===0){
-    // À faire + durée sur 2 lignes
     val = `À faire<br>${m2txtShort(base)}`;
   }else if(st===1){
-    if(owner==='Moi'){
-      // Je fais + durée sur 2 lignes (jour & semaine)
-      val = `Je fais<br>${m2txtShort(base)}`;
-    }else if(isWeek){
-      const label = owner ? 'En cours' : 'À faire';
-      val = `${label} · ${count}/${R}`;
+    if(isWeek){
+      if(owner==='Moi'){
+        const displayCount = Math.max(1,count);
+        val = `Je fais<br>${displayCount}/${R}`;
+      }else{
+        const remoteCount = count||R;
+        val = `Fait<br>${remoteCount}/${R}`;
+      }
     }else{
-      val = helping ? "J'aide" : 'En cours';
+      if(owner==='Moi'){
+        val = `Je fais<br>${m2txtShort(base)}`;
+      }else{
+        val = helping ? "J'aide" : 'En cours';
+      }
     }
   }else if(st===2){
     if(isWeek){
-      // Fait + R/R sur 2 lignes (sans "·")
       val = `Fait<br>${R}/${R}`;
     }else{
       val = 'Fait';
@@ -2340,6 +1132,17 @@ function renderHabitSettings(){
     modeSel.onchange=()=>{const t=modeSel.value;HABIT_MODE[activeId]={type:t,n:2};renderCards();};
   }
 
+  const freqWrapper=$("#freqField");
+  const weekFreqWrapper=$("#weekFreqField");
+  const weekFreqSelect=$("#weekFreqSelect");
+  const weekMode = isWeekMode();
+  if(freqWrapper) freqWrapper.classList.toggle('hide', weekMode);
+  if(weekFreqWrapper) weekFreqWrapper.classList.toggle('hide', !weekMode);
+  if(weekFreqSelect && !weekFreqSelect.dataset.bound){
+    weekFreqSelect.dataset.bound='1';
+    weekFreqSelect.value='1';
+  }
+
   const ft=$("#freqType"), fx=$("#freqX"), fDate=$("#freqDate"), fJ=$("#freqSubJours");
   if(ft&&fx&&fDate&&fJ){
     ft.value='quotidien';
@@ -2386,11 +1189,18 @@ function updSpaceHeader(){
   $("#paramName").value=userName||'Moi';
   const orgSel=$("#spaceOrgMode");
   if(orgSel) orgSel.value=sp.orgMode||'day';
+  const autoWeekField=$("#autoWeekField");
+  if(autoWeekField) autoWeekField.classList.toggle('hide', sp.orgMode!=='week');
 }
 function setupSpaceInfo(){
   const sp=getSpace();const t=$("#spaceDescInfo");
   t.value=SPACE_DESC_TXT[spaceId]??(sp.desc||'');t.classList.add('editing');
   t.oninput=()=>{SPACE_DESC_TXT[spaceId]=t.value;sp.desc=t.value}
+  const autoWeekSelect=$("#autoWeekAffection");
+  if(autoWeekSelect && !autoWeekSelect.dataset.bound){
+    autoWeekSelect.value='none';
+    autoWeekSelect.dataset.bound='1';
+  }
 }
 function allMembersOfSpace(){const ch=listChallenges();const set=new Set(['Moi']);ch.forEach(c=>(c.amis||[]).forEach(a=>set.add(a)));return Array.from(set)}
 function renderSpaceRank(){
@@ -2419,12 +1229,46 @@ $('#sBtnPAll').onclick = ()=>{ sPeriod='all';updSpacePeriodBtns(); renderSpaceRa
 let sCalOff=0;
 function populateSpaceWho(){const sel=$("#sCalWho");sel.innerHTML='';sel.add(new Option('Tous','__all__'));allMembersOfSpace().forEach(n=>sel.add(new Option(n,n)));sel.value='__all__';}
 function renderSpaceCalendar(){
-  const wrap=$("#sCal");wrap.innerHTML='';const {y,m,fd,days}=minfo(sCalOff);const months=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];let monthMinutes=0;
-  for(let i=0;i<fd;i++){const c=document.createElement('div');c.className='cell';c.style.opacity=.35;wrap.appendChild(c)}
+  const wrap=$("#sCal");wrap.innerHTML='';
+  const space=getSpace();
+  const isWeekSpace=space.orgMode==='week';
+  const {y,m,fd,days}=minfo(sCalOff);
+  const months=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+  let monthMinutes=0;
+  let cellOfWeek=0;
+  const appendWeekSummary=()=>{
+    const summaryMinutes=round15(rint(30,360));
+    monthMinutes+=summaryMinutes;
+    const summary=document.createElement('div');
+    summary.className='weekSummary';
+    summary.textContent=`🧑‍🌾 ${m2txt(summaryMinutes)}`;
+    wrap.appendChild(summary);
+  };
+  const pushCell=(cell)=>{
+    wrap.appendChild(cell);
+    if(!isWeekSpace) return;
+    cellOfWeek++;
+    if(cellOfWeek===7){
+      appendWeekSummary();
+      cellOfWeek=0;
+    }
+  };
+  for(let i=0;i<fd;i++){const c=document.createElement('div');c.className='cell';c.style.opacity=.35;pushCell(c);}
+  const today=new Date(),sameMonth=(sCalOff===0);
   for(let d=1;d<=days;d++){
     const c=document.createElement('div');c.className='cell';const dn=document.createElement('div');dn.className='dayNum';dn.textContent=String(d);c.appendChild(dn);
-    if(Math.random()<0.65){const mins=pickQuarterUpTo75();const mark=document.createElement('div');mark.className='seedMark';mark.textContent='🧑‍🌾';c.appendChild(mark);const dur=document.createElement('div');dur.className='dur';dur.textContent=m2txtShort(mins);c.appendChild(dur);monthMinutes+=mins;}
-    wrap.appendChild(c);
+    if(!isWeekSpace && Math.random()<0.65){
+      const mins=pickQuarterUpTo75();
+      const mark=document.createElement('div');mark.className='seedMark';mark.textContent='🧑‍🌾';c.appendChild(mark);
+      const dur=document.createElement('div');dur.className='dur';dur.textContent=m2txtShort(mins);c.appendChild(dur);
+      monthMinutes+=mins;
+    }
+    if(sameMonth&&d===today.getDate()){c.style.outline=`2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--green')}`;}
+    c.onclick=()=>{const b=new Date();b.setDate(1);b.setMonth(b.getMonth()+sCalOff);const tgt=new Date(b.getFullYear(),b.getMonth(),d),now=new Date();now.setHours(0,0,0,0);dayOff=Math.round((tgt-now)/86400000);showHome();renderCards();renderDateBar();window.scrollTo({top:0,behavior:'smooth'})};
+    pushCell(c);
+  }
+  if(isWeekSpace && cellOfWeek>0){
+    appendWeekSummary();
   }
   $("#sMonthLabel").textContent=`${months[m]} ${y}  🧑‍🌾${m2txt(round15(monthMinutes))}`;
 }
@@ -2516,7 +1360,7 @@ function step1(){
   const btn=document.createElement('button');
   btn.className='btn primary';
   btn.id='addHabitsBtn';
-  btn.textContent='Ajouter (0) habitude(s)';
+  btn.textContent='Ajouter 0';
 
   bar.appendChild(sel);
   bar.appendChild(btn);
@@ -2528,7 +1372,7 @@ function step1(){
 
   function updateAddLabel(){
     const count=[...list.querySelectorAll('input[type="checkbox"]:checked')].length;
-    btn.textContent=`Ajouter (${count}) habitude(s)`;
+    btn.textContent=`Ajouter ${count}`;
   }
 
   function rebuild(){
@@ -2594,7 +1438,7 @@ $("#nextDay").onclick=()=>{dayOff+= isWeekMode() ? 7 : 1;renderCards();renderDat
 function renderCalendarAndKeepMonth(){renderCalendar()}
 let dayInit=false;function renderDateOnce(){if(!dayInit){dayOff=0;renderDateBar();dayInit=true}}
 function updAll(){renderCards();renderCalendarAndKeepMonth();renderDateOnce();updSel();maybeTogglePrivateAdd();updSpaceHeader()}
-updAll();
+loadLibraryJson().then(()=>{initializeLibraryDependents();updAll();});
 
 /* Tabs util */
 function switchViews(btn,groupAttr,prefix){

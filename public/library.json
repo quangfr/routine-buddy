@@ -1,0 +1,12 @@
+[
+  {"nom":"Routine respiration","émoji":"🌬️","durée":"5 min","note":"","catégorie":"individuel"},
+  {"nom":"Rotation de corvées","émoji":"🧹","durée":"10 min","note":"","catégorie":"coloc"},
+  {"nom":"Bilan famille","émoji":"🪞","durée":"15 min","note":"","catégorie":"famille"},
+  {"nom":"Briefing associatif","émoji":"🗣️","durée":"20 min","note":"","catégorie":"asso"},
+  {"nom":"Rituels de classe","émoji":"📚","durée":"12 min","note":"","catégorie":"classe"},
+  {"nom":"Pause stand-up","émoji":"💼","durée":"8 min","note":"","catégorie":"bureau"},
+  {"nom":"Prépa cuisine","émoji":"🍳","durée":"25 min","note":"","catégorie":"cuisine"},
+  {"nom":"Triage linge","émoji":"🧺","durée":"15 min","note":"","catégorie":"linge"},
+  {"nom":"Rangement express","émoji":"📦","durée":"10 min","note":"","catégorie":"rangement"},
+  {"nom":"Planif rétro","émoji":"🗓️","durée":"18 min","note":"","catégorie":"planning"}
+]
