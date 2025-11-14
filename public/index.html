@@ -1725,6 +1725,11 @@
     };
     setLoaderVersion();
     startLoaderTips();
+    window.addEventListener('beforeunload', () => {
+      if (tipRotationTimer) {
+        clearInterval(tipRotationTimer);
+      }
+    });
     function fmtDate(d) { const M = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'][d.getMonth()]; const j = String(d.getDate()).padStart(2, '0'); const J = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][d.getDay()]; return `${J} ${j}/${M}`; }
     function weekLabel(d) {
       const day = d.getDay(); // 0=dim
