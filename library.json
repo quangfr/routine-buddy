@@ -1,0 +1,2001 @@
+[
+  {
+    "emoji": "🧹",
+    "title": "Ranger plusieurs surfaces communes",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau",
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🧺",
+    "title": "Plier le linge propre",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "💧",
+    "title": "Remplir toutes les bouteilles d’eau",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "colocation",
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Joie",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🍵",
+    "title": "Préparer une boisson chaude",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "amis",
+      "bureau"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🎧",
+    "title": "Écouter une chanson favorite",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "bureau"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🧽",
+    "title": "Nettoyer plusieurs petits objets",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🕯️",
+    "title": "Allumer une bougie parfumée",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation"
+    ],
+    "needs": [
+      "Calme",
+      "Joie",
+      "Expression"
+    ]
+  },
+  {
+    "emoji": "📚",
+    "title": "Lire cinq pages d’un livre",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "famille",
+      "amis"
+    ],
+    "needs": [
+      "Sens",
+      "Calme",
+      "Expression"
+    ]
+  },
+  {
+    "emoji": "👟",
+    "title": "Faire une marche courte",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "amis",
+      "famille",
+      "voyage"
+    ],
+    "needs": [
+      "Mouvement",
+      "Calme",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🧘",
+    "title": "Respirer trois minutes",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "maison"
+    ],
+    "needs": [
+      "Calme",
+      "Sommeil",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🍎",
+    "title": "Préparer un fruit à partager",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "amis",
+      "famille"
+    ],
+    "needs": [
+      "Nutrition",
+      "Lien",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "📅",
+    "title": "Planifier une tâche simple",
+    "duration": "5",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "colocation"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🌿",
+    "title": "Arroser une plante",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Affection",
+      "Calme",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "📝",
+    "title": "Noter un souvenir du jour",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "maison"
+    ],
+    "needs": [
+      "Expression",
+      "Sens",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🗂️",
+    "title": "Classer trois papiers",
+    "duration": "5",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "bureau",
+      "maison"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🍝",
+    "title": "Cuisiner un plat simple",
+    "duration": "30",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation",
+      "amis"
+    ],
+    "needs": [
+      "Nutrition",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🧦",
+    "title": "Trier les vêtements propres",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "📞",
+    "title": "Appeler une personne aimée",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "maison"
+    ],
+    "needs": [
+      "Lien",
+      "Affection",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🕺",
+    "title": "Danser une minute",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "amis",
+      "famille"
+    ],
+    "needs": [
+      "Mouvement",
+      "Expression",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🌄",
+    "title": "Observer le ciel",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "maison",
+      "bureau"
+    ],
+    "needs": [
+      "Calme",
+      "Sens",
+      "Sommeil"
+    ]
+  },
+  {
+    "emoji": "🥗",
+    "title": "Préparer une salade rapide",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation"
+    ],
+    "needs": [
+      "Nutrition",
+      "Organisation",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "📦",
+    "title": "Organiser un tiroir",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🚲",
+    "title": "Faire un petit tour à vélo",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "amis",
+      "famille"
+    ],
+    "needs": [
+      "Mouvement",
+      "Joie",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🧴",
+    "title": "Prendre soin de sa peau",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "maison",
+      "voyage"
+    ],
+    "needs": [
+      "Affection",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🪑",
+    "title": "Réaménager un petit espace",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau"
+    ],
+    "needs": [
+      "Organisation",
+      "Expression",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "📨",
+    "title": "Répondre à un message",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "amis",
+      "famille"
+    ],
+    "needs": [
+      "Lien",
+      "Affection",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🎨",
+    "title": "Dessiner un petit croquis",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "maison",
+      "voyage"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🪥",
+    "title": "Nettoyer la zone salle de bain",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🎁",
+    "title": "Préparer une petite surprise",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "amis",
+      "famille",
+      "fête"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🔄",
+    "title": "Mettre en route plusieurs machines",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🧴",
+    "title": "Nettoyer toutes les poignées principales",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "colocation"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🌞",
+    "title": "Sortir prendre la lumière",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "maison",
+      "bureau"
+    ],
+    "needs": [
+      "Sommeil",
+      "Mouvement",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "💬",
+    "title": "Faire un compliment sincère",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "amis",
+      "bureau"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🔧",
+    "title": "Réparer un petit objet",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Expression"
+    ]
+  },
+  {
+    "emoji": "🛏️",
+    "title": "Aérer et rafraîchir la chambre",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille"
+    ],
+    "needs": [
+      "Sommeil",
+      "Calme",
+      "Organisation"
+    ]
+  },
+  {
+    "emoji": "🪟",
+    "title": "Nettoyer une vitre",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "bureau",
+      "colocation"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🍋",
+    "title": "Boire un verre vitaminé",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "maison",
+      "bureau",
+      "voyage"
+    ],
+    "needs": [
+      "Nutrition",
+      "Sommeil",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🎶",
+    "title": "Mettre une musique douce",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation",
+      "bureau"
+    ],
+    "needs": [
+      "Calme",
+      "Expression",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "📦",
+    "title": "Préparer un sac léger",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "bureau",
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "❤️",
+    "title": "Envoyer un mot tendre",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "amis",
+      "famille",
+      "couple"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🪴",
+    "title": "Déplacer plusieurs plantes au soleil",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau"
+    ],
+    "needs": [
+      "Affection",
+      "Calme",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🤝",
+    "title": "Proposer une aide rapide",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "amis",
+      "colocation",
+      "association"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🔍",
+    "title": "Chercher une info utile",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "famille"
+    ],
+    "needs": [
+      "Sens",
+      "Organisation",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🛒",
+    "title": "Mettre à jour la liste courses",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation"
+    ],
+    "needs": [
+      "Organisation",
+      "Nutrition",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🧑‍🍳",
+    "title": "Couper légumes pour tous",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "colocation",
+      "amis"
+    ],
+    "needs": [
+      "Nutrition",
+      "Affection",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🧴",
+    "title": "Désinfecter poignées et interrupteurs",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "colocation",
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "💌",
+    "title": "Écrire un mot positif",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "famille"
+    ],
+    "needs": [
+      "Expression",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🤸",
+    "title": "Étirements rapides debout",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "école",
+      "maison"
+    ],
+    "needs": [
+      "Mouvement",
+      "Calme",
+      "Sommeil"
+    ]
+  },
+  {
+    "emoji": "🌬️",
+    "title": "Ouvrir et aérer toute la pièce",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "colocation",
+      "famille",
+      "bureau"
+    ],
+    "needs": [
+      "Organisation",
+      "Sommeil",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "☕",
+    "title": "Partager une pause boisson",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "famille",
+      "bureau",
+      "amis"
+    ],
+    "needs": [
+      "Lien",
+      "Affection",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "📎",
+    "title": "Distribuer et collecter les feuilles",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🪑",
+    "title": "Aligner toutes les chaises de la salle",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "📘",
+    "title": "Sortir et ranger les manuels",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🖼️",
+    "title": "Décorer un tableau",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group",
+      "individual"
+    ],
+    "contexts": [
+      "école",
+      "bureau"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🖊️",
+    "title": "Répartir et tester les stylos",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🔑",
+    "title": "Vérifier et ranger toutes les clés",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "📋",
+    "title": "Installer un support affiches",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "association",
+      "bureau"
+    ],
+    "needs": [
+      "Expression",
+      "Organisation",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🧃",
+    "title": "Distribuer les boissons",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "association",
+      "école"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "📏",
+    "title": "Ranger le matériel scolaire",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🗳️",
+    "title": "Organiser un mini vote",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "association"
+    ],
+    "needs": [
+      "Lien",
+      "Expression",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "📣",
+    "title": "Accueillir les participants",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "association",
+      "bureau",
+      "école"
+    ],
+    "needs": [
+      "Lien",
+      "Affection",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🧭",
+    "title": "Montrer le chemin",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "association",
+      "bureau"
+    ],
+    "needs": [
+      "Lien",
+      "Organisation",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🗂️",
+    "title": "Installer un coin dossiers",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "😄",
+    "title": "Lancer une blague simple",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "association",
+      "bureau"
+    ],
+    "needs": [
+      "Joie",
+      "Lien",
+      "Expression"
+    ]
+  },
+  {
+    "emoji": "🫗",
+    "title": "Remplir et disposer les carafes",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Affection",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "📑",
+    "title": "Préparer les dossiers",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🔌",
+    "title": "Brancher et tester les appareils",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Expression"
+    ]
+  },
+  {
+    "emoji": "📡",
+    "title": "Tester la connexion",
+    "duration": "5",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual"
+    ],
+    "contexts": [
+      "bureau",
+      "association"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🙋",
+    "title": "Accorder une écoute",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "association",
+      "bureau"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "📜",
+    "title": "Réviser une consigne",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "école",
+      "association"
+    ],
+    "needs": [
+      "Sens",
+      "Organisation",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🎒",
+    "title": "Préparer un sac commun",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "camp",
+      "gîte"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🔥",
+    "title": "Allumer un feu sécurisé",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "voyage"
+    ],
+    "needs": [
+      "Affection",
+      "Joie",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🧭",
+    "title": "Suivre un petit itinéraire",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group",
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "sortie"
+    ],
+    "needs": [
+      "Sens",
+      "Mouvement",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🛶",
+    "title": "Préparer une activité eau",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "sortie"
+    ],
+    "needs": [
+      "Mouvement",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🛏️",
+    "title": "Installer les couchages",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "gîte",
+      "voyage"
+    ],
+    "needs": [
+      "Organisation",
+      "Affection",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🍽️",
+    "title": "Mettre la table commune",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "gîte",
+      "camp",
+      "fête"
+    ],
+    "needs": [
+      "Lien",
+      "Nutrition",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🎈",
+    "title": "Décorer un espace fête",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "mariage",
+      "anniversaire"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🎤",
+    "title": "Tester le micro et le son",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "mariage",
+      "anniversaire"
+    ],
+    "needs": [
+      "Expression",
+      "Sens",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🛍️",
+    "title": "Distribuer les cadeaux",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "anniversaire",
+      "mariage"
+    ],
+    "needs": [
+      "Affection",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🚐",
+    "title": "Organiser la montée dans le véhicule",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "sortie"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "📸",
+    "title": "Prendre une photo souvenir",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "fête"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🧭",
+    "title": "Repérer un point de ralliement",
+    "duration": "5",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "sortie"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🧼",
+    "title": "Nettoyer la table repas",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "gîte",
+      "voyage"
+    ],
+    "needs": [
+      "Organisation",
+      "Lien",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🍕",
+    "title": "Servir les snacks pour tous",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "voyage"
+    ],
+    "needs": [
+      "Nutrition",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🎵",
+    "title": "Lancer une playlist",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "anniversaire",
+      "voyage"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "🧂",
+    "title": "Assaisonner et goûter le plat commun",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "gîte",
+      "camp",
+      "voyage"
+    ],
+    "needs": [
+      "Nutrition",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "👋",
+    "title": "Serrer des mains",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "mariage",
+      "fête"
+    ],
+    "needs": [
+      "Lien",
+      "Affection",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🗺️",
+    "title": "Étudier une petite carte",
+    "duration": "5",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "sortie"
+    ],
+    "needs": [
+      "Sens",
+      "Organisation",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🛎️",
+    "title": "Accueillir les arrivants",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "fête",
+      "gîte",
+      "voyage"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🧃",
+    "title": "Servir un verre d’accueil",
+    "duration": "5",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "mariage",
+      "anniversaire",
+      "fête"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Joie"
+    ]
+  },
+  {
+    "emoji": "🧹",
+    "title": "Balayer une zone de circulation",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "gîte",
+      "camp",
+      "fête"
+    ],
+    "needs": [
+      "Organisation",
+      "Calme",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🪨",
+    "title": "Ramasser les déchets visibles",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group",
+      "individual"
+    ],
+    "contexts": [
+      "camp",
+      "sortie"
+    ],
+    "needs": [
+      "Sens",
+      "Calme",
+      "Organisation"
+    ]
+  },
+  {
+    "emoji": "🔥",
+    "title": "Surveiller un feu",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "sortie"
+    ],
+    "needs": [
+      "Calme",
+      "Sens",
+      "Affection"
+    ]
+  },
+  {
+    "emoji": "🌭",
+    "title": "Préparer une grillade",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "fête"
+    ],
+    "needs": [
+      "Nutrition",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🕊️",
+    "title": "Proposer un moment calme",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group",
+      "individual"
+    ],
+    "contexts": [
+      "voyage",
+      "gîte"
+    ],
+    "needs": [
+      "Calme",
+      "Affection",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "🎯",
+    "title": "Coordonner les jeux extérieurs",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "sortie",
+      "gîte"
+    ],
+    "needs": [
+      "Mouvement",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "📚",
+    "title": "Animer un petit atelier",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "gîte",
+      "fête"
+    ],
+    "needs": [
+      "Expression",
+      "Lien",
+      "Sens"
+    ]
+  },
+  {
+    "emoji": "📷",
+    "title": "Photographier les moments clés",
+    "duration": "15",
+    "frequency": "7",
+    "note": "",
+    "spaces": [
+      "individual",
+      "group"
+    ],
+    "contexts": [
+      "voyage",
+      "fête",
+      "mariage"
+    ],
+    "needs": [
+      "Expression",
+      "Joie",
+      "Lien"
+    ]
+  },
+  {
+    "emoji": "🚩",
+    "title": "Baliser le chemin d’accès",
+    "duration": "15",
+    "frequency": "1",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "sortie",
+      "gîte"
+    ],
+    "needs": [
+      "Organisation",
+      "Sens",
+      "Calme"
+    ]
+  },
+  {
+    "emoji": "🧑‍🤝‍🧑",
+    "title": "Encadrer un petit groupe",
+    "duration": "15",
+    "frequency": "3",
+    "note": "",
+    "spaces": [
+      "group"
+    ],
+    "contexts": [
+      "camp",
+      "sortie",
+      "association"
+    ],
+    "needs": [
+      "Affection",
+      "Lien",
+      "Sens"
+    ]
+  }
+]
