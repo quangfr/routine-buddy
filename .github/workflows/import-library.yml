@@ -1,4 +1,4 @@
-name: Import Library Habits
+name: Import Habits to Firestore
 
 on:
   workflow_dispatch:
