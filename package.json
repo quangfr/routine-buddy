@@ -1,0 +1,10 @@
+{
+  "name": "habitu-importer",
+  "private": true,
+  "scripts": {
+    "import-library": "node scripts/import-library.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.2.0"
+  }
+}

@@ -1868,22 +1868,7 @@
       }
     }
     async function loadLibraryData() {
-      const hydrateFromSnapshot = async () => {
-        if (!HABITU_FIREBASE_DB) {
-          LIBRARY_HABITS.length = 0;
-          return;
-        }
-        try {
-          const snapshot = await HABITU_FIREBASE_DB.collection('libraryHabits').get();
-          LIBRARY_HABITS.length = 0;
-          snapshot.docs.forEach(doc => LIBRARY_HABITS.push({ id: doc.id, ...doc.data() }));
-        } catch (err) {
-          console.warn('loadLibraryData (firestore)', err);
-          LIBRARY_HABITS.length = 0;
-        }
-      };
-
-      try {
+      async function loadFromStatic() {
         const libraryUrl = new URL('library.json', window.location);
         const response = await fetch(libraryUrl.href, { cache: 'no-store' });
         if (!response.ok) throw new Error('library.json unavailable');
@@ -1906,9 +1891,21 @@
             baseMin: baseMinVal ?? habit.baseMin
           });
         });
+      }
+
+      try {
+        if (!HABITU_FIREBASE_DB) throw new Error('firestore unavailable');
+        const snapshot = await HABITU_FIREBASE_DB.collection('libraryHabits').get();
+        LIBRARY_HABITS.length = 0;
+        snapshot.docs.forEach(doc => LIBRARY_HABITS.push({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        console.warn('loadLibraryData (static)', err);
-        await hydrateFromSnapshot();
+        console.warn('loadLibraryData (firestore)', err);
+        try {
+          await loadFromStatic();
+        } catch (staticErr) {
+          console.warn('loadLibraryData (static)', staticErr);
+          LIBRARY_HABITS.length = 0;
+        }
       } finally {
         refreshLibraryTags();
       }

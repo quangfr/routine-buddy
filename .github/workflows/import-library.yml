@@ -1,0 +1,46 @@
+name: Import Library Habits
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run importer in dry-run mode (no writes)
+        required: false
+        default: "false"
+      force:
+        description: Re-import even if existing hash matches
+        required: false
+        default: "false"
+
+jobs:
+  import:
+    name: Import library.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Run importer
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "Missing FIREBASE_SERVICE_ACCOUNT secret."
+            exit 1
+          fi
+          if [ -z "$FIREBASE_PROJECT_ID" ]; then
+            echo "Missing FIREBASE_PROJECT_ID secret."
+            exit 1
+          fi
+          echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccount.json
+          FLAGS=()
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS+=(--dry-run)
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FLAGS+=(--force)
+          fi
+          npm run import-library -- --projectId="$FIREBASE_PROJECT_ID" --serviceAccount=serviceAccount.json "${FLAGS[@]}"
