@@ -1619,7 +1619,7 @@
                 <option value="week">À la semaine</option>
                 <option value="day">À la journée</option>
               </select>
-              <div class="subtitle" id="gardenModeHint">10-20 routines à organiser librement dans la semaine.
+              <div class="subtitle" id="gardenModeHint">5-30 routines à organiser librement dans la semaine.
               </div>
             </div>
             <div class="field">
@@ -1706,6 +1706,7 @@
     const TIP_ROTATION_MS = 3000;
     let tipRotationIndex = 0;
     let tipRotationTimer = null;
+    let lastTipIndex = -1;
     const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
     const setLoaderVersion = () => {
       const versionEl = $('#loaderVersion');
@@ -1716,8 +1717,15 @@
     const rotateLoaderTip = () => {
       const tipEl = $('#loaderTip');
       if (!tipEl) return;
-      tipEl.textContent = `Astuce ${tipRotationIndex + 1}: ${APP_TIPS[tipRotationIndex]}`;
-      tipRotationIndex = (tipRotationIndex + 1) % APP_TIPS.length;
+      let nextIndex = tipRotationIndex;
+      if (APP_TIPS.length > 1) {
+        do {
+          nextIndex = Math.floor(Math.random() * APP_TIPS.length);
+        } while (nextIndex === lastTipIndex);
+      }
+      lastTipIndex = nextIndex;
+      tipRotationIndex = nextIndex;
+      tipEl.textContent = `Astuce ${nextIndex + 1}: ${APP_TIPS[nextIndex]}`;
     };
     const startLoaderTips = () => {
       rotateLoaderTip();
@@ -3645,9 +3653,9 @@
     function updateGardenModeHint() {
       if (!gardenModeHint || !gardenModeSelect) return;
       if (gardenModeSelect.value === 'day') {
-        gardenModeHint.textContent = "20+ routines à répartir différemment chaque jour";
+        gardenModeHint.textContent = "Des routines différentes chaque jour";
       } else {
-        gardenModeHint.textContent = "5 à 20 routines à organiser librement sur la semaine.";
+        gardenModeHint.textContent = "5 à 30 routines à organiser librement sur la semaine.";
       }
     }
     gardenModeSelect?.addEventListener('change', () => {
