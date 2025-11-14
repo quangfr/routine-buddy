@@ -1070,6 +1070,25 @@
       overflow: auto;
       background: var(--bg)
     }
+    .modal-link-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .link-text {
+      background: none;
+      border: none;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+    }
+    .link-text:focus-visible {
+      outline: 2px solid var(--green);
+      border-radius: 4px;
+    }
 
     @media (min-width: 720px) {
       .modal.on {
@@ -1672,6 +1691,12 @@
                 <div class="subtitle">Envoyer un email</div>
               </div>
             </div>
+            <div class="opt" id="joinGarden">
+              <div class="emoji">🪴</div>
+              <div><b>Rejoindre un jardin</b>
+                <div class="subtitle">Entrer un code d'accès</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1692,6 +1717,10 @@
             <div style="display:flex;gap:8px;align-items:center">
               <button class="btn primary" id="generateInvite">Inviter</button>
               <div id="inviteStatus" style="font-size:12px;color:#2a7a57"></div>
+            </div>
+            <div class="field" style="margin-top:0">
+              <label><b>Code d’accès</b></label>
+              <div class="subtitle" id="spaceAccessCode">—</div>
             </div>
             <div class="subtitle">Les invitations :</div>
             <div id="inviteList" class="invite-list"></div>
@@ -1746,6 +1775,36 @@
               <button class="btn primary" id="createGardenBtn">Créer l’espace</button>
               <div class="subtitle" id="gardenStatus"></div>
             </div>
+          </div>
+          <div class="modal-link-row">
+            <button class="link-text" type="button" id="openJoinFromGarden">Rejoindre un espace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal join" id="modalJoin">
+      <div class="sheet">
+        <div class="sheetHeader">
+          <div>Rejoindre un jardin</div><button class="closeX" id="closeJoin">⨉</button>
+        </div>
+        <div class="sheetBody">
+          <div class="grid">
+            <div class="field">
+              <label><b>Prénom</b></label>
+              <input id="joinName" type="text" placeholder="Ton prénom" />
+            </div>
+            <div class="field">
+              <label><b>Code d’accès</b></label>
+              <input id="joinCode" type="text" maxlength="6" placeholder="XXXXXX" />
+              <div class="subtitle" style="margin-top:4px;font-size:12px">Le code est fourni dans l’invitation.</div>
+            </div>
+            <div class="field">
+              <button class="btn primary" id="joinSpaceBtn">Valider</button>
+              <div class="subtitle" id="joinStatus"></div>
+            </div>
+          </div>
+          <div class="modal-link-row">
+            <button class="link-text" type="button" id="joinToCreateLink">Créer un jardin</button>
           </div>
         </div>
       </div>
@@ -2349,6 +2408,36 @@
       };
       return HABITU_FIREBASE_DB.collection('spaces').doc(spaceId).set(payload, { merge: true }).catch(e => console.warn('persistSpaceDoc', e));
     }
+
+    function collectSpaceCodes() {
+      return new Set(Object.values(SPACES)
+        .map(space => (space?.code || '').toUpperCase())
+        .filter(Boolean));
+    }
+
+    function generateSpaceAccessCode() {
+      const taken = collectSpaceCodes();
+      let code;
+      do {
+        code = genCode();
+      } while (taken.has(code));
+      return code;
+    }
+
+    async function ensureSpaceHasCode(spaceId) {
+      if (!spaceId) return null;
+      const space = SPACES[spaceId];
+      if (!space) return null;
+      const normalized = (space.code || '').toUpperCase();
+      if (normalized) {
+        space.code = normalized;
+        return normalized;
+      }
+      const newCode = generateSpaceAccessCode();
+      space.code = newCode;
+      await persistSpaceDoc(spaceId, { code: newCode });
+      return newCode;
+    }
     function persistHabit(spaceId, habitData) {
       if (!HABITU_FIREBASE_DB || !spaceId || !habitData?.id) return Promise.resolve();
       ensureHabitMetadata(habitData);
@@ -2415,7 +2504,8 @@
         const spaces = [];
         snapshot.forEach(doc => {
           const raw = doc.data() || {};
-          const data = { id: doc.id, ...raw, createdAt: timestampToDate(raw.createdAt) };
+          const code = (raw.code || '').toUpperCase();
+          const data = { id: doc.id, ...raw, createdAt: timestampToDate(raw.createdAt), code };
           const ownerEmail = normalizeEmail(data.ownerEmail);
           const members = Array.isArray(data.members) ? [...new Set(data.members.map(normalizeEmail))] : [];
           if (ownerEmail === normalized || members.includes(normalized)) {
@@ -2583,8 +2673,10 @@
       await Promise.all(spaces.map(space => loadActivitiesForSpace(space.id)));
       await loadInvitesForOwner(email);
       renderInviteList();
+      await Promise.all(allowedSpaces.map(id => ensureSpaceHasCode(id)));
       if (!spaceId && allowedSpaces.length) { spaceId = allowedSpaces[0]; }
       if (spaceId && !allowedSpaces.includes(spaceId)) { spaceId = allowedSpaces[0] || null; }
+      updateSpaceAccessCodeDisplay();
     }
     const HABIT_TITLE_IS_CUSTOM = {};
 
@@ -4024,21 +4116,40 @@
       });
       if (!ordered.includes(spaceId) || !SPACES[spaceId]) spaceId = ordered[0];
       sel.value = spaceId;
+      updateSpaceAccessCodeDisplay();
     }
-    const selSpace = $("#spaceSel"); selSpace.addEventListener('change', () => { spaceId = selSpace.value; renderCards(); showHome(); });
+    const selSpace = $("#spaceSel"); selSpace.addEventListener('change', () => { spaceId = selSpace.value; renderCards(); showHome(); updateSpaceAccessCodeDisplay(); });
     $("#openSpace").onclick = openSpacePage; $("#backFromSpace").onclick = showHome;
     $("#spaceAccountBtn").onclick = async () => { await HABITU_FIREBASE_AUTH.signOut(); };
 
     /* Modales */
-    const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mTransfer = $("#modalTransfer");
+    const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mJoin = $("#modalJoin"), mTransfer = $("#modalTransfer");
     const mQuit = $("#modalQuit");
     const quitModalText = $("#quitModalText");
     const quitModalTransferBtn = $("#quitModalTransfer");
     const quitModalDeleteBtn = $("#quitModalDelete");
     const quitModalCancelBtn = $("#quitModalCancel");
+    const joinNameInput = $("#joinName");
+    const joinCodeInput = $("#joinCode");
+    const joinStatus = $("#joinStatus");
+    const joinSpaceBtn = $("#joinSpaceBtn");
+    const openJoinFromGardenBtn = $("#openJoinFromGarden");
+    const joinToCreateLink = $("#joinToCreateLink");
+    const spaceAccessCodeEl = $("#spaceAccessCode");
     const open = m => m.classList.add('on'), close = m => m.classList.remove('on');
     function canCloseGardenModal() {
       return allowedSpaces.length > 0;
+    }
+    const LOGOUT_CONFIRM_MESSAGE = 'Tu n’as pas encore créé de jardin. Te déconnecter pour revenir plus tard ?';
+    function promptLogoutClose(modal) {
+      if (canCloseGardenModal()) {
+        close(modal);
+        return;
+      }
+      if (window.confirm(LOGOUT_CONFIRM_MESSAGE)) {
+        close(modal);
+        HABITU_FIREBASE_AUTH.signOut().catch(() => {});
+      }
     }
     function syncGardenCloseButtonState() {
       const btn = $("#closeGarden");
@@ -4050,15 +4161,8 @@
     }
     $("#addBtn").onclick = () => { open(mAdd); maybeTogglePrivateAdd(); };
     $("#closeAdd").onclick = () => close(mAdd);
-    $("#closeGarden").onclick = () => {
-      if (!canCloseGardenModal()) {
-        if (gardenStatus) {
-          gardenStatus.textContent = 'Tu dois créer un jardin pour fermer ce panneau.';
-        }
-        return;
-      }
-      close(mGarden);
-    };
+    $("#closeGarden").onclick = () => promptLogoutClose(mGarden);
+    $("#closeJoin").onclick = () => promptLogoutClose(mJoin);
     syncGardenCloseButtonState();
     function showQuitModal() {
       const sp = getSpace();
@@ -4128,7 +4232,36 @@
       close(mAdd);
       openInvite();
     };
-    function openInvite() { renderInviteList(); open(mInvite) }
+    function openInvite() { updateSpaceAccessCodeDisplay(); renderInviteList(); open(mInvite) }
+    function openJoinModal() {
+      setJoinStatus('', false);
+      const defaultName = pendingInviteInfo?.invitedName || currentProfile?.name || userName || '';
+      if (joinNameInput) joinNameInput.value = defaultName;
+      if (joinCodeInput) joinCodeInput.value = '';
+      open(mJoin);
+    }
+    function setJoinStatus(message, isError = true) {
+      if (!joinStatus) return;
+      joinStatus.textContent = message;
+      joinStatus.style.color = isError ? '#d33' : '#2a7a57';
+    }
+    function updateSpaceAccessCodeDisplay() {
+      if (!spaceAccessCodeEl) return;
+      const current = spaceId;
+      const code = SPACES[current]?.code;
+      if (code) {
+        spaceAccessCodeEl.textContent = code;
+        return;
+      }
+      spaceAccessCodeEl.textContent = '—';
+      if (!current) return;
+      ensureSpaceHasCode(current).then(newCode => {
+        if (newCode && spaceId === current) {
+          spaceAccessCodeEl.textContent = newCode;
+        }
+      });
+    }
+    $("#joinGarden").onclick = () => { close(mAdd); openJoinModal(); };
     const gardenProfileSelect = $("#gardenProfileSelect");
     const gardenNameInput = $("#gardenNameInput");
     const gardenModeSelect = $("#gardenModeSelect");
@@ -4147,6 +4280,13 @@
     const deleteSpaceBtn = $("#deleteSpaceBtn");
     createGardenBtn.onclick = createGarden;
     $("#createGarden").onclick = () => { close(mAdd); openGardenFlow() };
+    openJoinFromGardenBtn?.addEventListener('click', () => { close(mGarden); openJoinModal(); });
+    joinToCreateLink?.addEventListener('click', () => { close(mJoin); openGardenFlow(); });
+    joinCodeInput?.addEventListener('input', () => {
+      if (!joinCodeInput) return;
+      joinCodeInput.value = (joinCodeInput.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    });
+    joinSpaceBtn?.addEventListener('click', joinGardenByCode);
     generateInviteBtn.onclick = generateInviteLink;
     transferSpaceBtn?.addEventListener('click', () => openTransferModal());
     deleteSpaceBtn?.addEventListener('click', () => deleteCurrentSpace());
@@ -4243,6 +4383,7 @@
       const profile = GARDEN_TYPES.find(opt => opt.type === gardenProfileSelect.value) || GARDEN_TYPES[0];
       const title = (gardenNameInput.value || profile.label).trim() || profile.label;
       const mode = gardenModeSelect.value || profile.orgMode;
+      const accessCode = generateSpaceAccessCode();
       const id = `G${genCode()}`;
       const ownerEmail = normalizeEmail(currentProfile.email);
       SPACES[id] = {
@@ -4250,6 +4391,7 @@
         label: title,
         type: profile.type,
         orgMode: mode,
+        code: accessCode,
         ch: [],
         ownerEmail,
         members: [ownerEmail],
@@ -4338,6 +4480,7 @@
       if (Object.values(INVITE_CACHE).some(inv => (inv.invitedName || '').toLowerCase() === name.toLowerCase())) {
         inviteStatus.textContent = 'Ce prénom est déjà utilisé pour une invitation.'; inviteStatus.style.color = '#d33'; return;
       }
+      await ensureSpaceHasCode(spaceId);
       const token = genInviteToken();
       const link = `${window.location.origin}${window.location.pathname}?invite=${token}`;
       const ownerName = currentProfile?.name || userName || 'Un jardinier';
@@ -4345,6 +4488,7 @@
         ownerName,
         invitedName: name,
         spaceId,
+        spaceCode: SPACES[spaceId]?.code || '',
         gardenLabel: SPACES[spaceId]?.label || 'ton jardin',
         created: Date.now(),
         ownerEmail: currentProfile?.email
@@ -4357,6 +4501,56 @@
       copyText(link, inviteStatus);
     }
 
+    async function findSpaceByAccessCode(code) {
+      if (!HABITU_FIREBASE_DB || !code) return null;
+      try {
+        const normalizedCode = code.toUpperCase();
+        const snapshot = await HABITU_FIREBASE_DB.collection('spaces')
+          .where('code', '==', normalizedCode)
+          .limit(1)
+          .get();
+        if (snapshot.empty) return null;
+        const doc = snapshot.docs[0];
+        const raw = doc.data() || {};
+        const members = Array.isArray(raw.members) ? raw.members : [];
+        return { id: doc.id, ...raw, members, code: normalizedCode };
+      } catch (err) {
+        console.warn('findSpaceByAccessCode', err);
+        return null;
+      }
+    }
+
+    async function joinGardenByCode() {
+      if (!joinSpaceBtn) return;
+      const name = (joinNameInput?.value || '').trim();
+      if (!name) { setJoinStatus('Entre ton prénom.', true); return; }
+      const code = (joinCodeInput?.value || '').trim().toUpperCase();
+      if (!/^[A-Z0-9]{6}$/.test(code)) { setJoinStatus('Code invalide (6 caractères).', true); return; }
+      if (!currentProfile?.email) { setJoinStatus('Connecte-toi pour rejoindre un jardin.', true); return; }
+      joinSpaceBtn.disabled = true;
+      try {
+        const spaceData = await findSpaceByAccessCode(code);
+        if (!spaceData) { setJoinStatus('Aucun jardin ne correspond à ce code.', true); return; }
+        if (allowedSpaces.includes(spaceData.id)) { setJoinStatus('Tu fais déjà partie de ce jardin.', true); return; }
+        SPACES[spaceData.id] = { ...(SPACES[spaceData.id] || {}), ...spaceData, members: spaceData.members || [] };
+        await joinSpace(spaceData.id, currentProfile.email);
+        allowedSpaces = [...new Set([...allowedSpaces, spaceData.id])];
+        spaceId = spaceData.id;
+        await Promise.all([loadHabitsForSpace(spaceId), loadActivitiesForSpace(spaceId)]);
+        await ensureSpaceHasCode(spaceId);
+        updateSpaceAccessCodeDisplay();
+        updAll();
+        showHome();
+        setJoinStatus('Jardin rejoint !', false);
+        close(mJoin);
+      } catch (err) {
+        console.warn('joinGardenByCode', err);
+        setJoinStatus('Impossible de rejoindre ce jardin pour l’instant.', true);
+      } finally {
+        joinSpaceBtn.disabled = false;
+      }
+    }
+
     function copyText(value, statusEl) {
       if (!value) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -4366,8 +4560,6 @@
         statusEl.style.color = '#d33';
       }
     }
-
-    function openInvite() { renderInviteList(); open(mInvite) }
 
     renderInviteList();
 
