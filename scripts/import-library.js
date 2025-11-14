@@ -12,7 +12,14 @@ const parse = (key) => {
 };
 const hasFlag = flag => args.includes(`--${flag}`);
 
-const libraryPath = path.resolve(parse('libraryPath') || 'library.json');
+const resolveLibraryPath = () => {
+  const explicit = parse('libraryPath');
+  if (explicit) return path.resolve(explicit);
+  const candidates = ['library.json', path.join('public', 'library.json')];
+  const found = candidates.map(candidate => path.resolve(candidate)).find(fs.existsSync);
+  return found || path.resolve('library.json');
+};
+const libraryPath = resolveLibraryPath();
 const serviceAccountPath = parse('serviceAccount') || process.env.GOOGLE_APPLICATION_CREDENTIALS;
 if (!serviceAccountPath) {
   console.error('Missing service account key. Pass --serviceAccount=/path/to/key.json or set GOOGLE_APPLICATION_CREDENTIALS.');
@@ -103,6 +110,9 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('Import failed:', err);
+  console.error('Import failed:', err?.message || err);
+  if (err?.stack) {
+    console.error(err.stack);
+  }
   process.exit(1);
 });
