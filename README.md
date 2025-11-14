@@ -1,6 +1,6 @@
-### 🌱 Habitu.be — Les petites habitudes qui changent tout
+### 🌱 Habitube — Les petites habitudes qui changent tout
 
-**Habitu.be, c’est ton jardin d’habitudes partagées 🌿**
+**Habitube, c’est ton jardin d’habitudes partagées 🌿**
 
 🙋‍♀️🙋‍♂️ **Pour qui ?**  
 • Colocs, familles, classes, associations, bureaux…  
@@ -17,9 +17,9 @@ Moins de “Qui devait faire ça déjà ?”, plus de clarté, de partage et de 
 
 --
 
-### 🌱 Habitu.be — Small habits, big change
+### 🌱 Habitube — Small habits, big change
 
-**Habitu.be is your shared habit garden 🌿**
+**Habitube is your shared habit garden 🌿**
 
 🙋‍♀️🙋‍♂️ **Who is it for?**  
 • Roommates, families, classrooms, associations, teams…  

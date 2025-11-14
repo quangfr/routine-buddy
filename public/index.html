@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f4f7fb" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <title>Habitu.be — Les petites habitudes qui changent tout </title>
+  <title>Habitube — Les petites habitudes qui changent tout </title>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
@@ -131,12 +131,43 @@
     .auth-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.35);
+      background: var(--bg);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 20;
       padding: 16px
+    }
+
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px;
+      z-index: 25;
+    }
+
+    .loader-overlay.hide {
+      display: none;
+    }
+
+    .loader-spacer {
+      flex: 1;
+    }
+
+    .loader-title {
+      font-size: 28px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .loader-emoji {
+      font-size: 68px;
+      margin-top: auto;
     }
 
     .auth-card {
@@ -193,7 +224,8 @@
       display: flex;
       justify-content: center;
       gap: 6px;
-      font-size: 12px
+      font-size: 12px;
+      flex-wrap: wrap;
     }
 
     .auth-card .auth-switch button {
@@ -202,7 +234,14 @@
       color: var(--green);
       cursor: pointer;
       text-decoration: underline;
-      padding: 0
+      padding: 0;
+    }
+
+    .auth-link {
+      font-size: 12px;
+      color: var(--green);
+      cursor: pointer;
+      text-decoration: underline;
     }
 
     .auth-card .auth-error {
@@ -211,10 +250,38 @@
       min-height: 18px
     }
 
+    .auth-reset {
+      width: 320px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      background: #fffdf8;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .auth-reset .rowInline {
+      margin-top: 0;
+    }
+
     .auth-card .auth-note {
       font-size: 12px;
       color: #555;
       margin-top: -4px
+    }
+
+    .space-footer {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .space-footer .btn {
+      flex: 1;
     }
 
     .auth-forms {
@@ -524,16 +591,16 @@
     }
 
     .infoBtn {
-      background-color: transparent;
+      background: var(--bg);
       border: 1px solid var(--border);
-      padding: 4px 6px;
+      padding: 2px 6px;
       border-radius: var(--r);
-      font-size: 14px;
-    }
-
-    .infoBtn:disabled {
-      opacity: .4;
-      cursor: not-allowed;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+      cursor: pointer;
     }
 
     .desc {
@@ -604,9 +671,9 @@
       justify-content: center;
       border-radius: var(--r);
       border: 1px solid var(--border);
-      background: #fff;
+      background: var(--bg);
       cursor: pointer;
-      font-size: 14px;
+      font-size: 11px;
       color: inherit;
     }
 
@@ -956,6 +1023,25 @@
       gap: 4px
     }
 
+    .org-mode-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .org-mode-btn {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: transparent;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .org-mode-btn.active {
+      background: var(--card);
+    }
+
     input[type="text"],
     textarea,
     select {
@@ -1053,11 +1139,16 @@
 </head>
 
 <body>
-  <div class="auth-overlay" id="authOverlay">
+  <div class="loader-overlay hide" id="loaderOverlay">
+    <div class="loader-spacer"></div>
+    <div class="loader-title">Habitube</div>
+    <div class="loader-emoji" id="loaderEmoji">🌰</div>
+  </div>
+  <div class="auth-overlay hide" id="authOverlay">
     <div class="auth-card">
-      <img src="icon-192.png" alt="Habitu.be" />
-      <h1>Habitu.be</h1>
-      <div class="auth-message" id="authMessage">Connecte-toi pour retrouver tes jardins.</div>
+      <img src="icon-192.png" alt="Habitube" />
+      <h1>Habitube</h1>
+      <div class="auth-message" id="authMessage">Connecte-toi pour retrouver Habitube.</div>
       <div class="auth-forms">
         <form id="loginForm">
           <input id="authEmail" type="email" required placeholder="Email" />
@@ -1077,12 +1168,30 @@
       <div class="auth-switch">
         <span id="showSignup">Créer un compte</span>
         <span id="showLogin" class="hide">Déjà inscrit ? Se connecter</span>
+        <span id="forgotPasswordLink" class="auth-link">Mot de passe oublié ?</span>
+      </div>
+      <div class="auth-reset hide" id="passwordResetSection">
+        <div class="field">
+          <label><b>Recevoir un lien de réinitialisation</b></label>
+          <div class="rowInline">
+            <input id="resetEmailLink" type="email" placeholder="Ton email" />
+            <button class="btn" type="button" id="sendResetLink">Envoyer</button>
+          </div>
+          <div class="subtitle" id="resetLinkStatus"></div>
+        </div>
+        <div class="field">
+          <label><b>Changer le mot de passe</b></label>
+          <input id="resetCode" type="text" placeholder="Code reçu" />
+          <input id="resetPassword" type="password" placeholder="Nouveau mot de passe" />
+          <button class="btn primary" type="button" id="confirmResetBtn">Changer</button>
+          <div class="subtitle" id="resetStatus"></div>
+        </div>
       </div>
     </div>
   </div>
   <div id="app">
     <div class="top">
-      <div class="brand" id="brand"><span class="logo">🌱</span>Habitu.be</div>
+      <div class="brand" id="brand"><span class="logo">🌱</span>Habitube</div>
       <div class="spacer"></div>
       <select id="spaceSel" class="select" title="Changer de jardin"></select>
       <button class="navbtn" id="openSpace" title="Jardin">ⓘ</button>
@@ -1112,7 +1221,7 @@
       <div class="tabs">
         <button class="tab active" data-tab="members">👨‍🌾 Jardiniers</button>
         <button class="tab" data-tab="history">📅 Historique</button>
-        <button class="tab" data-tab="settings">✏️ Édition</button>
+        <button class="tab" data-tab="settings">⚙️ Réglages</button>
       </div>
       <div class="section">
         <div class="view active" id="tab-members">
@@ -1235,7 +1344,7 @@
         <button class="backMini" id="backFromSpace">←</button>
         <div class="detailTitle" id="spaceHeaderTitle"></div>
         <div class="spacer"></div>
-        <button class="btn" id="spaceAccountBtn">👤 Mon compte</button>
+        <button class="btn" id="spaceAccountBtn">🔒 Déconnexion</button>
       </div>
       <div class="tabs">
         <button class="tab active" data-stab="sprofile">👨‍🌾 Jardiniers</button>
@@ -1284,7 +1393,11 @@
             <div class="field"><label><b>Nom du jardin</b></label><input id="paramSpaceLabel" type="text" /></div>
             <div class="field">
               <label><b>Mode d'organisation</b></label>
-              <select id="spaceOrgMode" class="select" disabled>
+              <div class="org-mode-buttons" id="spaceOrgButtons">
+                <button type="button" class="org-mode-btn" data-mode="day">À la journée</button>
+                <button type="button" class="org-mode-btn" data-mode="week">À la semaine</button>
+              </div>
+              <select id="spaceOrgMode" class="select hide" disabled>
                 <option value="day">À la journée</option>
                 <option value="week">À la semaine</option>
               </select>
@@ -1302,12 +1415,11 @@
                 <option>Tous</option>
               </select></div>
             <div class="field">
-              <label><b>Bouton d'édition</b></label>
+              <label><b>Mode d'édition</b></label>
               <select id="spaceEditButton" class="select">
                 <option value="yes">Oui</option>
                 <option value="no">Non</option>
               </select>
-              <div class="miniInfo">Si activé, un bouton ✏️ est ajouté sur chaque carte pour ouvrir l’édition.</div>
             </div>
             <div class="field owner-controls hide" id="ownerControls">
               <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1316,7 +1428,11 @@
               </div>
               <div class="subtitle" id="ownerControlsHint"></div>
             </div>
-            <div style="margin-top:12px"><button class="btn danger" id="quitSpaceBtn">Quitter le jardin</button></div>
+            <div class="space-footer">
+              <button class="btn" id="quitSpaceBtn">Quitter</button>
+              <button class="btn primary" id="saveSpaceSettings">Sauvegarder</button>
+            </div>
+            <div class="subtitle" id="spaceSettingsNotice"></div>
           </div>
         </div>
       </div>
@@ -1421,11 +1537,16 @@
             </div>
             <div class="field">
               <label><b>Mode d'organisation</b></label>
-              <select id="gardenModeSelect" class="select">
+              <div class="org-mode-buttons" id="gardenModeButtons">
+                <button type="button" class="org-mode-btn" data-mode="day">À la journée</button>
+                <button type="button" class="org-mode-btn" data-mode="week">À la semaine</button>
+              </div>
+              <select id="gardenModeSelect" class="select hide">
                 <option value="week">À la semaine</option>
                 <option value="day">À la journée</option>
               </select>
-              <div class="subtitle" id="gardenModeHint">Idéal pour &lt;20 tâches récurrentes flexibles sur la semaine.</div>
+              <div class="subtitle" id="gardenModeHint">Idéal pour &lt;20 tâches récurrentes flexibles sur la semaine.
+              </div>
             </div>
             <div class="field">
               <button class="btn primary" id="createGardenBtn">Créer l’espace</button>
@@ -1451,6 +1572,21 @@
             </div>
             <div class="subtitle" id="transferStatus"></div>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="modalQuit">
+      <div class="sheet">
+        <div class="sheetHeader">
+          <div>Quitter le jardin</div><button class="closeX" id="closeQuit">⨉</button>
+        </div>
+        <div class="sheetBody">
+          <div class="subtitle" id="quitModalText">Tu quittes ce jardin.</div>
+        </div>
+        <div class="habit-actions">
+          <button class="btn" id="quitModalCancel">Annuler</button>
+          <button class="btn hide" id="quitModalTransfer">Transférer le jardin</button>
+          <button class="btn danger" id="quitModalDelete">Supprimer le jardin</button>
         </div>
       </div>
     </div>
@@ -1619,15 +1755,29 @@
     const HABITU_FIREBASE_DB = window.HABITU_FIREBASE_DB;
     const ACTIVITY_BUFFER_MS = 30e3;
     const activityQueue = new Map();
+    const SESSION_COOKIE_NAME = 'habitube-session';
+    const SESSION_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000;
     function loadStoredProfile() { try { return JSON.parse(localStorage.getItem(STORAGE_USER_PROFILE) || 'null') } catch (e) { return null } }
+    function setSessionCookie() {
+      const expires = new Date(Date.now() + SESSION_COOKIE_MAX_AGE).toUTCString();
+      document.cookie = `${SESSION_COOKIE_NAME}=1; expires=${expires}; path=/; SameSite=Lax`;
+    }
+    function clearSessionCookie() {
+      document.cookie = `${SESSION_COOKIE_NAME}=; expires=${new Date(0).toUTCString()}; path=/; SameSite=Lax`;
+    }
+    function hasSessionCookie() {
+      return document.cookie.split('; ').some(pair => pair.startsWith(`${SESSION_COOKIE_NAME}=`));
+    }
     function persistProfile(profile) {
       if (!profile) {
         localStorage.removeItem(STORAGE_USER_PROFILE);
         currentProfile = null;
+        clearSessionCookie();
         return;
       }
       localStorage.setItem(STORAGE_USER_PROFILE, JSON.stringify(profile));
       currentProfile = profile;
+      setSessionCookie();
     }
     function clearObject(obj) { Object.keys(obj).forEach(k => delete obj[k]); }
     function clearLocalState() {
@@ -2150,8 +2300,9 @@
       } else {
         val = m2txtShort(base);
       }
-
-      btn.innerHTML = `<div class="big">${currentBigEmoji(btn, tot)}</div><div class="scoreText">${val}</div>`;
+      const habitEmoji = btn.dataset.habitEmoji || '🌱';
+      const bigEmoji = (st === 2) ? currentBigEmoji(btn, tot) : habitEmoji;
+      btn.innerHTML = `<div class="big">${bigEmoji}</div><div class="scoreText">${val}</div>`;
     }
 
     /* Init per habit */
@@ -2212,7 +2363,7 @@
         const left = document.createElement('div');
         left.className = 'left';
         const displayTitle = habitLabel(it);
-        left.innerHTML = `<span style="font-size:24px">${it.emoji}</span><span class="base">${displayTitle}</span>`;
+        left.innerHTML = `<span class="base">${displayTitle}</span>`;
         title.append(left);
 
         const desc = document.createElement('div');
@@ -2223,8 +2374,8 @@
         infoBtn.className = 'infoBtn';
         infoBtn.textContent = 'ℹ️';
         const hasNote = desc.dataset.has === '1';
-        infoBtn.disabled = !hasNote;
-        infoBtn.title = hasNote ? 'Afficher la note' : 'Aucune note';
+        infoBtn.title = hasNote ? 'Afficher la note' : '';
+        infoBtn.style.display = hasNote ? 'inline-flex' : 'none';
         title.appendChild(infoBtn);
 
         const friends = document.createElement('div');
@@ -2236,6 +2387,7 @@
         const btn = document.createElement('button');
         btn.className = 'levelBtn';
         btn.dataset.cid = it.id;
+        btn.dataset.habitEmoji = it.emoji || '🌱';
 
         const records = getHabitRecords(spaceId, it.id, today);
         const record = records.find(r => r.owner === 'Moi') || records[0] || null;
@@ -2652,11 +2804,16 @@
         weekFreqSelect.value = '1';
       }
 
-      const ft = $("#freqType"), fDate = $("#freqDate"), fJ = $("#freqSubJours");
-      if (ft && fDate && fJ) {
-        ft.value = 'quotidien';
-        $("#freqSubPonctuelle").classList.add('hide');
-        fJ.classList.add('hide');
+      const ft = $("#freqType"), fJ = $("#freqSubJours"), fPon = $("#freqSubPonctuelle");
+      const adjustFreqSubs = () => {
+        if (!ft) return;
+        const val = ft.value;
+        fJ?.classList.toggle('hide', val !== 'jours');
+        fPon?.classList.toggle('hide', val !== 'ponctuelle');
+      };
+      if (ft) {
+        ft.addEventListener('change', adjustFreqSubs);
+        adjustFreqSubs();
       }
 
       const defaultDurSel = $("#mockDefaultDur");
@@ -2686,11 +2843,14 @@
 
       const save = $("#saveHabitBtn");
       if (save && !save.dataset.bound) {
-        save.onclick = () => {
+        save.onclick = async () => {
           if (!requireAdmin('modifier une habitude')) return;
           const payload = { id: activeId, customTitle: HABIT_TITLE_CUSTOM[activeId] || '', desc: HABIT_DESC[activeId] || '', mode: HABIT_MODE[activeId] || null };
-          persistHabit(spaceId, payload);
+          await persistHabit(spaceId, payload);
           if (habitNotice) habitNotice.textContent = 'Modifications synchronisées.';
+          activeId = null;
+          renderCards();
+          showHome();
         };
         save.dataset.bound = '1';
       }
@@ -2710,6 +2870,7 @@
       if (orgSel) orgSel.value = sp.orgMode || 'day';
       const autoWeekField = $("#autoWeekField");
       if (autoWeekField) autoWeekField.classList.toggle('hide', sp.orgMode !== 'week');
+      updateSpaceOrgButtons();
     }
     function setupSpaceInfo() {
       const sp = getSpace(); const t = $("#spaceDescInfo");
@@ -2720,6 +2881,7 @@
         autoWeekSelect.value = 'none';
         autoWeekSelect.dataset.bound = '1';
       }
+      updateSpaceOrgButtons();
       const editButtonSelect = $("#spaceEditButton");
       if (editButtonSelect) {
         editButtonSelect.value = shouldShowEditButton() ? 'yes' : 'no';
@@ -2740,8 +2902,21 @@
       refreshOwnerPanel();
       const quitBtn = $("#quitSpaceBtn");
       if (quitBtn && !quitBtn.dataset.bound) {
-        quitBtn.onclick = () => leaveCurrentSpace();
+        quitBtn.onclick = () => showQuitModal();
         quitBtn.dataset.bound = '1';
+      }
+      const saveSettingsBtn = $("#saveSpaceSettings");
+      const spaceNotice = $("#spaceSettingsNotice");
+      if (saveSettingsBtn && !saveSettingsBtn.dataset.bound) {
+        saveSettingsBtn.onclick = async () => {
+          if (!spaceId) return;
+          await persistSpaceDoc(spaceId);
+          if (spaceNotice) {
+            spaceNotice.textContent = 'Réglages sauvegardés.';
+            setTimeout(() => { if (spaceNotice) spaceNotice.textContent = ''; }, 3000);
+          }
+        };
+        saveSettingsBtn.dataset.bound = '1';
       }
     }
 
@@ -2766,13 +2941,7 @@
       if (transferBtn) transferBtn.disabled = !candidates.length;
       if (deleteBtn) deleteBtn.disabled = !isOwner;
       if (ownerHint) {
-        if (!isOwner) {
-          ownerHint.textContent = '';
-        } else if (!candidates.length) {
-          ownerHint.textContent = "Invitez d'autres jardiniers pour pouvoir transférer la propriété.";
-        } else {
-          ownerHint.textContent = `${candidates.length} autre(s) jardinier(s) peuvent devenir propriétaire.`;
-        }
+        ownerHint.textContent = '';
       }
     }
 
@@ -2801,7 +2970,6 @@
 
     async function leaveCurrentSpace() {
       if (!spaceId || !currentProfile?.email) return;
-      if (!confirm('Quitter le jardin supprime tes activités enregistrées. Continuer ?')) return;
       const email = currentProfile.email;
       await removeMemberFromSpace(spaceId, email);
       await deleteMemberActivities(spaceId, email);
@@ -2868,18 +3036,9 @@
       setupSpaceInfo();
     }
 
-    function openTransferModal() {
-      if (!isCurrentSpaceAdmin()) return;
-      populateTransferSelect();
-      if (transferStatus) {
-        transferStatus.textContent = getTransferCandidates().length ? '' : "Ajoute un jardinier pour transférer.";
-      }
-      open(mTransfer);
-    }
 
     async function deleteCurrentSpace() {
       if (!spaceId) return;
-      if (!confirm('Supprimer ce jardin enlève l’accès à toutes ses habitudes et activités. Continuer ?')) return;
       const target = spaceId;
       try {
         if (HABITU_FIREBASE_DB) {
@@ -3108,12 +3267,57 @@
     }
     const selSpace = $("#spaceSel"); selSpace.addEventListener('change', () => { spaceId = selSpace.value; renderCards(); showHome(); });
     $("#openSpace").onclick = openSpacePage; $("#backFromSpace").onclick = showHome;
+    $("#spaceAccountBtn").onclick = async () => { await HABITU_FIREBASE_AUTH.signOut(); };
 
     /* Modales */
     const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mTransfer = $("#modalTransfer");
+    const mQuit = $("#modalQuit");
+    const quitModalText = $("#quitModalText");
+    const quitModalTransferBtn = $("#quitModalTransfer");
+    const quitModalDeleteBtn = $("#quitModalDelete");
+    const quitModalCancelBtn = $("#quitModalCancel");
     const open = m => m.classList.add('on'), close = m => m.classList.remove('on');
     $("#addBtn").onclick = () => { open(mAdd); maybeTogglePrivateAdd(); };
     $("#closeAdd").onclick = () => close(mAdd);
+    $("#closeGarden").onclick = () => close(mGarden);
+    function showQuitModal() {
+      const sp = getSpace();
+      if (!sp) return;
+      const isOwner = isCurrentSpaceAdmin();
+      const candidates = getTransferCandidates();
+      const hasCandidates = candidates.length > 0;
+      if (quitModalText) {
+        if (isOwner && hasCandidates) {
+          quitModalText.textContent = 'Transfère la propriété ou supprime le jardin.';
+        } else if (isOwner) {
+          quitModalText.textContent = 'Supprimer ce jardin fermera l’espace pour tout le monde.';
+        } else {
+          quitModalText.textContent = 'Quitter le jardin supprime tes activités personnelles.';
+        }
+      }
+      if (quitModalTransferBtn) {
+        quitModalTransferBtn.classList.toggle('hide', !(isOwner && hasCandidates));
+      }
+      if (quitModalDeleteBtn) {
+        const action = (isOwner && !hasCandidates) ? 'delete' : (isOwner && hasCandidates ? 'delete' : 'leave');
+        quitModalDeleteBtn.dataset.action = action;
+        quitModalDeleteBtn.textContent = isOwner ? 'Supprimer le jardin' : 'Supprimer ma participation';
+      }
+      open(mQuit);
+    }
+    quitModalCancelBtn?.addEventListener('click', () => close(mQuit));
+    quitModalTransferBtn?.addEventListener('click', () => {
+      close(mQuit);
+      openTransferModal();
+    });
+    quitModalDeleteBtn?.addEventListener('click', async () => {
+      close(mQuit);
+      if (quitModalDeleteBtn.dataset.action === 'leave') {
+        await leaveCurrentSpace();
+      } else {
+        await deleteCurrentSpace();
+      }
+    });
     $("#addHabit").onclick = () => { if (!requireAdmin('ajouter une habitude')) return; close(mAdd); open(mHabit); step1() }
     function maybeTogglePrivateAdd() { const isPrivate = getSpace().type === 'private'; $("#addPrivateHabit").classList.toggle('hide', !isPrivate); }
     $("#addPrivateHabit").onclick = () => {
@@ -3190,7 +3394,37 @@
         gardenModeHint.textContent = "Idéal pour &lt;20 tâches récurrentes flexibles sur la semaine.";
       }
     }
-    gardenModeSelect?.addEventListener('change', updateGardenModeHint);
+    gardenModeSelect?.addEventListener('change', () => {
+      updateGardenModeHint();
+      syncGardenModeButtons();
+    });
+
+    function syncGardenModeButtons() {
+      const container = $("#gardenModeButtons");
+      if (!container || !gardenModeSelect) return;
+      const buttons = Array.from(container.querySelectorAll('.org-mode-btn'));
+      buttons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === gardenModeSelect.value);
+        if (!btn.dataset.bound) {
+          btn.dataset.bound = '1';
+          btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode || 'week';
+            gardenModeSelect.value = mode;
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+            updateGardenModeHint();
+          });
+        }
+      });
+    }
+
+    function updateSpaceOrgButtons() {
+      const container = $("#spaceOrgButtons");
+      const select = $("#spaceOrgMode");
+      if (!container || !select) return;
+      container.querySelectorAll('.org-mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === select.value);
+      });
+    }
 
     function updateAuthMessage() {
       if (pendingInviteInfo) {
@@ -3199,7 +3433,7 @@
           authNameInput.value = pendingInviteInfo.invitedName;
         }
       } else {
-        authMessage.textContent = 'Connecte-toi pour retrouver tes jardins.';
+        authMessage.textContent = 'Connecte-toi pour retrouver Habitube.';
         authNameInput.value = '';
       }
     }
@@ -3215,8 +3449,9 @@
       });
       gardenModeSelect.value = 'week';
       gardenNameInput.value = '';
-      gardenStatus.textContent = 'Choisis ton profil, donne un nom à ton jardin et clique sur Créer l’espace.';
+      gardenStatus.textContent = '';
       updateGardenModeHint();
+      syncGardenModeButtons();
       open(mGarden);
     }
 
@@ -3362,11 +3597,6 @@
         return;
       }
 
-      const intro = document.createElement('div');
-      intro.className = 'subtitle';
-      intro.textContent = "Sélectionne jusqu'à trois contextes puis trois besoins pour décrire ton envie.";
-      root.appendChild(intro);
-
       const actions = document.createElement('div');
       actions.className = 'habit-actions';
       const nextBtn = document.createElement('button');
@@ -3419,11 +3649,6 @@
         container.appendChild(empty);
         return { container, selected: [] };
       }
-
-      const helper = document.createElement('div');
-      helper.className = 'subtitle';
-      helper.textContent = 'Clique pour sélectionner ou dé-sélectionner.';
-      container.appendChild(helper);
 
       const grid = document.createElement('div');
       grid.className = 'tag-grid';
@@ -3568,6 +3793,8 @@
       return top.slice(0, 20).map(entry => entry.habit);
     }
     $("#closeHabit").onclick = () => close(mHabit);
+    $("#closeInvite").onclick = () => close(mInvite);
+    $("#closeQuit").onclick = () => close(mQuit);
 
     /* Jour +/- */
     $("#prevDay").onclick = () => { dayOff = clampDayOff(dayOff + (isWeekMode() ? -7 : -1)); renderCards(); renderDateBar(); };
@@ -3577,7 +3804,29 @@
     function renderCalendarAndKeepMonth() { renderCalendar() }
     let dayInit = false; function renderDateOnce() { if (!dayInit) { dayOff = 0; renderDateBar(); dayInit = true } }
     function updAll() { renderCards(); renderCalendarAndKeepMonth(); renderDateOnce(); updSel(); maybeTogglePrivateAdd(); updSpaceHeader() }
+    const loaderOverlay = $("#loaderOverlay");
+    const loaderEmojiEl = $("#loaderEmoji");
     const authOverlay = $("#authOverlay");
+    const passwordResetSection = $("#passwordResetSection");
+    const forgotPasswordLink = $("#forgotPasswordLink");
+    const resetEmailLink = $("#resetEmailLink");
+    const sendResetLinkBtn = $("#sendResetLink");
+    const resetLinkStatus = $("#resetLinkStatus");
+    const resetCodeInput = $("#resetCode");
+    const resetPasswordInput = $("#resetPassword");
+    const confirmResetBtn = $("#confirmResetBtn");
+    const resetStatus = $("#resetStatus");
+    const urlParams = new URLSearchParams(window.location.search);
+    const oobCode = urlParams.get('oobCode');
+    if (oobCode && resetCodeInput) {
+      resetCodeInput.value = oobCode;
+      if (passwordResetSection) {
+        passwordResetSection.classList.remove('hide');
+      }
+    }
+    const LOADER_EMOJIS = ['🌰', '🌱', '🍀', '🌼', '🌻', '🌷', '🌹', '🪻', '💐', '🎋'];
+    let loaderIndex = 0;
+    let loaderTimer = null;
     const loginForm = $("#loginForm");
     const signupForm = $("#signupForm");
     const showSignupBtn = $("#showSignup");
@@ -3590,6 +3839,7 @@
     signupForm.addEventListener('submit', handleSignupSubmit);
     setAuthMode(pendingInviteInfo ? 'signup' : 'login');
     updateAuthMessage();
+    showLoaderOverlay();
 
     function setAuthMode(mode) {
       const forceSignup = !!pendingInviteInfo;
@@ -3600,6 +3850,84 @@
       showLoginBtn.classList.toggle('hide', !isSignup);
     }
 
+    function animateLoaderEmoji() {
+      if (!loaderEmojiEl) return;
+      loaderEmojiEl.textContent = LOADER_EMOJIS[loaderIndex];
+      loaderIndex = (loaderIndex + 1) % LOADER_EMOJIS.length;
+    }
+    function startLoaderAnimation() {
+      if (!loaderOverlay || loaderTimer) return;
+      animateLoaderEmoji();
+      loaderTimer = setInterval(animateLoaderEmoji, 200);
+    }
+    function stopLoaderAnimation() {
+      if (loaderTimer) {
+        clearInterval(loaderTimer);
+        loaderTimer = null;
+      }
+    }
+    function showLoaderOverlay() {
+      if (!loaderOverlay) return;
+      loaderOverlay.classList.remove('hide');
+      startLoaderAnimation();
+    }
+    function hideLoaderOverlay() {
+      if (!loaderOverlay) return;
+      loaderOverlay.classList.add('hide');
+      stopLoaderAnimation();
+    }
+
+    function togglePasswordResetSection() {
+      if (!passwordResetSection) return;
+      passwordResetSection.classList.toggle('hide');
+      resetLinkStatus.textContent = '';
+      resetStatus.textContent = '';
+    }
+
+    forgotPasswordLink?.addEventListener('click', (e) => {
+      e.preventDefault();
+      togglePasswordResetSection();
+    });
+
+    async function sendResetLink() {
+      if (!resetEmailLink) return;
+      const email = (resetEmailLink.value || '').trim().toLowerCase();
+      if (!email) {
+        resetLinkStatus.textContent = 'Entre ton email.';
+        return;
+      }
+      try {
+        await HABITU_FIREBASE_AUTH.sendPasswordResetEmail(email);
+        resetLinkStatus.textContent = 'Lien envoyé !';
+      } catch (err) {
+        resetLinkStatus.textContent = 'Impossible d’envoyer le lien.';
+      }
+    }
+
+    async function confirmNewPassword() {
+      if (!resetCodeInput || !resetPasswordInput) return;
+      const code = (resetCodeInput.value || '').trim();
+      const newPassword = resetPasswordInput.value || '';
+      if (!code || !newPassword) {
+        resetStatus.textContent = 'Code et mot de passe obligatoires.';
+        return;
+      }
+      showLoaderOverlay();
+      try {
+        const email = await HABITU_FIREBASE_AUTH.confirmPasswordReset(code, newPassword);
+        resetStatus.textContent = 'Mot de passe mis à jour, tu es connecté.';
+        togglePasswordResetSection();
+        await HABITU_FIREBASE_AUTH.signInWithEmailAndPassword(email, newPassword);
+      } catch (err) {
+        resetStatus.textContent = 'Code invalide ou mot de passe trop court.';
+      } finally {
+        hideLoaderOverlay();
+      }
+    }
+
+    sendResetLinkBtn?.addEventListener('click', sendResetLink);
+    confirmResetBtn?.addEventListener('click', confirmNewPassword);
+
     async function handleLoginSubmit(event) {
       event.preventDefault();
       authError.textContent = '';
@@ -3608,7 +3936,7 @@
       try {
         await HABITU_FIREBASE_AUTH.signInWithEmailAndPassword(email, password);
       } catch (err) {
-        authError.textContent = err.message || 'Connexion impossible.';
+        authError.textContent = 'Mot de passe erroné.';
       }
     }
 
@@ -3628,7 +3956,11 @@
     }
 
     function hideAuthOverlay() { authOverlay.classList.add('hide') }
-    function showAuthOverlay() { authOverlay.classList.remove('hide') }
+    function showAuthOverlay() {
+      if (hasSessionCookie()) return;
+      hideLoaderOverlay();
+      authOverlay.classList.remove('hide');
+    }
 
     HABITU_FIREBASE_AUTH.onAuthStateChanged(async user => {
       if (!user) {
@@ -3648,9 +3980,14 @@
         pendingInviteInfo = invite;
         updateAuthMessage();
       }
-      await resetFirestoreState(email);
-      userName = name;
       hideAuthOverlay();
+      showLoaderOverlay();
+      try {
+        await resetFirestoreState(email);
+      } finally {
+        hideLoaderOverlay();
+      }
+      userName = name;
       if (allowedSpaces.length === 0) { openGardenFlow(); return; }
       updAll();
       showHome();
