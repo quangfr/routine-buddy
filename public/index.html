@@ -1268,6 +1268,11 @@
       cursor: pointer
     }
 
+    .opt.update-app {
+      border-color: var(--green);
+      background: #ecf6ef;
+    }
+
     .opt .emoji {
       font-size: 20px
     }
@@ -1928,6 +1933,13 @@
               <div>
                 <b>Installer l'application mobile</b>
                 <div class="subtitle">Profite d'un accès rapide et d'icônes sur ton écran d'accueil.</div>
+              </div>
+            </div>
+            <div class="opt update-app hide admin-only" id="refreshApp">
+              <div class="emoji">🔄</div>
+              <div>
+                <b>Mettre à jour</b>
+                <div class="subtitle">Recharge l’app, rafraîchit le cache et relance les données.</div>
               </div>
             </div>
           </div>
@@ -3697,6 +3709,7 @@
           root.appendChild(card);
         });
         renderDateBar();
+        updateAddModalOptions();
       }
 
       /* ===== Calendriers ===== */
@@ -4868,6 +4881,11 @@
       addModal?.addEventListener('click', (event) => {
         const opt = event.target.closest('.opt');
         if (!opt) return;
+        if (opt.id === 'refreshApp') {
+          close(mAdd);
+          handleAppUpdateRequest();
+          return;
+        }
         if (opt.id === 'createGarden') {
           requestAddModalTransition('create');
           return;
@@ -4891,6 +4909,11 @@
       const authSpaceDesc = $("#authSpaceDesc");
       const joinSpaceDesc = $("#joinSpaceDesc");
       const installAppOpt = $("#installApp");
+      const updateAppOpt = $("#refreshApp");
+      function updateAddModalOptions() {
+        if (!updateAppOpt) return;
+        updateAppOpt.classList.toggle('hide', !isCurrentSpaceAdmin());
+      }
       const installPromptBtn = $("#installPromptBtn");
       const installPromptClose = $("#installPromptClose");
       const installPromptHelp = $("#installPromptHelp");
@@ -5648,10 +5671,65 @@
       }
       document.querySelectorAll('#detail .tabs [data-tab]').forEach(btn => { btn.addEventListener('click', () => switchViews(btn, 'data-tab', 'detail')) });
       document.querySelectorAll('#space .tabs [data-stab]').forEach(btn => { btn.addEventListener('click', () => switchViews(btn, 'data-stab', 'space')) });
+      let swRegistration = null;
+      let updateRequestInProgress = false;
+      async function ensureSwRegistration() {
+        if (!('serviceWorker' in navigator)) return null;
+        if (swRegistration) return swRegistration;
+        try {
+          swRegistration = await navigator.serviceWorker.ready;
+          return swRegistration;
+        } catch (err) {
+          console.warn('ensureSwRegistration', err);
+          return null;
+        }
+      }
+      async function clearAppCaches() {
+        if (!('caches' in window)) return;
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+        } catch (err) {
+          console.warn('clearAppCaches', err);
+        }
+      }
+      async function handleAppUpdateRequest() {
+        if (updateRequestInProgress) {
+          showToast('Une mise à jour est déjà en cours.', { type: 'info' });
+          return;
+        }
+        if (!('serviceWorker' in navigator)) {
+          showToast('Service worker indisponible.', { type: 'error' });
+          return;
+        }
+        updateRequestInProgress = true;
+        showToast('Vérification des nouveautés…', { type: 'info', duration: 5000 });
+        try {
+          await clearAppCaches();
+          const registration = await ensureSwRegistration();
+          if (!registration) {
+            showToast('Service worker introuvable.', { type: 'error' });
+            return;
+          }
+          await registration.update();
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            showToast('Nouvelle version prête, le navigateur recharge…', { type: 'success' });
+          } else {
+            showToast('L’application est déjà à jour.', { type: 'info' });
+          }
+        } catch (err) {
+          console.warn('handleAppUpdateRequest', err);
+          showToast('Impossible de vérifier les mises à jour.', { type: 'error' });
+        } finally {
+          updateRequestInProgress = false;
+        }
+      }
       if ('serviceWorker' in navigator) {
         const registerServiceWorker = async () => {
           try {
             const registration = await navigator.serviceWorker.register('/service-worker.js', { scope: './' });
+            swRegistration = registration;
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               if (!newWorker) return;

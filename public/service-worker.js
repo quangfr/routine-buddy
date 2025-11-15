@@ -1,4 +1,4 @@
-const CACHE_NAME = 'routine-buddy-v1';
+const CACHE_NAME = 'routine-buddy-v2';
 const OFFLINE_URLS = [
   './',
   './index.html',
@@ -27,24 +27,34 @@ self.addEventListener('fetch', event => {
   if(event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if(url.origin !== location.origin) return;
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if(cached) return cached;
-      return caches.open(CACHE_NAME).then(cache =>
-        fetch(event.request).then(response => {
-          if(response && response.status === 200){
-            cache.put(event.request, response.clone());
-          }
-          return response;
-        })
-      );
-    }).catch(() => caches.match('./index.html'))
-  );
+  event.respondWith(networkFirst(event.request));
 });
 
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    return caches.match('./index.html');
+  }
+}
+
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
+  }
+  if (event.data.type === 'CLEAR_CACHES') {
+    event.waitUntil(
+      caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key))))
+    );
   }
 });
 
