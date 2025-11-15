@@ -297,6 +297,12 @@
       margin-top: -4px
     }
 
+    .auth-space-desc {
+      font-size: 13px;
+      color: #5f5f5f;
+      min-height: 20px;
+    }
+
     .space-footer {
       margin-top: 16px;
       display: flex;
@@ -619,14 +625,14 @@
 
     .weekly-progress {
       display: none;
-      gap: 4px;
+      gap: 2px;
       align-items: center;
-      margin-top: -2px;
+      margin-top: 2px;
       flex-wrap: wrap;
     }
 
     .weekly-progress__block {
-      width: 8px;
+      width: 28px;
       height: 8px;
       border-radius: 8px;
       border: 1px solid var(--border);
@@ -663,7 +669,7 @@
     .infoBtn {
       background: var(--bg);
       border: 1px solid var(--border);
-      padding: 2px 6px;
+      padding: 4px 6px;
       border-radius: var(--r);
       font-size: 11px;
       display: inline-flex;
@@ -790,7 +796,7 @@
 
     .levelBtn {
       width: 100%;
-      height: 60px;
+      height: 100%;
       padding: 0;
       border-radius: 0;
       border: none;
@@ -1050,6 +1056,10 @@
       font-size: 14px;
       line-height: 1;
       font-weight: 700
+    }
+
+    .calendar.week-mode .seedMark {
+      display: none;
     }
 
     .cell .dur {
@@ -1450,6 +1460,7 @@
     <div class="auth-card">
       <img src="icon-512.png" alt="Logo Habitube" />
       <div class="auth-message" id="authMessage">Connecte-toi pour retrouver Habitube.</div>
+      <div class="auth-space-desc" id="authSpaceDesc"></div>
       <div class="auth-forms">
         <form id="loginForm">
           <input id="authEmail" type="email" required placeholder="Email" />
@@ -1560,7 +1571,6 @@
               <div class="grid" style="gap:6px">
                 <select id="freqType" class="select">
                   <option value="quotidien" selected>Quotidien</option>
-                  <option value="hebdo">Hebdomadaire</option>
                   <option value="ponctuelle">Ponctuelle</option>
                   <option value="jours">Jour(s) de la semaine</option>
                 </select>
@@ -1689,13 +1699,13 @@
         </div>
         <div class="view" id="sparams">
           <div class="grid">
+            <div class="field"><label><b>Mon prénom</b></label><input id="paramName" type="text" value="Moi" /></div>
+            <div class="field"><label><b>Nom du jardin</b></label><input id="paramSpaceLabel" type="text" /></div>
             <div class="field">
               <label><b>Description</b></label>
               <textarea id="spaceDescInfo"
                 placeholder="Présentez le jardin, les règles et l’état d’esprit. Cliquez pour éditer."></textarea>
             </div>
-            <div class="field"><label><b>Mon prénom</b></label><input id="paramName" type="text" value="Moi" /></div>
-            <div class="field"><label><b>Nom du jardin</b></label><input id="paramSpaceLabel" type="text" /></div>
             <div class="field">
               <label><b>Mode d'organisation</b></label>
               <div class="org-mode-buttons" id="spaceOrgButtons">
@@ -1767,12 +1777,6 @@
                 <div class="subtitle">Rejoindre un défi</div>
               </div>
             </div>
-            <div class="opt hide" id="addPrivateHabit">
-              <div class="emoji">✨</div>
-              <div><b>Nouvelle habitude privée</b>
-                <div class="subtitle">Entièrement personnalisable</div>
-              </div>
-            </div>
             <div class="opt" id="inviteFriend">
               <div class="emoji">❤️</div>
               <div><b>Inviter un jardinier</b>
@@ -1801,6 +1805,7 @@
             <div class="field">
               <label><b>Code d’accès ⿻</b></label>
               <input id="spaceAccessCode" type="text" readonly placeholder="—" />
+              <div class="subtitle" id="joinSpaceDesc"></div>
             </div>
             <div class="field">
               <label><b>Nouveau jardinier</b></label>
@@ -2297,6 +2302,42 @@
           }
           return days;
         }
+        function getDayUsage(spaceId) {
+          const usage = Array(7).fill(0);
+          if (!spaceId) return usage;
+          const events = SPACE_ACTIVITIES[spaceId] || [];
+          events.forEach(ev => {
+            const recorded = ev?.recordedAt;
+            if (!recorded) return;
+            const date = recorded instanceof Date ? recorded : (recorded?.toDate ? recorded.toDate() : new Date(recorded));
+            if (!date || Number.isNaN(date.getTime())) return;
+            const day = date.getDay();
+            usage[day] += 1;
+          });
+          return usage;
+        }
+
+        function chooseDayModeDays(spaceId, count) {
+          if (!count) return [];
+          const usage = getDayUsage(spaceId);
+          const weekOrder = [1, 2, 3, 4, 5, 6, 0];
+          const sorted = [...weekOrder].sort((a, b) => (usage[a] - usage[b]) || (a - b));
+          const start = sorted[0];
+          const days = [];
+          for (let i = 0; i < count; i++) {
+            let day = (start + Math.round((7 / count) * i)) % 7;
+            while (days.includes(day)) {
+              day = (day + 1) % 7;
+            }
+            days.push(day);
+          }
+          if (days.length < count) {
+            const fallback = getWeekDaysForFrequency(count);
+            return fallback;
+          }
+          return days;
+        }
+
         function buildHabitFrequencyInfo(space, frequencyValue) {
           const recurrence = Math.max(1, Math.min(7, Number(frequencyValue) || 1));
           const isWeek = space?.orgMode === 'week';
@@ -2305,7 +2346,8 @@
             freqDefault: isWeek ? 'hebdo' : (recurrence === 7 ? 'quotidien' : 'jours')
           };
           if (!isWeek) {
-            info.freqDays = getWeekDaysForFrequency(recurrence);
+            const targetId = space?.id;
+            info.freqDays = chooseDayModeDays(targetId, recurrence);
           }
           return info;
         }
@@ -2377,7 +2419,7 @@
           { emoji: '🏠', label: '🏠 Colocation', type: 'group', orgMode: 'day', desc: 'Petites routines partagées à la maison.' },
           { emoji: '🌞', label: '🌞 Famille', type: 'group', orgMode: 'day', desc: 'Rituels doux pour toute la famille.' },
           { emoji: '🏛️', label: '🏛️ Association', type: 'group', orgMode: 'week', desc: 'Moments d’équipe réguliers.' },
-          { emoji: '🏫', label: '🏫 Classe', type: 'group', orgMode: 'week', desc: 'Rituels pédagogiques simples.' },
+          { emoji: '🏫', label: 'École / Classe', type: 'group', orgMode: 'week', desc: 'Rituels pédagogiques simples.' },
           { emoji: '🏢', label: '🏢 Bureau', type: 'group', orgMode: 'week', desc: 'Rituels collaboratifs pro.' }
         ];
         let allowedSpaces = [];
@@ -3078,7 +3120,7 @@
             friends.appendChild(friendsBadges);
             const progressRow = document.createElement('div');
             progressRow.className = 'weekly-progress';
-            cont.append(title, progressRow, desc, friends);
+            cont.append(progressRow, title, desc, friends);
 
             const col = document.createElement('div');
             col.className = 'levelCol';
@@ -3153,23 +3195,42 @@
             const renderWeeklyProgress = () => {
               const isWeek = btn.dataset.week === '1';
               const recur = Math.max(1, +btn.dataset.recur || 1);
-              const shouldShow = isWeek && recur > 1;
+              const freqType = FREQ_MODE[it.id]?.type || (isWeek ? 'hebdo' : 'quotidien');
+              const freqDays = Array.isArray(it.freqDays) ? it.freqDays : [];
+              const showDayProgress = !isWeek && (freqType === 'quotidien' || (freqDays.length > 1));
+              const shouldShow = (isWeek && recur > 1) || showDayProgress;
               progressRow.style.display = shouldShow ? 'flex' : 'none';
               progressRow.innerHTML = '';
               if (!shouldShow) return;
-              const totalBlocks = recur + 1;
+              const totalBlocks = isWeek ? recur : (freqType === 'jours' && freqDays.length ? freqDays.length : 7);
               const stateNow = +btn.dataset.state || 0;
-              const count = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
-              const activeIndex = stateNow === 1 && count < totalBlocks ? count + 1 : -1;
-              for (let i = 1; i <= totalBlocks; i++) {
+              const rawCount = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
+              let doneCount = rawCount;
+              let activeIndex = -1;
+              if (stateNow === 1) {
+                activeIndex = rawCount;
+                doneCount = Math.max(0, rawCount - 1);
+              } else if (stateNow === 2) {
+                doneCount = totalBlocks;
+                activeIndex = -1;
+              } else {
+                doneCount = 0;
+                activeIndex = -1;
+              }
+              const dayOrder = (!isWeek && freqType === 'jours' && freqDays.length) ? freqDays.slice() : (isWeek ? null : [1, 2, 3, 4, 5, 6, 0]);
+              for (let idx = 0; idx < totalBlocks; idx++) {
                 const block = document.createElement('span');
                 block.className = 'weekly-progress__block';
-                if (i <= count) {
+                const position = idx + 1;
+                if (position <= doneCount) {
                   block.classList.add('weekly-progress__block--done');
-                } else if (i === activeIndex) {
+                } else if (position === activeIndex) {
                   block.classList.add('weekly-progress__block--active');
                 } else {
                   block.classList.add('weekly-progress__block--pending');
+                }
+                if (dayOrder && idx < dayOrder.length) {
+                  block.dataset.day = dayOrder[idx];
                 }
                 progressRow.appendChild(block);
               }
@@ -3240,7 +3301,6 @@
               let st = +btn.dataset.state || 0;
               let count = +btn.dataset.count || 0;
               const R = Math.max(1, +btn.dataset.recur || 1);
-              const total = R + 1;
               if (st === 0) {
                 st = 1;
                 count = 1;
@@ -3249,13 +3309,15 @@
                 if (count < R) {
                   count++;
                 } else if (count === R) {
-                  count = total;
                   st = 2;
                 }
               } else if (st === 2) {
                 st = 0;
                 count = 0;
                 btn.dataset.owner = '';
+              }
+              if (st === 2) {
+                count = R;
               }
               btn.dataset.count = String(count);
               applyState(st, { keepOwner: st !== 0 });
@@ -3382,9 +3444,14 @@
               dayMap.set(day, rec);
             }
           });
+          const isWeekModeNow = isWeekMode();
+          wrap.classList.toggle('week-mode', isWeekModeNow);
           const today = new Date();
           const sameMonth = calOff === 0;
           let monthMinutes = 0;
+          const totalCells = fd + days;
+          const rows = Math.max(1, Math.ceil(totalCells / 7));
+          const weekTotals = Array(rows).fill(0);
           for (let i = 0; i < fd; i++) {
             const c = document.createElement('div');
             c.className = 'cell';
@@ -3410,6 +3477,10 @@
               dur.textContent = m2txtShort(minutes);
               c.appendChild(dur);
               monthMinutes += minutes;
+              const dayIndex = Math.floor((fd + d - 1) / 7);
+              if (dayIndex >= 0 && dayIndex < rows) {
+                weekTotals[dayIndex] += minutes;
+              }
             }
             if (sameMonth && d === today.getDate()) {
               c.style.outline = `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--green')}`;
@@ -3429,6 +3500,21 @@
               window.scrollTo({ top: 0, behavior: 'smooth' });
             };
             wrap.appendChild(c);
+          }
+          if (isWeekModeNow) {
+            const cellHeight = 55;
+            const gap = 6;
+            const summaryHeight = 24;
+            for (let row = 0; row < rows; row++) {
+              const summaryMinutes = weekTotals[row];
+              const summary = document.createElement('div');
+              summary.className = 'weekSummary';
+              summary.textContent = `🧑‍🌾 ${m2txt(summaryMinutes)}`;
+              const rowTop = row * (cellHeight + gap);
+              const top = rowTop + cellHeight - summaryHeight - 2;
+              summary.style.top = `${top}px`;
+              wrap.appendChild(summary);
+            }
           }
           $("#monthLabel").textContent = `${months[m]} ${y}  🧑‍🌾${m2txt(round15(monthMinutes))}`;
         }
@@ -3723,9 +3809,25 @@
           const weekMode = isWeekMode();
           if (freqWrapper) freqWrapper.classList.toggle('hide', weekMode);
           if (weekFreqWrapper) weekFreqWrapper.classList.toggle('hide', !weekMode);
-          if (weekFreqSelect && !weekFreqSelect.dataset.bound) {
-            weekFreqSelect.dataset.bound = '1';
-            weekFreqSelect.value = '1';
+          if (weekFreqSelect) {
+            const currentRecurrence = HABIT_REC[activeId] || 1;
+            weekFreqSelect.value = String(currentRecurrence);
+            weekFreqSelect.disabled = !isAdmin;
+            if (!weekFreqSelect.dataset.bound) {
+              weekFreqSelect.dataset.bound = '1';
+            }
+            if (!weekFreqSelect.dataset.handlerBound) {
+              weekFreqSelect.addEventListener('change', () => {
+                const next = Math.max(1, Math.min(7, Number(weekFreqSelect.value) || 1));
+                weekFreqSelect.value = String(next);
+                HABIT_REC[activeId] = next;
+                if (spaceId) {
+                  persistHabit(spaceId, { id: activeId, recurrence: next, frequency: String(next) });
+                }
+                renderCards();
+              });
+              weekFreqSelect.dataset.handlerBound = '1';
+            }
           }
 
           const ft = $("#freqType"), fJ = $("#freqSubJours"), fPon = $("#freqSubPonctuelle");
@@ -4081,6 +4183,7 @@
           if (!spaceId) return;
           const space = getSpace();
           const isWeekSpace = space?.orgMode === 'week';
+          wrap.classList.toggle('week-mode', isWeekSpace);
           const { y, m, fd, days } = minfo(sCalOff);
           const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
           const cellHeight = 55;
@@ -4245,10 +4348,7 @@
         function syncGardenCloseButtonState() {
           const btn = $("#closeGarden");
           if (!btn) return;
-          const locked = !canCloseGardenModal();
-          btn.disabled = locked;
-          btn.classList.toggle('locked', locked);
-          btn.title = locked ? 'Crée un jardin pour fermer ce panneau.' : '';
+          btn.classList.remove('locked');
           syncCloseIcons();
         }
         $("#addBtn").onclick = () => { open(mAdd); maybeTogglePrivateAdd(); };
@@ -4302,34 +4402,7 @@
           }
         });
         $("#addHabit").onclick = () => { if (!requireAdmin('ajouter une habitude')) return; close(mAdd); open(mHabit); step1() }
-        function maybeTogglePrivateAdd() {
-          const sp = getSpace();
-          const isPrivate = !!sp && sp.type === 'private';
-          $("#addPrivateHabit").classList.toggle('hide', !isPrivate);
-        }
-        $("#addPrivateHabit").onclick = () => {
-          if (!requireAdmin('ajouter une habitude privée')) return;
-          close(mAdd);
-          const id = 'priv_' + genCode();
-          const sp = getSpace();
-          const payload = buildHabitPayload(sp, {
-            id,
-            titre: 'Nouvelle habitude privée ✨',
-            emoji: '✨',
-            frequency: '1',
-            duration: '15',
-            contexts: [],
-            needs: [],
-            spaces: ['individual'],
-            note: ''
-          }, { desc: '' });
-          CHALLENGES.unshift(payload);
-          HAS_DESC[id] = false;
-          HABIT_DESC[id] = '';
-          persistHabit(spaceId, payload);
-          persistSpaceDoc(spaceId);
-          activeId = id; renderCards(); openDetail(id, null); selectDetailTab('settings');
-        };
+        function maybeTogglePrivateAdd() { }
         $("#inviteFriend").onclick = () => {
           if (!requireAdmin('inviter un jardinier')) return;
           close(mAdd);
@@ -4341,12 +4414,29 @@
           const defaultName = pendingInviteInfo?.invitedName || currentProfile?.name || userName || '';
           if (joinNameInput) joinNameInput.value = defaultName;
           if (joinCodeInput) joinCodeInput.value = '';
+          setJoinDescription('');
+          lastPreviewedCode = '';
           open(mJoin);
         }
         function setJoinStatus(message, isError = true) {
           if (!joinStatus) return;
           joinStatus.textContent = message;
           joinStatus.style.color = isError ? '#d33' : '#2a7a57';
+        }
+        function setJoinDescription(text) {
+          if (!joinSpaceDesc) return;
+          joinSpaceDesc.textContent = text || '';
+        }
+        let lastPreviewedCode = '';
+        async function previewJoinSpace(code) {
+          if (!code || code.length < 6) {
+            setJoinDescription('');
+            return;
+          }
+          lastPreviewedCode = code;
+          const data = await findSpaceByAccessCode(code);
+          if (lastPreviewedCode !== code) return;
+          setJoinDescription((data?.desc || data?.description || '').trim());
         }
         function updateSpaceAccessCodeDisplay() {
           if (!spaceAccessCodeEl) return;
@@ -4364,7 +4454,36 @@
             }
           });
         }
-        $("#joinGarden").onclick = () => { close(mAdd); openJoinModal(); };
+        let pendingAddModalTarget = null;
+        const finishPendingAddModal = (target) => {
+          if (pendingAddModalTarget !== target) return;
+          pendingAddModalTarget = null;
+          if (target === 'join') {
+            openJoinModal();
+          } else if (target === 'create') {
+            openGardenFlow();
+          }
+        };
+        const requestAddModalTransition = (target) => {
+          pendingAddModalTarget = target;
+          close(mAdd);
+          setTimeout(() => finishPendingAddModal(target), 20);
+        };
+        const addModal = $("#modalAdd");
+        addModal?.addEventListener('click', (event) => {
+          const opt = event.target.closest('.opt');
+          if (!opt) return;
+          if (opt.id === 'createGarden') {
+            requestAddModalTransition('create');
+            return;
+          }
+          if (opt.id === 'joinGarden') {
+            requestAddModalTransition('join');
+          }
+        });
+        $("#closeAdd").addEventListener('click', () => {
+          pendingAddModalTarget = null;
+        });
         const gardenNameInput = $("#gardenNameInput");
         const gardenModeSelect = $("#gardenModeSelect");
         const gardenModeHint = $("#gardenModeHint");
@@ -4375,6 +4494,8 @@
         const inviteName = $("#inviteName");
         const inviteList = $("#inviteList");
         const inviteStatus = $("#inviteStatus");
+        const authSpaceDesc = $("#authSpaceDesc");
+        const joinSpaceDesc = $("#joinSpaceDesc");
         const generateInviteBtn = $("#generateInvite");
         const habitModeToggle = $("#modeToggle");
         const habitModeButtons = habitModeToggle ? Array.from(habitModeToggle.querySelectorAll('.mode-option')) : [];
@@ -4383,12 +4504,16 @@
         const transferSpaceBtn = $("#transferSpaceBtn");
         const deleteSpaceBtn = $("#deleteSpaceBtn");
         createGardenBtn.onclick = createGarden;
-        $("#createGarden").onclick = () => { close(mAdd); openGardenFlow() };
         openJoinFromGardenBtn?.addEventListener('click', () => { close(mGarden); openJoinModal(); });
         joinToCreateLink?.addEventListener('click', () => { close(mJoin); openGardenFlow(); });
         joinCodeInput?.addEventListener('input', () => {
           if (!joinCodeInput) return;
           joinCodeInput.value = (joinCodeInput.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+          if (joinCodeInput.value.length === 6) {
+            previewJoinSpace(joinCodeInput.value);
+          } else {
+            setJoinDescription('');
+          }
         });
         joinSpaceBtn?.addEventListener('click', joinGardenByCode);
         generateInviteBtn.onclick = generateInviteLink;
@@ -4455,9 +4580,15 @@
             if (pendingInviteInfo.invitedName) {
               authNameInput.value = pendingInviteInfo.invitedName;
             }
+            if (authSpaceDesc) {
+              authSpaceDesc.textContent = (pendingInviteInfo.spaceDesc || '').trim();
+            }
           } else {
             authMessage.textContent = 'Connecte-toi pour retrouver Habitube.';
             authNameInput.value = '';
+            if (authSpaceDesc) {
+              authSpaceDesc.textContent = '';
+            }
           }
         }
         refreshPendingInviteInfo().then(updateAuthMessage);
@@ -4603,6 +4734,7 @@
             invitedName: name,
             spaceId,
             spaceCode: SPACES[spaceId]?.code || '',
+            spaceDesc: (SPACES[spaceId]?.desc || '').trim(),
             gardenLabel: SPACES[spaceId]?.label || 'ton jardin',
             created: Date.now(),
             ownerEmail: currentProfile?.email
@@ -4656,6 +4788,7 @@
             updAll();
             showHome();
             setJoinStatus('Jardin rejoint !', false);
+            setJoinDescription((spaceData.desc || spaceData.description || '').trim());
             close(mJoin);
           } catch (err) {
             console.warn('joinGardenByCode', err);
