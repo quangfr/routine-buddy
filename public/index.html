@@ -1444,6 +1444,119 @@
     .session-conflict.visible {
       display: block;
     }
+    .session-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 12;
+      display: none;
+    }
+
+    .session-overlay.visible {
+      display: block;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 14;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 10px 14px;
+      border-radius: 999px;
+      min-width: 180px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+      color: #111;
+      background: #f4f4f4;
+      opacity: 0;
+      animation: toastIn 0.3s forwards;
+    }
+    .toast.toast-success {
+      background: #def7ec;
+      color: #1f824d;
+    }
+    .toast.toast-error {
+      background: #ffe0e0;
+      color: #a32020;
+    }
+    .toast.toast-info {
+      background: #e1edff;
+      color: #1a3e86;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .install-prompt {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      padding: 12px;
+    }
+
+    .install-prompt.visible {
+      display: flex;
+    }
+
+    .install-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 22px;
+      width: min(420px, 90vw);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .install-card h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .install-card p {
+      margin: 0;
+      color: #404040;
+    }
+
+    .install-card .btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .install-card .btn-row .btn {
+      flex: 1;
+    }
+
+    .install-card .learn-more {
+      font-size: 12px;
+      color: #5c6ac4;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -1455,6 +1568,19 @@
       <div class="loader-tip" id="loaderTip"></div>
     </div>
     <div class="loader-version" id="loaderVersion"></div>
+  </div>
+  <div class="session-overlay" id="sessionOverlay"></div>
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="install-prompt" id="installPromptCard">
+    <div class="install-card">
+      <h3>Installer Habitube</h3>
+      <p>Ajoute Habitube à ton écran d’accueil et reste connecté à tes jardins partagés.</p>
+      <div class="btn-row">
+        <button class="btn primary" id="installPromptBtn">Installer</button>
+        <button class="btn" id="installPromptClose">Plus tard</button>
+      </div>
+      <div class="learn-more" id="installPromptHelp">Pourquoi installer ?</div>
+    </div>
   </div>
   <div class="auth-overlay hide" id="authOverlay">
     <div class="auth-card">
@@ -1525,9 +1651,9 @@
             <div style="font-size:12px;display:flex;gap:8px;align-items:center">
               Période:
               <div style="display:flex;gap:8px">
-                <button class="btnToggle" data-period="7" id="btnP7">7 jours</button>
-                <button class="btnToggle active" data-period="30" id="btnP30">30 jours</button>
-                <button class="btnToggle" data-period="all" id="btnPAll">Total</button>
+                <button class="btnToggle" id="btnP7">7 jours</button>
+                <button class="btnToggle active" id="btnP30">30 jours</button>
+                <button class="btnToggle" id="btnPAll">Total</button>
               </div>
             </div>
           </div>
@@ -1642,11 +1768,11 @@
       </div>
       <div class="section">
         <div class="rankHeader profile-period-row">
-          <b>Habitudes</b>
+          <b>Période</b>
           <div class="profile-period-buttons">
-            <button class="btnToggle" data-pp="7" id="profilePeriod7">7 jours</button>
-            <button class="btnToggle active" data-pp="30" id="profilePeriod30">30 jours</button>
-            <button class="btnToggle" data-pp="all" id="profilePeriodAll">Total</button>
+                <button class="btnToggle" id="profilePeriod7">7 jours</button>
+                <button class="btnToggle active" id="profilePeriod30">30 jours</button>
+                <button class="btnToggle" id="profilePeriodAll">Total</button>
           </div>
         </div>
         <div id="profileHabits" class="profile-habit-list"></div>
@@ -1673,9 +1799,9 @@
             <div style="font-size:12px;display:flex;gap:8px;align-items:center">
               Période:
               <div style="display:flex;gap:8px">
-                <button class="btnToggle" data-speriod="7" id="sBtnP7">7 jours</button>
-                <button class="btnToggle active" data-speriod="30" id="sBtnP30">30 jours</button>
-                <button class="btnToggle" data-speriod="all" id="sBtnPAll">Total</button>
+                <button class="btnToggle" id="sBtnP7">7 jours</button>
+                <button class="btnToggle active" id="sBtnP30">30 jours</button>
+                <button class="btnToggle" id="sBtnPAll">Total</button>
               </div>
             </div>
           </div>
@@ -1702,9 +1828,17 @@
             <div class="field"><label><b>Mon prénom</b></label><input id="paramName" type="text" value="Moi" /></div>
             <div class="field"><label><b>Nom du jardin</b></label><input id="paramSpaceLabel" type="text" /></div>
             <div class="field">
-              <label><b>Description</b></label>
+              <label><b>Texte d'introduction</b></label>
               <textarea id="spaceDescInfo"
                 placeholder="Présentez le jardin, les règles et l’état d’esprit. Cliquez pour éditer."></textarea>
+            </div>
+            <div class="field">
+              <label><b>Affiche des notes</b></label>
+              <select id="notesDisplayMode" class="select">
+                <option value="info" selected>Bouton d'info</option>
+                <option value="show">Tout afficher</option>
+                <option value="hide">Tout cacher</option>
+              </select>
             </div>
             <div class="field">
               <label><b>Mode d'organisation</b></label>
@@ -1789,6 +1923,13 @@
                 <div class="subtitle">Entrer un code d'accès</div>
               </div>
             </div>
+            <div class="opt" id="installApp">
+              <div class="emoji">📱</div>
+              <div>
+                <b>Installer l'application mobile</b>
+                <div class="subtitle">Profite d'un accès rapide et d'icônes sur ton écran d'accueil.</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1813,7 +1954,6 @@
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <button class="btn primary" id="generateInvite">Inviter</button>
-              <div id="inviteStatus" style="font-size:12px;color:#2a7a57"></div>
             </div>
             <div class="subtitle">Les invitations :</div>
             <div id="inviteList" class="invite-list"></div>
@@ -2161,9 +2301,14 @@
       const SESSION_LOCK_PING = 4 * 1000;
       const SESSION_CONFLICT_MESSAGE = 'Un autre onglet Habitube est actif. Ferme-le ou attends qu\'il se libère pour continuer.';
       const TAB_INSTANCE_ID = (window.crypto?.randomUUID ? crypto.randomUUID() : `tab-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      const INSTALL_PROMPT_STORAGE_KEY = 'habitu-install-prompt-seen';
       let sessionLockTimer;
       let isPrimaryTab = false;
       let sessionBanner = null;
+      let sessionOverlayEl = null;
+      let deferredInstallPrompt = null;
+      let installPromptAutoShown = false;
+      let toastContainerEl = null;
 
       function safeStorageGet(key) {
         try {
@@ -2181,6 +2326,24 @@
         try {
           localStorage.removeItem(key);
         } catch (e) { }
+      }
+      function ensureToastContainer() {
+        if (!toastContainerEl) {
+          toastContainerEl = $("#toastContainer");
+        }
+        return toastContainerEl;
+      }
+      function showToast(message, { type = 'info', duration = 4000 } = {}) {
+        if (!message) return;
+        const container = ensureToastContainer();
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.remove();
+        }, duration);
       }
       function parseSessionLock(value) {
         if (!value) return null;
@@ -2200,10 +2363,76 @@
         root.prepend(sessionBanner);
         return sessionBanner;
       }
+      function ensureSessionOverlay() {
+        if (!sessionOverlayEl) {
+          sessionOverlayEl = $("#sessionOverlay");
+        }
+        return sessionOverlayEl;
+      }
+      function syncSessionOverlay(show) {
+        const overlay = ensureSessionOverlay();
+        if (!overlay) return;
+        overlay.classList.toggle('visible', show);
+      }
+      function isRunningAsPWA() {
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+        if (navigator.standalone) return true;
+        return false;
+      }
+      function hasSeenInstallPrompt() {
+        return !!safeStorageGet(INSTALL_PROMPT_STORAGE_KEY);
+      }
+      function markInstallPromptSeen() {
+        safeStorageSet(INSTALL_PROMPT_STORAGE_KEY, String(Date.now()));
+      }
+      function showInstallPromptCard() {
+        const card = $("#installPromptCard");
+        if (card) card.classList.add('visible');
+      }
+      function closeInstallPromptCard() {
+        const card = $("#installPromptCard");
+        if (card) card.classList.remove('visible');
+      }
+      function updateInstallOptionVisibility() {
+        const opt = $("#installApp");
+        if (!opt) return;
+        const hidden = !deferredInstallPrompt || isRunningAsPWA();
+        opt.classList.toggle('hide', hidden);
+      }
+      function triggerInstallPrompt(source = 'manual') {
+        if (!deferredInstallPrompt) {
+          showToast('Installation indisponible pour le moment.', { type: 'error' });
+          return;
+        }
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(choice => {
+          if (choice && choice.outcome === 'accepted') {
+            showToast('Habitube est installé !', { type: 'success' });
+          } else if (source === 'auto') {
+            showToast('Tu peux installer Habitube depuis ce bouton.', { type: 'info' });
+          } else {
+            showToast('Installation annulée.', { type: 'error' });
+        }
+        markInstallPromptSeen();
+        deferredInstallPrompt = null;
+        closeInstallPromptCard();
+        updateInstallOptionVisibility();
+      }).catch(err => {
+        console.warn('triggerInstallPrompt', err);
+        showToast('Impossible d’installer pour l’instant.', { type: 'error' });
+      });
+      }
+      function maybeShowInstallPrompt(auto = true) {
+        if (isRunningAsPWA() || installPromptAutoShown || hasSeenInstallPrompt()) return;
+        if (!deferredInstallPrompt) return;
+        showInstallPromptCard();
+        installPromptAutoShown = true;
+      }
       function setSessionBannerVisible(show) {
         const banner = ensureSessionBanner();
         if (!banner) return;
         banner.classList.toggle('visible', show);
+        syncSessionOverlay(show);
       }
       function readSessionLock() {
         return parseSessionLock(safeStorageGet(SESSION_LOCK_KEY));
@@ -2259,6 +2488,13 @@
       };
       window.addEventListener('beforeunload', teardownSessionLock);
       window.addEventListener('pagehide', teardownSessionLock);
+      window.addEventListener('beforeinstallprompt', (event) => {
+        if (isRunningAsPWA()) return;
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        updateInstallOptionVisibility();
+        maybeShowInstallPrompt(false);
+      });
       const MIN_DAY_OFF = -3650;
       function getWeekStart(date = new Date()) {
         const copy = new Date(date);
@@ -2383,8 +2619,8 @@
       function oneLiner(s) { return (s || '').replace(/\s*\n\s*/g, ' · ') }
 
       /* Global */
-      let period = '30', spaceId = 'D0PWE3', userName = 'Moi', dayOff = 0;
-      let profilePeriod = '30', activeProfileName = null, activeProfileEmail = null, profileReturnView = 'detail';
+      let period = '30d', spaceId = 'D0PWE3', userName = 'Moi', dayOff = 0;
+      let profilePeriod = '30d', activeProfileName = null, activeProfileEmail = null, profileReturnView = 'detail';
 
       /* Spaces (orgMode: day ou week) */
       const SPACES = {};
@@ -2485,6 +2721,34 @@
       function dayKeyFromDate(date) {
         return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       }
+      function upsertLocalHabitActivity(event) {
+        if (!event || !event.spaceId || !event.habitId) return;
+        const owner = event.owner || getOwnerNameFromEvent(event);
+        if (!owner) return;
+        const recordedAt = timestampToDate(event.recordedAt) || new Date();
+        const key = `${owner}:${event.habitId}:${dayKeyFromDate(recordedAt)}`;
+        const bucket = SPACE_ACTIVITIES[event.spaceId] || [];
+        const idx = bucket.findIndex(ev => {
+          const existingOwner = ev.owner || getOwnerNameFromEvent(ev);
+          if (!existingOwner) return false;
+          return `${existingOwner}:${ev.habitId}:${dayKeyFromDate(timestampToDate(ev.recordedAt) || new Date(0))}` === key;
+        });
+        const stored = { ...event, recordedAt };
+        if (idx === -1) {
+          bucket.push(stored);
+        } else {
+          const prev = timestampToDate(bucket[idx].recordedAt) || new Date(0);
+          if (recordedAt >= prev) {
+            bucket[idx] = stored;
+          }
+        }
+        SPACE_ACTIVITIES[event.spaceId] = bucket;
+      }
+      function refreshActivityViews() {
+        renderRank();
+        renderCalendar();
+        renderProfileStats();
+      }
       function getSpaceOwnerEmail(spaceId) {
         return normalizeEmail(SPACES[spaceId]?.ownerEmail || '');
       }
@@ -2576,6 +2840,7 @@
           clearTimeout(activityQueue.get(key));
         }
         const actorName = currentProfile?.name || 'Moi';
+        const localRecordedAt = new Date();
         const eventData = {
           ...payload,
           habitId,
@@ -2585,6 +2850,11 @@
           actorName,
           recordedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
+        const localEvent = { ...eventData, recordedAt: localRecordedAt };
+        if (payload.type === 'realization') {
+          upsertLocalHabitActivity(localEvent);
+          refreshActivityViews();
+        }
         const timer = setTimeout(() => {
           sendActivityToServer(eventData);
           activityQueue.delete(key);
@@ -2884,6 +3154,40 @@
         desc.classList.remove('open');
       }
 
+      function getNotesDisplayMode() {
+        const sp = getSpace();
+        return (sp?.notesDisplayMode || 'info');
+      }
+
+      function applyNoteDisplayMode(desc, infoBtn) {
+        if (!desc) return;
+        const mode = getNotesDisplayMode();
+        const hasNote = desc.dataset.has === '1';
+        const fullText = desc.dataset.full || '';
+        if (mode === 'show') {
+          desc.textContent = fullText;
+          desc.classList.remove('hidden');
+          desc.classList.add('open');
+          if (infoBtn) infoBtn.style.display = 'none';
+          return;
+        }
+        if (mode === 'hide') {
+          desc.textContent = '';
+          desc.classList.remove('open');
+          desc.classList.add('hidden');
+          if (infoBtn) infoBtn.style.display = 'none';
+          return;
+        }
+        if (infoBtn) {
+          infoBtn.style.display = hasNote ? 'inline-flex' : 'none';
+        }
+        if (!hasNote) {
+          desc.classList.remove('open');
+          desc.classList.add('hidden');
+          desc.textContent = desc.dataset.short || '';
+        }
+      }
+
       /* Global helpers */
       function curDate() { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + dayOff); return t; }
       function getSpace() { return (spaceId && SPACES[spaceId]) || null; }
@@ -2969,8 +3273,11 @@
         });
         return Array.from(map.values());
       }
-      function summarizeSocials(spaceId, since = null) {
-        const events = getSpaceEvents(spaceId, since);
+      function summarizeSocials(spaceId, since = null, until = null) {
+        let events = getSpaceEvents(spaceId, since);
+        if (until) {
+          events = events.filter(ev => ev.recordedAt <= until);
+        }
         const likes = new Map();
         const helps = new Map();
         events.forEach(event => {
@@ -3088,6 +3395,7 @@
           infoBtn.title = hasNote ? 'Afficher la note' : '';
           infoBtn.style.display = hasNote ? 'inline-flex' : 'none';
           title.appendChild(infoBtn);
+          applyNoteDisplayMode(desc, infoBtn);
 
           const friends = document.createElement('div');
           friends.className = 'friends';
@@ -3213,6 +3521,7 @@
           };
 
           const ensureOpenDesc = () => {
+            if (getNotesDisplayMode() !== 'info') return;
             if (openCard !== card) {
               collapseOpenDesc();
               openCard = card;
@@ -3242,6 +3551,7 @@
             }
           };
           infoBtn.addEventListener('click', e => {
+            if (getNotesDisplayMode() !== 'info') return;
             e.stopPropagation();
             toggleNote();
           });
@@ -3502,26 +3812,109 @@
       $("#backHome").onclick = showHome;
 
       /* ===== Classement (texte simple ❤️🤝) ===== */
+      const DETAIL_PERIOD_BUTTONS = [
+        { selector: '#btnP7', day: { key: '7d', label: '7 jours' }, week: { key: '1w', label: '1 sem' } },
+        { selector: '#btnP30', day: { key: '30d', label: '30 jours' }, week: { key: '4w', label: '4 sem' } },
+        { selector: '#btnPAll', day: { key: 'all', label: 'Total' }, week: { key: 'all', label: 'Total' } }
+      ];
+      const PROFILE_PERIOD_BUTTONS = [
+        { selector: '#profilePeriod7', day: { key: '7d', label: '7 jours' }, week: { key: '1w', label: '1 sem' } },
+        { selector: '#profilePeriod30', day: { key: '30d', label: '30 jours' }, week: { key: '4w', label: '4 sem' } },
+        { selector: '#profilePeriodAll', day: { key: 'all', label: 'Total' }, week: { key: 'all', label: 'Total' } }
+      ];
+      const SPACE_PERIOD_BUTTONS = [
+        { selector: '#sBtnP7', day: { key: '7d', label: '7 jours' }, week: { key: '1w', label: '1 sem' } },
+        { selector: '#sBtnP30', day: { key: '30d', label: '30 jours' }, week: { key: '4w', label: '4 sem' } },
+        { selector: '#sBtnPAll', day: { key: 'all', label: 'Total' }, week: { key: 'all', label: 'Total' } }
+      ];
+      function applyPeriodButtonLayout(buttons, mode) {
+        const allowed = [];
+        let defaultKey = null;
+        buttons.forEach(item => {
+          const btn = $(item.selector);
+          if (!btn) return;
+          const info = item[mode];
+          if (!info) return;
+          btn.dataset.period = info.key;
+          btn.textContent = info.label;
+          allowed.push(info.key);
+          if (!defaultKey) defaultKey = info.key;
+        });
+        return { allowed, defaultKey };
+      }
+      function updateDetailPeriodControls() {
+        const mode = isWeekMode() ? 'week' : 'day';
+        const { allowed, defaultKey } = applyPeriodButtonLayout(DETAIL_PERIOD_BUTTONS, mode);
+        if (!allowed.includes(period)) {
+          period = defaultKey || 'all';
+        }
+        updPeriodBtns();
+      }
+      function updateProfilePeriodButtons() {
+        const mode = isWeekMode() ? 'week' : 'day';
+        const { allowed, defaultKey } = applyPeriodButtonLayout(PROFILE_PERIOD_BUTTONS, mode);
+        if (!allowed.includes(profilePeriod)) {
+          profilePeriod = defaultKey || 'all';
+        }
+        PROFILE_PERIOD_BUTTONS.forEach(item => {
+          const btn = $(item.selector);
+          if (!btn) return;
+          btn.classList.toggle('active', btn.dataset.period === profilePeriod);
+        });
+      }
+      function updateSpacePeriodButtons() {
+        const mode = isWeekMode() ? 'week' : 'day';
+        const { allowed, defaultKey } = applyPeriodButtonLayout(SPACE_PERIOD_BUTTONS, mode);
+        if (!allowed.includes(sPeriod)) {
+          sPeriod = defaultKey || 'all';
+        }
+        SPACE_PERIOD_BUTTONS.forEach(item => {
+          const btn = $(item.selector);
+          if (!btn) return;
+          btn.classList.toggle('active', btn.dataset.period === sPeriod);
+        });
+      }
+      function getWeekRange(count) {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const currentWeekStart = getWeekStart(now);
+        const lastWeekEnd = new Date(currentWeekStart);
+        lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+        const since = new Date(lastWeekEnd);
+        since.setDate(since.getDate() - (7 * count) + 1);
+        since.setHours(0, 0, 0, 0);
+        return { since, until: lastWeekEnd };
+      }
+      function resolvePeriodRange(key) {
+        if (!key || key === 'all') return { since: null, until: null };
+        if (key === '1w') return getWeekRange(1);
+        if (key === '4w') return getWeekRange(4);
+        if (key === '7d' || key === '30d') {
+          const days = Number(key.replace('d', '')) || 0;
+          if (!days) return { since: null, until: null };
+          const since = new Date();
+          since.setHours(0, 0, 0, 0);
+          since.setDate(since.getDate() - days);
+          return { since };
+        }
+        return { since: null, until: null };
+      }
       function renderRank() {
+        updateDetailPeriodControls();
         const root = $("#rank");
         root.innerHTML = '';
         if (!spaceId || !activeId) return;
-        const days = period === '7' ? 7 : period === '30' ? 30 : 120;
-        const since = period === 'all' ? null : (() => {
-          const date = new Date();
-          date.setHours(0, 0, 0, 0);
-          date.setDate(date.getDate() - days + 1);
-          return date;
-        })();
-        const records = getHabitRecords(spaceId, activeId, since);
+        const range = resolvePeriodRange(period);
+        const records = getHabitRecords(spaceId, activeId, range.since);
+        const filtered = range.until ? records.filter(rec => rec.recordedAt <= range.until) : records;
         const totals = new Map();
-        records.forEach(rec => {
+        filtered.forEach(rec => {
           if ((rec.state || 0) >= 1) {
             const minutes = BASE_MINUTES[activeId] || 15;
             totals.set(rec.owner, (totals.get(rec.owner) || 0) + minutes);
           }
         });
-        const { likes, helps } = summarizeSocials(spaceId, since);
+        const { likes, helps } = summarizeSocials(spaceId, range.since, range.until);
         const members = new Set(allMembersOfSpace());
         members.add(userName || 'Moi');
         const rows = Array.from(members).map(name => ({
@@ -3560,34 +3953,26 @@
         renderProfileStats();
       }
       function updPeriodBtns() { $$('#btnP7,#btnP30,#btnPAll').forEach(b => b.classList.toggle('active', b.dataset.period === period)) }
-      $('#btnP7').onclick = () => { period = '7'; updPeriodBtns(); renderRank() };
-      $('#btnP30').onclick = () => { period = '30'; updPeriodBtns(); renderRank() };
-      $('#btnPAll').onclick = () => { period = 'all'; updPeriodBtns(); renderRank() };
+      $('#btnP7').onclick = () => {
+        const btn = $("#btnP7");
+        period = btn?.dataset.period || period;
+        renderRank();
+      };
+      $('#btnP30').onclick = () => {
+        const btn = $("#btnP30");
+        period = btn?.dataset.period || period;
+        renderRank();
+      };
+      $('#btnPAll').onclick = () => {
+        const btn = $("#btnPAll");
+        period = btn?.dataset.period || period;
+        renderRank();
+      };
       function showDetailView() { hideAll(); $("#detail").classList.add('active'); $("#daysWrap").classList.add('hide') }
-      function getProfilePeriodLabel(key) {
-        if (key === 'all') return 'Total';
-        const base = Number(key);
-        if (!base) return '';
-        const unit = isWeekMode() ? (base === 1 ? 'semaine' : 'semaines') : (base === 1 ? 'jour' : 'jours');
-        return `${base} ${unit}`;
-      }
-      function updateProfilePeriodButtons() {
-        $$('#profilePeriod7,#profilePeriod30,#profilePeriodAll').forEach(btn => {
-          const key = btn.dataset.pp;
-          if (!key) return;
-          btn.classList.toggle('active', key === profilePeriod);
-          btn.textContent = getProfilePeriodLabel(key);
-        });
-      }
       function getProfileSinceDate() {
-        if (!spaceId || profilePeriod === 'all') return null;
-        const base = Number(profilePeriod) || 0;
-        if (!base) return null;
-        const multiplier = isWeekMode() ? 7 : 1;
-        const date = new Date();
-        date.setHours(0, 0, 0, 0);
-        date.setDate(date.getDate() - (base * multiplier) + 1);
-        return date;
+        if (!spaceId) return null;
+        const range = resolvePeriodRange(profilePeriod);
+        return range.since;
       }
       function renderProfileStats() {
         updateProfilePeriodButtons();
@@ -3599,8 +3984,12 @@
           return;
         }
         const normalized = normalizeOwnerLabel(activeProfileName);
-        const since = getProfileSinceDate();
-        const records = getSpaceRecords(spaceId, since).filter(rec => normalizeOwnerLabel(rec.owner) === normalized);
+        const range = resolvePeriodRange(profilePeriod);
+        let records = getSpaceRecords(spaceId, range.since);
+        if (range.until) {
+          records = records.filter(rec => rec.recordedAt <= range.until);
+        }
+        records = records.filter(rec => normalizeOwnerLabel(rec.owner) === normalized);
         const minutesPerHabit = new Map();
         records.forEach(rec => {
           if ((rec.state || 0) >= 1) {
@@ -3608,7 +3997,10 @@
             minutesPerHabit.set(rec.habitId, (minutesPerHabit.get(rec.habitId) || 0) + minutes);
           }
         });
-        const events = getSpaceEvents(spaceId, since);
+        let events = getSpaceEvents(spaceId, range.since);
+        if (range.until) {
+          events = events.filter(ev => ev.recordedAt <= range.until);
+        }
         const supportCounts = new Map();
         const likeCounts = new Map();
         events.forEach(event => {
@@ -3884,6 +4276,20 @@
           autoWeekSelect.dataset.bound = '1';
         }
         updateSpaceOrgButtons();
+        const notesModeSelect = $("#notesDisplayMode");
+        if (notesModeSelect) {
+          notesModeSelect.value = sp.notesDisplayMode || 'info';
+          if (!notesModeSelect.dataset.bound) {
+            notesModeSelect.addEventListener('change', () => {
+              if (!spaceId) return;
+              const mode = notesModeSelect.value || 'info';
+              sp.notesDisplayMode = mode;
+              persistSpaceDoc(spaceId, { notesDisplayMode: mode });
+              renderCards();
+            });
+            notesModeSelect.dataset.bound = '1';
+          }
+        }
         const editButtonSelect = $("#spaceEditButton");
         if (editButtonSelect) {
           editButtonSelect.value = shouldShowEditButton() ? 'yes' : 'no';
@@ -3908,15 +4314,11 @@
           quitBtn.dataset.bound = '1';
         }
         const saveSettingsBtn = $("#saveSpaceSettings");
-        const spaceNotice = $("#spaceSettingsNotice");
         if (saveSettingsBtn && !saveSettingsBtn.dataset.bound) {
           saveSettingsBtn.onclick = async () => {
             if (!spaceId) return;
             await persistSpaceDoc(spaceId);
-            if (spaceNotice) {
-              spaceNotice.textContent = 'Réglages sauvegardés.';
-              setTimeout(() => { if (spaceNotice) spaceNotice.textContent = ''; }, 3000);
-            }
+          showToast('Réglages sauvegardés.', { type: 'success' });
           };
           saveSettingsBtn.dataset.bound = '1';
         }
@@ -4082,38 +4484,32 @@
         return Array.from(members);
       }
       function renderSpaceRank() {
+        updateSpacePeriodButtons();
         const root = $("#spaceRank");
         root.innerHTML = '';
         if (!spaceId) return;
-        const days = sPeriod === '7' ? 7 : (sPeriod === '30' ? 30 : 120);
-        const since = sPeriod === 'all' ? null : (() => {
-          const date = new Date();
-          date.setHours(0, 0, 0, 0);
-          date.setDate(date.getDate() - days + 1);
-          return date;
-        })();
-        const records = getSpaceRecords(spaceId, since);
+        const range = resolvePeriodRange(sPeriod);
+        const records = getSpaceRecords(spaceId, range.since);
+        const filtered = range.until ? records.filter(rec => rec.recordedAt <= range.until) : records;
         const totals = new Map();
-        records.forEach(rec => {
+        filtered.forEach(rec => {
           if ((rec.state || 0) >= 1) {
             const minutes = BASE_MINUTES[rec.habitId] || 15;
             totals.set(rec.owner, (totals.get(rec.owner) || 0) + minutes);
           }
         });
-        const { likes, helps } = summarizeSocials(spaceId, since);
+        const { likes, helps } = summarizeSocials(spaceId, range.since, range.until);
         const members = new Set(allMembersOfSpace());
         members.add(userName || 'Moi');
-        const rows = Array.from(members).map(name => {
-          return {
-            n: name,
-            me: name === (userName || 'Moi'),
-            totalMin: totals.get(name) || 0,
-            likes: likes.get(name) || 0,
-            help: Math.round(((helps.get(name) || 0) * 15) / 60),
-            txt: m2txt(totals.get(name) || 0)
-          };
-        }).sort((a, b) => b.totalMin - a.totalMin);
-        rows.forEach(({ n, txt, totalMin, me, likes, help }) => {
+        const rows = Array.from(members).map(name => ({
+          n: name,
+          me: name === (userName || 'Moi'),
+          totalMin: totals.get(name) || 0,
+          likes: likes.get(name) || 0,
+          help: Math.round(((helps.get(name) || 0) * 15) / 60),
+          txt: m2txt(totals.get(name) || 0)
+        })).sort((a, b) => b.totalMin - a.totalMin);
+        rows.forEach(({ n, totalMin, txt, me, likes, help }) => {
           const row = document.createElement('div');
           row.className = 'row';
           const left = document.createElement('div');
@@ -4140,14 +4536,37 @@
         });
         renderProfileStats();
       }
-      let sPeriod = '30';
-      function updSpacePeriodBtns() { $$('#sBtnP7,#sBtnP30,#sBtnPAll').forEach(b => b.classList.toggle('active', b.dataset.speriod === sPeriod)); }
-      $('#sBtnP7').onclick = () => { sPeriod = '7'; updSpacePeriodBtns(); renderSpaceRank(); };
-      $('#sBtnP30').onclick = () => { sPeriod = '30'; updSpacePeriodBtns(); renderSpaceRank(); };
-      $('#sBtnPAll').onclick = () => { sPeriod = 'all'; updSpacePeriodBtns(); renderSpaceRank(); };
-      $('#profilePeriod7').onclick = () => { profilePeriod = '7'; updateProfilePeriodButtons(); renderProfileStats(); };
-      $('#profilePeriod30').onclick = () => { profilePeriod = '30'; updateProfilePeriodButtons(); renderProfileStats(); };
-      $('#profilePeriodAll').onclick = () => { profilePeriod = 'all'; updateProfilePeriodButtons(); renderProfileStats(); };
+      let sPeriod = '30d';
+      $('#sBtnP7').onclick = () => {
+        const btn = $("#sBtnP7");
+        sPeriod = btn?.dataset.period || sPeriod;
+        renderSpaceRank();
+      };
+      $('#sBtnP30').onclick = () => {
+        const btn = $("#sBtnP30");
+        sPeriod = btn?.dataset.period || sPeriod;
+        renderSpaceRank();
+      };
+      $('#sBtnPAll').onclick = () => {
+        const btn = $("#sBtnPAll");
+        sPeriod = btn?.dataset.period || sPeriod;
+        renderSpaceRank();
+      };
+      $('#profilePeriod7').onclick = () => {
+        const btn = $("#profilePeriod7");
+        profilePeriod = btn?.dataset.period || profilePeriod;
+        renderProfileStats();
+      };
+      $('#profilePeriod30').onclick = () => {
+        const btn = $("#profilePeriod30");
+        profilePeriod = btn?.dataset.period || profilePeriod;
+        renderProfileStats();
+      };
+      $('#profilePeriodAll').onclick = () => {
+        const btn = $("#profilePeriodAll");
+        profilePeriod = btn?.dataset.period || profilePeriod;
+        renderProfileStats();
+      };
       $('#backFromProfile').onclick = closeProfileView;
       $('#removeFromGardenBtn').onclick = removeActiveProfileMember;
 
@@ -4300,7 +4719,7 @@
       spaceAccessCodeEl?.addEventListener('click', () => {
         if (!spaceAccessCodeEl.value) return;
         spaceAccessCodeEl.select();
-        copyText(spaceAccessCodeEl.value, inviteStatus || $("#inviteStatus"));
+        copyText(spaceAccessCodeEl.value);
       });
       function canCloseGardenModal() {
         return allowedSpaces.length > 0;
@@ -4469,9 +4888,12 @@
       const authNameInput = $("#authName");
       const inviteName = $("#inviteName");
       const inviteList = $("#inviteList");
-      const inviteStatus = $("#inviteStatus");
       const authSpaceDesc = $("#authSpaceDesc");
       const joinSpaceDesc = $("#joinSpaceDesc");
+      const installAppOpt = $("#installApp");
+      const installPromptBtn = $("#installPromptBtn");
+      const installPromptClose = $("#installPromptClose");
+      const installPromptHelp = $("#installPromptHelp");
       const generateInviteBtn = $("#generateInvite");
       const habitModeToggle = $("#modeToggle");
       const habitModeButtons = habitModeToggle ? Array.from(habitModeToggle.querySelectorAll('.mode-option')) : [];
@@ -4507,6 +4929,16 @@
         close(mTransfer);
       });
       $("#closeTransfer").onclick = () => close(mTransfer);
+      installAppOpt?.addEventListener('click', () => {
+        close(mAdd);
+        triggerInstallPrompt('manual');
+      });
+      installPromptBtn?.addEventListener('click', () => triggerInstallPrompt('manual'));
+      installPromptClose?.addEventListener('click', () => closeInstallPromptCard());
+      installPromptHelp?.addEventListener('click', () => {
+        showToast('Installer donne un accès rapide sur ton écran d’accueil.', { type: 'info', duration: 5000 });
+      });
+      updateInstallOptionVisibility();
 
       function updateGardenModeHint() {
         if (!gardenModeHint || !gardenModeSelect) return;
@@ -4669,12 +5101,12 @@
           linkInput.className = 'invite-link-input';
           linkInput.addEventListener('click', () => {
             linkInput.select();
-            copyText(link, inviteStatus);
+            copyText(link);
           });
           linkInput.addEventListener('focus', () => linkInput.select());
           icon.addEventListener('click', () => {
             linkInput.select();
-            copyText(link, inviteStatus);
+            copyText(link);
           });
           const removeBtn = document.createElement('button');
           removeBtn.className = 'btn copyOnly';
@@ -4683,8 +5115,7 @@
           removeBtn.onclick = async () => {
             await deleteInviteDoc(token);
             renderInviteList();
-            inviteStatus.textContent = 'Invitation supprimée.';
-            inviteStatus.style.color = '#2a7a57';
+            showToast('Invitation supprimée.', { type: 'info' });
           };
           linkWrapper.append(icon, linkInput, removeBtn);
           row.append(nameEl, linkWrapper);
@@ -4695,11 +5126,11 @@
       async function generateInviteLink() {
         if (!requireAdmin('générer une invitation')) return;
         const name = (inviteName.value || '').trim();
-        inviteStatus.textContent = '';
-        if (!name) { inviteStatus.textContent = 'Entre un prénom.'; inviteStatus.style.color = '#d33'; return; }
-        if (!spaceId) { inviteStatus.textContent = 'Sélectionne d’abord un jardin.'; inviteStatus.style.color = '#d33'; return; }
+        if (!name) { showToast('Entre un prénom.', { type: 'error' }); return; }
+        if (!spaceId) { showToast('Sélectionne d’abord un jardin.', { type: 'error' }); return; }
         if (Object.values(INVITE_CACHE).some(inv => (inv.invitedName || '').toLowerCase() === name.toLowerCase())) {
-          inviteStatus.textContent = 'Ce prénom est déjà utilisé pour une invitation.'; inviteStatus.style.color = '#d33'; return;
+          showToast('Ce prénom est déjà utilisé pour une invitation.', { type: 'error' });
+          return;
         }
         await ensureSpaceHasCode(spaceId);
         const token = genInviteToken();
@@ -4717,10 +5148,9 @@
         };
         await persistInviteDoc(token, inviteData);
         INVITE_CACHE[token] = { token, ...inviteData };
-        inviteStatus.textContent = 'Lien généré !';
-        inviteStatus.style.color = '#2a7a57';
+        showToast('Lien généré !', { type: 'success' });
         renderInviteList();
-        copyText(link, inviteStatus);
+        copyText(link);
       }
 
       async function findSpaceByAccessCode(code) {
@@ -4774,13 +5204,16 @@
         }
       }
 
-      function copyText(value, statusEl) {
+      function copyText(value) {
         if (!value) return;
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(value).then(() => { statusEl.textContent = 'Lien copié !'; statusEl.style.color = '#2a7a57'; });
+          navigator.clipboard.writeText(value).then(() => {
+            showToast('Lien copié !', { type: 'success' });
+          }).catch(() => {
+            showToast('Copie manuelle : sélectionne et copie.', { type: 'error' });
+          });
         } else {
-          statusEl.textContent = 'Copie manuelle : sélectionne et copie.';
-          statusEl.style.color = '#d33';
+          showToast('Copie manuelle : sélectionne et copie.', { type: 'error' });
         }
       }
 
