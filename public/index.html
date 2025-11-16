@@ -1373,7 +1373,7 @@
     .field .access-code-row {
       display: flex;
       gap: 6px;
-      align-items: center;
+      align-items: stretch;
     }
 
     .field .access-code-row input {
@@ -1383,6 +1383,16 @@
     .btn.mini {
       padding: 4px 10px;
       font-size: 12px;
+    }
+
+    .access-code-row .refresh-btn {
+      padding: 0 12px;
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
     }
 
     .org-mode-buttons {
@@ -1535,66 +1545,6 @@
       padding: 6px 0;
     }
 
-    .session-conflict {
-      position: sticky;
-      top: 0;
-      z-index: 7;
-      text-align: center;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #7a4900;
-      background: #fff4e5;
-      border-bottom: 1px solid #f6c26d;
-      display: none;
-    }
-
-    .session-conflict.visible {
-      display: block;
-    }
-
-    .session-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(6px);
-      z-index: 12;
-      display: none;
-    }
-
-    .session-overlay.visible {
-      display: block;
-    }
-
-    .session-alert {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      border-radius: 12px;
-      padding: 28px;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
-    }
-    .session-alert-title {
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: #2a7a57;
-      font-size: 16px;
-    }
-    .session-alert-body {
-      font-size: 14px;
-      color: #333;
-      margin-bottom: 20px;
-      line-height: 1.4;
-    }
-    .session-alert-actions {
-      display: flex;
-      justify-content: center;
-    }
-
     .toast-container {
       position: fixed;
       top: 14px;
@@ -1710,17 +1660,6 @@
       <div class="loader-tip" id="loaderTip"></div>
     </div>
     <div class="loader-version" id="loaderVersion"></div>
-  </div>
-  <div class="session-overlay" id="sessionOverlay">
-    <div class="session-alert">
-      <div class="session-alert-title">Une autre session est en cours</div>
-      <div class="session-alert-body">
-        Habitube détecte qu’un autre onglet est actif. Reprendre ici fermera la session dans l’autre onglet.
-      </div>
-      <div class="session-alert-actions">
-        <button class="btn primary" id="takeOverSessionBtn">Reprendre cette session</button>
-      </div>
-    </div>
   </div>
   <div class="toast-container" id="toastContainer"></div>
   <div class="install-prompt" id="installPromptCard">
@@ -2067,14 +2006,14 @@
             </div>
             <div class="opt" id="addHabit">
               <div class="emoji">🌱</div>
-              <div><b>Nouvelle(s) habitude(s)</b>
-                <div class="subtitle">Rejoindre un défi</div>
+              <div><b>Nouvelle(s) plante(s)</b>
+                <div class="subtitle">Démarrer une nouvelle habitude</div>
               </div>
             </div>
             <div class="opt" id="inviteFriend">
               <div class="emoji">❤️</div>
               <div><b>Inviter un jardinier</b>
-                <div class="subtitle">Envoyer un email</div>
+                <div class="subtitle">Partager un code d'accès ou un lien d'invitation</div>
               </div>
             </div>
             <div class="opt" id="joinGarden">
@@ -2087,14 +2026,14 @@
               <div class="emoji">📱</div>
               <div>
                 <b>Installer l'application mobile</b>
-                <div class="subtitle">Profite d'un accès rapide et d'icônes sur ton écran d'accueil.</div>
+                <div class="subtitle">Profite d'un accès plus rapide et étendu</div>
               </div>
             </div>
-            <div class="opt update-app hide admin-only" id="refreshApp">
-              <div class="emoji">🔄</div>
+            <div class="opt" id="menuPrefs">
+              <div class="emoji">⚙️</div>
               <div>
-                <b>Mettre à jour</b>
-                <div class="subtitle">Recharge l’app, rafraîchit le cache et relance les données.</div>
+                <b>Voir mes préférences</b>
+                <div class="subtitle">Personnalise tes habitudes</div>
               </div>
             </div>
             <div class="opt auth-action hide" id="menuLogin">
@@ -2129,7 +2068,10 @@
               <label><b>Code d’accès ⿻</b></label>
               <div class="access-code-row">
                 <input id="spaceAccessCode" type="text" readonly placeholder="—" />
-                <button type="button" class="btn mini" id="regenerateSpaceCodeBtn">Regénérer</button>
+                <button type="button" class="btn mini refresh-btn" id="regenerateSpaceCodeBtn"
+                  title="Régénérer le code">
+                  ⟲
+                </button>
               </div>
               <div class="subtitle" id="joinSpaceDesc"></div>
             </div>
@@ -2192,6 +2134,38 @@
                 <button class="btn primary" id="createGardenBtn">Suivant</button>
               </div>
               <div class="subtitle" id="gardenStatus"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Préférences personnelles -->
+    <div class="modal" id="modalPrefs">
+      <div class="sheet">
+        <div class="sheetHeader">
+          <button type="button" class="backMini menu-back">←</button>
+          <div>Préférences</div><button class="closeX" id="closePrefs">⨉</button>
+        </div>
+        <div class="sheetBody">
+          <div class="grid">
+            <div class="field">
+              <label><b>Afficher des notes</b></label>
+              <select id="prefsNotesDisplayMode" class="select">
+                <option value="dynamic">Dynamique</option>
+                <option value="info">Bouton d'info</option>
+                <option value="show">Tout afficher</option>
+                <option value="hide">Tout cacher</option>
+              </select>
+            </div>
+            <div class="field">
+              <label><b>Afficher le bouton d'édition</b></label>
+              <select id="prefsEditButtonMode" class="select">
+                <option value="yes">Oui</option>
+                <option value="no">Non</option>
+                <option value="dynamic">Dynamique</option>
+              </select>
+              <div class="subtitle">En mode dynamique, le crayon n’apparaît que pour les habitudes en cours ou en soutien.</div>
             </div>
           </div>
         </div>
@@ -2508,8 +2482,7 @@
       const INSTALL_PROMPT_FIRST_HABIT_KEY = 'habitu-install-first-habit';
       let sessionLockTimer;
       let isPrimaryTab = false;
-      let sessionBanner = null;
-      let sessionOverlayEl = null;
+      let sessionConflictHandled = false;
       let deferredInstallPrompt = null;
       let installPromptAutoShown = false;
       let toastContainerEl = null;
@@ -2557,30 +2530,20 @@
           return null;
         }
       }
-      function ensureSessionBanner() {
-        if (sessionBanner) return sessionBanner;
-        const root = $('#app');
-        if (!root) return null;
-        sessionBanner = document.createElement('div');
-        sessionBanner.className = 'session-conflict';
-        sessionBanner.textContent = SESSION_CONFLICT_MESSAGE;
-        root.prepend(sessionBanner);
-        return sessionBanner;
-      }
-      function ensureSessionOverlay() {
-        if (!sessionOverlayEl) {
-          sessionOverlayEl = $("#sessionOverlay");
+      async function handleSessionConflict() {
+        if (sessionConflictHandled) return;
+        sessionConflictHandled = true;
+        showToast('Une autre session est active, récupération des données…', { type: 'info', duration: 5000 });
+        clearLocalState();
+        const email = currentProfile?.email;
+        if (!email) return;
+        showLoaderOverlay();
+        try {
+          await resetFirestoreState(email);
+          showHome();
+        } finally {
+          hideLoaderOverlay();
         }
-        return sessionOverlayEl;
-      }
-      function syncSessionOverlay(show) {
-        const overlay = ensureSessionOverlay();
-        if (!overlay) return;
-        overlay.classList.toggle('visible', show);
-      }
-      function forceSessionTakeover() {
-        safeStorageSet(SESSION_LOCK_KEY, JSON.stringify({ tabId: TAB_INSTANCE_ID, ts: Date.now() }));
-        refreshSessionLock();
       }
       function isRunningAsPWA() {
         if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
@@ -2652,12 +2615,6 @@
         showInstallPromptCard();
         installPromptAutoShown = true;
       }
-      function setSessionBannerVisible(show) {
-        const banner = ensureSessionBanner();
-        if (!banner) return;
-        banner.classList.toggle('visible', show);
-        syncSessionOverlay(show);
-      }
       function readSessionLock() {
         return parseSessionLock(safeStorageGet(SESSION_LOCK_KEY));
       }
@@ -2667,14 +2624,14 @@
         const otherActive = current && current.tabId !== TAB_INSTANCE_ID && (now - (current.ts || 0) < SESSION_LOCK_TTL);
         if (otherActive) {
           isPrimaryTab = false;
-          setSessionBannerVisible(true);
+          handleSessionConflict();
           return;
         }
         safeStorageSet(SESSION_LOCK_KEY, JSON.stringify({ tabId: TAB_INSTANCE_ID, ts: now }));
         if (!isPrimaryTab) {
           isPrimaryTab = true;
         }
-        setSessionBannerVisible(false);
+        sessionConflictHandled = false;
       }
       function startSessionLockHeartbeat() {
         refreshSessionLock();
@@ -2696,7 +2653,7 @@
       }
       function ensureSingleSessionActive() {
         if (isPrimaryTab) return true;
-        setSessionBannerVisible(true);
+        handleSessionConflict();
         return false;
       }
       startSessionLockHeartbeat();
@@ -3558,7 +3515,14 @@
       function curDate() { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + dayOff); return t; }
       function getSpace() { return (spaceId && SPACES[spaceId]) || null; }
       function isWeekMode() { return getSpace()?.orgMode === 'week'; }
-      function shouldShowEditButton() { return getSpace()?.editButton !== false; }
+      function shouldShowEditButton(state = 0) {
+        const sp = getSpace();
+        if (!sp) return false;
+        const mode = (sp.editButtonMode || 'dynamic').toString();
+        if (mode === 'yes') return true;
+        if (mode === 'no') return false;
+        return state === 1;
+      }
       function getSpaceEarliestDate() {
         const sp = getSpace();
         if (!sp) return null;
@@ -3745,369 +3709,371 @@
         } else {
           autoOpenedHabitModalForEmptySpace = false;
           items.forEach(it => {
-          if (DELETED_HABITS.has(it.id)) return;
-          if (!isVisibleToday(it.id, today)) return;
-          ensureHabit(it.id);
+            if (DELETED_HABITS.has(it.id)) return;
+            if (!isVisibleToday(it.id, today)) return;
+            ensureHabit(it.id);
 
-          const card = document.createElement('article');
-          card.className = 'card';
-          const cont = document.createElement('div');
-          cont.className = 'content';
-          const title = document.createElement('div');
-          title.className = 'title';
-          const left = document.createElement('div');
-          left.className = 'left';
-          const mode = HABIT_MODE[it.id] || { type: 'libre' };
-          const displayTitle = habitLabel(it);
-          left.innerHTML = `<span class="base">${displayTitle}</span>`;
-          title.append(left);
+            const card = document.createElement('article');
+            card.className = 'card';
+            const cont = document.createElement('div');
+            cont.className = 'content';
+            const title = document.createElement('div');
+            title.className = 'title';
+            const left = document.createElement('div');
+            left.className = 'left';
+            const mode = HABIT_MODE[it.id] || { type: 'libre' };
+            const displayTitle = habitLabel(it);
+            left.innerHTML = `<span class="base">${displayTitle}</span>`;
+            title.append(left);
 
-          const desc = document.createElement('div');
-          desc.className = 'desc';
-          setupDesc(desc, it.id);
-          const infoBtn = document.createElement('button');
-          infoBtn.type = 'button';
-          infoBtn.className = 'infoBtn';
-          infoBtn.textContent = 'ℹ️';
-          const hasNote = desc.dataset.has === '1';
-          infoBtn.title = hasNote ? 'Afficher la note' : '';
-          title.appendChild(infoBtn);
+            const desc = document.createElement('div');
+            desc.className = 'desc';
+            setupDesc(desc, it.id);
+            const infoBtn = document.createElement('button');
+            infoBtn.type = 'button';
+            infoBtn.className = 'infoBtn';
+            infoBtn.textContent = 'ℹ️';
+            const hasNote = desc.dataset.has === '1';
+            infoBtn.title = hasNote ? 'Afficher la note' : '';
+            title.appendChild(infoBtn);
 
-          const friends = document.createElement('div');
-          friends.className = 'friends';
-          const friendsBadges = document.createElement('div');
-          friendsBadges.className = 'friends-badges';
-          friends.appendChild(friendsBadges);
-          const progressRow = document.createElement('div');
-          progressRow.className = 'weekly-progress';
-          cont.append(progressRow, title, desc, friends);
+            const friends = document.createElement('div');
+            friends.className = 'friends';
+            const friendsBadges = document.createElement('div');
+            friendsBadges.className = 'friends-badges';
+            friends.appendChild(friendsBadges);
+            const progressRow = document.createElement('div');
+            progressRow.className = 'weekly-progress';
+            cont.append(progressRow, title, desc, friends);
 
-          const col = document.createElement('div');
-          col.className = 'levelCol';
-          const btn = document.createElement('button');
-          btn.className = 'levelBtn';
-          btn.dataset.cid = it.id;
-          btn.dataset.habitEmoji = it.emoji || '🌱';
+            const col = document.createElement('div');
+            col.className = 'levelCol';
+            const btn = document.createElement('button');
+            btn.className = 'levelBtn';
+            btn.dataset.cid = it.id;
+            btn.dataset.habitEmoji = it.emoji || '🌱';
 
-          const windowStart = isWeekMode() ? getWeekStart(today) : today;
-          const records = getHabitRecords(spaceId, it.id, windowStart);
-          const freqWeekly = HABIT_REC[it.id] || 1;
-          let userRecord = records.find(r => isCurrentUserLabel(r.owner)) || null;
-          const doneRecord = records.find(r => (r.state || 0) >= 1) || null;
-          let ownerRecord = null;
-          if (mode.type === 'commun') {
-            ownerRecord = doneRecord || records[0] || null;
-          } else {
-            ownerRecord = userRecord || doneRecord || null;
-          }
-          const ownerFreq = Math.max(1, Number(ownerRecord?.frequency ?? freqWeekly));
-          const ownerModeType = ownerRecord?.modeType || mode.type;
-          const resetProgress = (isWeekMode() && ownerRecord && ownerFreq !== freqWeekly) || (ownerRecord && ownerModeType !== mode.type);
-          if (resetProgress) {
-            ownerRecord = null;
-            userRecord = null;
-          }
-          const ownerNames = Array.from(new Set(records
-            .filter(r => (r.state || 0) >= 1)
-            .map(r => (r.owner || '').trim())
-            .filter(Boolean)
-          ));
-          btn.dataset.ownerList = JSON.stringify(ownerNames);
-          const baseMin = BASE_MINUTES[it.id] || 15;
-          const ownerState = ownerRecord?.state ?? 0;
-          const owner = ownerState > 0 ? (ownerRecord?.owner || '') : '';
-          const helpers = ownerState > 0 ? (ownerRecord?.helpers || []) : [];
-          const helping = ownerState > 0 && ownerRecord?.helping ? '1' : '0';
-          const userState = userRecord?.state ?? 0;
-          const storedCount = Number(userRecord?.count ?? 0) || 0;
-          const computedCount = storedCount || (userState === 2 ? freqWeekly + 1 : 0);
-          const countValue = isWeekMode() ? Math.min(Math.max(computedCount, 0), freqWeekly + 1) : 0;
-          const state = userState;
-          const vipList = getLikeListForHabit(it.id);
-          btn.dataset.state = String(state);
-          btn.dataset.owner = owner;
-          btn.dataset.helping = helping;
-          btn.dataset.helpers = JSON.stringify(helpers);
-          btn.dataset.count = state === 0 ? '0' : String(countValue);
-          btn.dataset.baseMin = String(baseMin);
-          btn.dataset.recur = String(freqWeekly);
-          btn.dataset.week = isWeekMode() ? '1' : '0';
-          btn.dataset.basePlants = String(state >= 1 ? baseMin : 0);
-          btn.dataset.plants = btn.dataset.basePlants;
-          btn.dataset.suns = String(vipList.length);
-          btn.dataset.heartList = JSON.stringify(vipList);
-
-          const setVisualFromState = stNow => {
-            const baseEl = title.querySelector('.base');
-            const ownerNow = btn.dataset.owner || '';
-            const helpingNow = btn.dataset.helping === '1';
-            applyCardClass(card, stNow, ownerNow, helpingNow, (HABIT_MODE[it.id] || { type: 'libre' }).type);
-            baseEl.classList.toggle('strike', stNow === 2 && isCurrentUserLabel(ownerNow));
-            ensureModeTag();
-          };
-
-          const parseOwnerList = () => {
-            try {
-              const parsed = JSON.parse(btn.dataset.ownerList || '[]');
-              return Array.isArray(parsed) ? parsed : [];
-            } catch (err) {
-              console.warn('parseOwnerList', err);
-              return [];
-            }
-          };
-          const syncOwnerListFromState = (prevOwner) => {
-            const owners = new Set(parseOwnerList().filter(Boolean));
-            const activeOwner = (btn.dataset.owner || '').trim();
-            if ((+btn.dataset.state || 0) >= 1 && activeOwner) {
-              owners.add(activeOwner);
-            }
-            if ((+btn.dataset.state || 0) === 0 && prevOwner) {
-              owners.delete(prevOwner);
-            }
-            btn.dataset.ownerList = JSON.stringify(Array.from(owners));
-          };
-          const renderBadges = () => {
-            const stNow = +btn.dataset.state || 0;
-            const ownerNow = btn.dataset.owner || '';
-            const ownersNow = parseOwnerList();
-            ensureOwnerBadges(friendsBadges, ownersNow, it, btn);
-            const showHelpers = mode.type === 'commun' && stNow === 2;
-            if (showHelpers) {
-              const hlist = (btn.dataset.helpers ? JSON.parse(btn.dataset.helpers) : []) || [];
-              ensureHelperBadge(friendsBadges, hlist);
+            const windowStart = isWeekMode() ? getWeekStart(today) : today;
+            const records = getHabitRecords(spaceId, it.id, windowStart);
+            const freqWeekly = HABIT_REC[it.id] || 1;
+            let userRecord = records.find(r => isCurrentUserLabel(r.owner)) || null;
+            const doneRecord = records.find(r => (r.state || 0) >= 1) || null;
+            let ownerRecord = null;
+            if (mode.type === 'commun') {
+              ownerRecord = doneRecord || records[0] || null;
             } else {
-              ensureHelperBadge(friendsBadges, []);
+              ownerRecord = userRecord || doneRecord || null;
             }
-            const ownerIsMe = isCurrentUserLabel(ownerNow);
-            const shouldHeart = (stNow === 1 && !ownerIsMe) || (stNow === 2 && !ownerIsMe);
-            const arr = JSON.parse(btn.dataset.heartList || '[]');
-            ensureHeartBadge(friendsBadges, shouldHeart, arr, btn, it.id);
-          };
+            const ownerFreq = Math.max(1, Number(ownerRecord?.frequency ?? freqWeekly));
+            const ownerModeType = ownerRecord?.modeType || mode.type;
+            const resetProgress = (isWeekMode() && ownerRecord && ownerFreq !== freqWeekly) || (ownerRecord && ownerModeType !== mode.type);
+            if (resetProgress) {
+              ownerRecord = null;
+              userRecord = null;
+            }
+            const ownerNames = Array.from(new Set(records
+              .filter(r => (r.state || 0) >= 1)
+              .map(r => (r.owner || '').trim())
+              .filter(Boolean)
+            ));
+            btn.dataset.ownerList = JSON.stringify(ownerNames);
+            const baseMin = BASE_MINUTES[it.id] || 15;
+            const ownerState = ownerRecord?.state ?? 0;
+            const owner = ownerState > 0 ? (ownerRecord?.owner || '') : '';
+            const helpers = ownerState > 0 ? (ownerRecord?.helpers || []) : [];
+            const helping = ownerState > 0 && ownerRecord?.helping ? '1' : '0';
+            const userState = userRecord?.state ?? 0;
+            const storedCount = Number(userRecord?.count ?? 0) || 0;
+            const computedCount = storedCount || (userState === 2 ? freqWeekly + 1 : 0);
+            const countValue = isWeekMode() ? Math.min(Math.max(computedCount, 0), freqWeekly + 1) : 0;
+            const state = userState;
+            const vipList = getLikeListForHabit(it.id);
+            btn.dataset.state = String(state);
+            btn.dataset.owner = owner;
+            btn.dataset.helping = helping;
+            btn.dataset.helpers = JSON.stringify(helpers);
+            btn.dataset.count = state === 0 ? '0' : String(countValue);
+            btn.dataset.baseMin = String(baseMin);
+            btn.dataset.recur = String(freqWeekly);
+            btn.dataset.week = isWeekMode() ? '1' : '0';
+            btn.dataset.basePlants = String(state >= 1 ? baseMin : 0);
+            btn.dataset.plants = btn.dataset.basePlants;
+            btn.dataset.suns = String(vipList.length);
+            btn.dataset.heartList = JSON.stringify(vipList);
 
-          const renderWeeklyProgress = () => {
-            const isWeek = btn.dataset.week === '1';
-            const recur = Math.max(1, +btn.dataset.recur || 1);
-            const freqType = FREQ_MODE[it.id]?.type || (isWeek ? 'hebdo' : 'quotidien');
-            const freqDays = Array.isArray(it.freqDays) ? it.freqDays : [];
-            const showDayProgress = !isWeek && (freqType === 'quotidien' || (freqDays.length > 1));
-            const shouldShow = (isWeek && recur > 1) || showDayProgress;
-            progressRow.style.display = shouldShow ? 'flex' : 'none';
-            progressRow.innerHTML = '';
-            if (!shouldShow) return;
-            const totalBlocks = isWeek ? recur : (freqType === 'jours' && freqDays.length ? freqDays.length : 7);
-            const stateNow = +btn.dataset.state || 0;
-            const rawCount = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
-            let doneCount = rawCount;
-            let activeIndex = -1;
-            if (stateNow === 1) {
-              activeIndex = rawCount;
-              doneCount = Math.max(0, rawCount - 1);
-            } else if (stateNow === 2) {
-              doneCount = totalBlocks;
-              activeIndex = -1;
-            } else {
-              doneCount = 0;
-              activeIndex = -1;
-            }
-            const dayOrder = (!isWeek && freqType === 'jours' && freqDays.length) ? freqDays.slice() : (isWeek ? null : [1, 2, 3, 4, 5, 6, 0]);
-            for (let idx = 0; idx < totalBlocks; idx++) {
-              const block = document.createElement('span');
-              block.className = 'weekly-progress__block';
-              const position = idx + 1;
-              if (position <= doneCount) {
-                block.classList.add('weekly-progress__block--done');
-              } else if (position === activeIndex) {
-                block.classList.add('weekly-progress__block--active');
+            const setVisualFromState = stNow => {
+              const baseEl = title.querySelector('.base');
+              const ownerNow = btn.dataset.owner || '';
+              const helpingNow = btn.dataset.helping === '1';
+              applyCardClass(card, stNow, ownerNow, helpingNow, (HABIT_MODE[it.id] || { type: 'libre' }).type);
+              baseEl.classList.toggle('strike', stNow === 2 && isCurrentUserLabel(ownerNow));
+              ensureModeTag();
+            };
+
+            const parseOwnerList = () => {
+              try {
+                const parsed = JSON.parse(btn.dataset.ownerList || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+              } catch (err) {
+                console.warn('parseOwnerList', err);
+                return [];
+              }
+            };
+            const syncOwnerListFromState = (prevOwner) => {
+              const owners = new Set(parseOwnerList().filter(Boolean));
+              const activeOwner = (btn.dataset.owner || '').trim();
+              if ((+btn.dataset.state || 0) >= 1 && activeOwner) {
+                owners.add(activeOwner);
+              }
+              if ((+btn.dataset.state || 0) === 0 && prevOwner) {
+                owners.delete(prevOwner);
+              }
+              btn.dataset.ownerList = JSON.stringify(Array.from(owners));
+            };
+            const renderBadges = () => {
+              const stNow = +btn.dataset.state || 0;
+              const ownerNow = btn.dataset.owner || '';
+              const ownersNow = parseOwnerList();
+              ensureOwnerBadges(friendsBadges, ownersNow, it, btn);
+              const showHelpers = mode.type === 'commun' && stNow === 2;
+              if (showHelpers) {
+                const hlist = (btn.dataset.helpers ? JSON.parse(btn.dataset.helpers) : []) || [];
+                ensureHelperBadge(friendsBadges, hlist);
               } else {
-                block.classList.add('weekly-progress__block--pending');
+                ensureHelperBadge(friendsBadges, []);
               }
-              if (dayOrder && idx < dayOrder.length) {
-                block.dataset.day = dayOrder[idx];
-              }
-              progressRow.appendChild(block);
-            }
-          };
+              const ownerIsMe = isCurrentUserLabel(ownerNow);
+              const shouldHeart = (stNow === 1 && !ownerIsMe) || (stNow === 2 && !ownerIsMe);
+              const arr = JSON.parse(btn.dataset.heartList || '[]');
+              ensureHeartBadge(friendsBadges, shouldHeart, arr, btn, it.id);
+            };
 
-          const ensureOpenDesc = () => {
-            if (getNotesDisplayMode() !== 'info') return;
-            if (openCard !== card) {
-              collapseOpenDesc();
-              openCard = card;
-            }
-            if (!desc.classList.contains('open')) {
-              desc.classList.remove('hidden');
-              desc.classList.add('open');
-              desc.textContent = desc.dataset.full || '';
-            }
-          };
-          const hideDescNow = () => {
-            desc.classList.remove('open');
-            desc.classList.add('hidden');
-            desc.textContent = desc.dataset.short || '';
-            if (openCard === card) openCard = null;
-            if (desc.dataset.has === '1') {
-              infoBtn.title = 'Afficher la note';
-            }
-          };
-          const toggleNote = () => {
-            if (desc.dataset.has !== '1') return;
-            if (desc.classList.contains('open')) {
-              hideDescNow();
-            } else {
-              ensureOpenDesc();
-              infoBtn.title = 'Masquer la note';
-            }
-          };
-          infoBtn.addEventListener('click', e => {
-            if (getNotesDisplayMode() !== 'info') return;
-            e.stopPropagation();
-            toggleNote();
-          });
+            const renderWeeklyProgress = () => {
+              const isWeek = btn.dataset.week === '1';
+              const recur = Math.max(1, +btn.dataset.recur || 1);
+              const freqType = FREQ_MODE[it.id]?.type || (isWeek ? 'hebdo' : 'quotidien');
+              const freqDays = Array.isArray(it.freqDays) ? it.freqDays : [];
+              const showDayProgress = !isWeek && (freqType === 'quotidien' || (freqDays.length > 1));
+              const shouldShow = (isWeek && recur > 1) || showDayProgress;
+              progressRow.style.display = shouldShow ? 'flex' : 'none';
+              progressRow.innerHTML = '';
+              if (!shouldShow) return;
+              const totalBlocks = isWeek ? recur : (freqType === 'jours' && freqDays.length ? freqDays.length : 7);
+              const stateNow = +btn.dataset.state || 0;
+              const rawCount = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
+              let doneCount = rawCount;
+              let activeIndex = -1;
+              if (stateNow === 1) {
+                activeIndex = rawCount;
+                doneCount = Math.max(0, rawCount - 1);
+              } else if (stateNow === 2) {
+                doneCount = totalBlocks;
+                activeIndex = -1;
+              } else {
+                doneCount = 0;
+                activeIndex = -1;
+              }
+              const dayOrder = (!isWeek && freqType === 'jours' && freqDays.length) ? freqDays.slice() : (isWeek ? null : [1, 2, 3, 4, 5, 6, 0]);
+              for (let idx = 0; idx < totalBlocks; idx++) {
+                const block = document.createElement('span');
+                block.className = 'weekly-progress__block';
+                const position = idx + 1;
+                if (position <= doneCount) {
+                  block.classList.add('weekly-progress__block--done');
+                } else if (position === activeIndex) {
+                  block.classList.add('weekly-progress__block--active');
+                } else {
+                  block.classList.add('weekly-progress__block--pending');
+                }
+                if (dayOrder && idx < dayOrder.length) {
+                  block.dataset.day = dayOrder[idx];
+                }
+                progressRow.appendChild(block);
+              }
+            };
+
+            const ensureOpenDesc = () => {
+              if (getNotesDisplayMode() !== 'info') return;
+              if (openCard !== card) {
+                collapseOpenDesc();
+                openCard = card;
+              }
+              if (!desc.classList.contains('open')) {
+                desc.classList.remove('hidden');
+                desc.classList.add('open');
+                desc.textContent = desc.dataset.full || '';
+              }
+            };
+            const hideDescNow = () => {
+              desc.classList.remove('open');
+              desc.classList.add('hidden');
+              desc.textContent = desc.dataset.short || '';
+              if (openCard === card) openCard = null;
+              if (desc.dataset.has === '1') {
+                infoBtn.title = 'Afficher la note';
+              }
+            };
+            const toggleNote = () => {
+              if (desc.dataset.has !== '1') return;
+              if (desc.classList.contains('open')) {
+                hideDescNow();
+              } else {
+                ensureOpenDesc();
+                infoBtn.title = 'Masquer la note';
+              }
+            };
+            infoBtn.addEventListener('click', e => {
+              if (getNotesDisplayMode() !== 'info') return;
+              e.stopPropagation();
+              toggleNote();
+            });
 
           const applyState = (nst, { keepOwner = false } = {}) => {
             btn.dataset.state = String(nst);
             const previousOwner = (btn.dataset.owner || '').trim();
-            if (!keepOwner && nst === 0) {
-              btn.dataset.owner = '';
-              btn.dataset.helping = '0';
-              btn.dataset.helpers = '[]';
-              btn.dataset.count = '0';
-            }
-            if (nst >= 1 && !btn.dataset.owner) {
-              btn.dataset.owner = getCurrentOwnerLabel();
-            }
-            syncOwnerListFromState(previousOwner);
-            drawBtn(btn);
-            setVisualFromState(nst);
+              if (!keepOwner && nst === 0) {
+                btn.dataset.owner = '';
+                btn.dataset.helping = '0';
+                btn.dataset.helpers = '[]';
+                btn.dataset.count = '0';
+              }
+              if (nst >= 1 && !btn.dataset.owner) {
+                btn.dataset.owner = getCurrentOwnerLabel();
+              }
+              syncOwnerListFromState(previousOwner);
+              drawBtn(btn);
+              setVisualFromState(nst);
             renderBadges();
             renderWeeklyProgress();
             applyNoteDisplayMode(desc, infoBtn, { state: nst });
+            manageEditButton();
             scheduleHabitActivity(it.id, {
-              type: 'realization',
-              state: nst,
-              owner: btn.dataset.owner,
-              helping: btn.dataset.helping === '1',
-              count: +btn.dataset.count || 0,
-              frequency: freqWeekly,
-              modeType: mode.type
-            });
-            renderDateBar();
-          };
+                type: 'realization',
+                state: nst,
+                owner: btn.dataset.owner,
+                helping: btn.dataset.helping === '1',
+                count: +btn.dataset.count || 0,
+                frequency: freqWeekly,
+                modeType: mode.type
+              });
+              renderDateBar();
+            };
 
-          const clickWeekly = () => {
-            let st = +btn.dataset.state || 0;
-            let count = +btn.dataset.count || 0;
-            const R = Math.max(1, +btn.dataset.recur || 1);
-            if (st === 0) {
-              st = 1;
-              count = 1;
-              btn.dataset.owner = getCurrentOwnerLabel();
-            } else if (st === 1) {
-              if (count < R) {
-                count++;
-              } else if (count === R) {
-                st = 2;
-              }
-            } else if (st === 2) {
-              st = 0;
-              count = 0;
-              btn.dataset.owner = '';
-            }
-            if (st === 2) {
-              count = R;
-            }
-            btn.dataset.count = String(count);
-            applyState(st, { keepOwner: st !== 0 });
-          };
-
-          const clickCommon = () => {
-            if (isWeekMode()) { clickWeekly(); return; }
-            const st = +btn.dataset.state || 0;
-            const ownerNow = btn.dataset.owner || '';
-            if (st === 0) {
-              btn.dataset.owner = getCurrentOwnerLabel();
-              applyState(1);
-              return;
-            }
-            if (st === 1) {
-              if (isCurrentUserLabel(ownerNow)) {
-                applyState(2, { keepOwner: true });
-              } else {
-                const helping = btn.dataset.helping === '1';
-                btn.dataset.helping = helping ? '0' : '1';
-                let hs = JSON.parse(btn.dataset.helpers || '[]');
-                if (helping) {
-                  hs = hs.filter(n => !isCurrentUserLabel(n));
-                } else {
-                  if (!hs.some(isCurrentUserLabel)) hs.push(getCurrentOwnerLabel());
+            const clickWeekly = () => {
+              let st = +btn.dataset.state || 0;
+              let count = +btn.dataset.count || 0;
+              const R = Math.max(1, +btn.dataset.recur || 1);
+              if (st === 0) {
+                st = 1;
+                count = 1;
+                btn.dataset.owner = getCurrentOwnerLabel();
+              } else if (st === 1) {
+                if (count < R) {
+                  count++;
+                } else if (count === R) {
+                  st = 2;
                 }
-                btn.dataset.helpers = JSON.stringify(hs);
-                drawBtn(btn);
-                setVisualFromState(1);
-                renderBadges();
-                renderDateBar();
-                scheduleHabitActivity(it.id, { type: 'support', helping: btn.dataset.helping === '1', helpers: hs });
+              } else if (st === 2) {
+                st = 0;
+                count = 0;
+                btn.dataset.owner = '';
               }
-              return;
-            }
-            if (st === 2) {
-              if (isCurrentUserLabel(ownerNow)) {
+              if (st === 2) {
+                count = R;
+              }
+              btn.dataset.count = String(count);
+              applyState(st, { keepOwner: st !== 0 });
+            };
+
+            const clickCommon = () => {
+              if (isWeekMode()) { clickWeekly(); return; }
+              const st = +btn.dataset.state || 0;
+              const ownerNow = btn.dataset.owner || '';
+              if (st === 0) {
+                btn.dataset.owner = getCurrentOwnerLabel();
+                applyState(1);
+                return;
+              }
+              if (st === 1) {
+                if (isCurrentUserLabel(ownerNow)) {
+                  applyState(2, { keepOwner: true });
+                } else {
+                  const helping = btn.dataset.helping === '1';
+                  btn.dataset.helping = helping ? '0' : '1';
+                  let hs = JSON.parse(btn.dataset.helpers || '[]');
+                  if (helping) {
+                    hs = hs.filter(n => !isCurrentUserLabel(n));
+                  } else {
+                    if (!hs.some(isCurrentUserLabel)) hs.push(getCurrentOwnerLabel());
+                  }
+                  btn.dataset.helpers = JSON.stringify(hs);
+                  drawBtn(btn);
+                  setVisualFromState(1);
+                  renderBadges();
+                  renderDateBar();
+                  scheduleHabitActivity(it.id, { type: 'support', helping: btn.dataset.helping === '1', helpers: hs });
+                }
+                return;
+              }
+              if (st === 2) {
+                if (isCurrentUserLabel(ownerNow)) {
+                  applyState(0);
+                }
+                return;
+              }
+            };
+
+            const clickLibre = () => {
+              if (isWeekMode()) { clickWeekly(); return; }
+              const st = +btn.dataset.state || 0;
+              if (st === 0) {
+                btn.dataset.owner = getCurrentOwnerLabel();
+                applyState(2);
+                return;
+              }
+              if (st === 2) {
                 applyState(0);
               }
-              return;
-            }
-          };
+            };
 
-          const clickLibre = () => {
-            if (isWeekMode()) { clickWeekly(); return; }
-            const st = +btn.dataset.state || 0;
-            if (st === 0) {
-              btn.dataset.owner = getCurrentOwnerLabel();
-              applyState(2);
-              return;
-            }
-            if (st === 2) {
-              applyState(0);
-            }
-          };
+            const handleClick = () => {
+              if (!ensureSingleSessionActive()) return;
+              (mode.type === 'commun') ? clickCommon() : clickLibre();
+            };
 
-          const handleClick = () => {
-            if (!ensureSingleSessionActive()) return;
-            (mode.type === 'commun') ? clickCommon() : clickLibre();
-          };
-
-          drawBtn(btn);
-          setVisualFromState(state);
-          renderBadges();
-          renderWeeklyProgress();
-          applyNoteDisplayMode(desc, infoBtn, { state });
+            drawBtn(btn);
+            setVisualFromState(state);
+            renderBadges();
+            renderWeeklyProgress();
+            applyNoteDisplayMode(desc, infoBtn, { state });
           const manageEditButton = () => {
-            const enabled = shouldShowEditButton();
+            const currentState = +btn.dataset.state || 0;
+            const enabled = shouldShowEditButton(currentState);
             const existing = friends.querySelector('.card-edit');
-            if (!enabled) {
-              if (existing) existing.remove();
-              return;
-            }
-            if (existing) return;
-            const editBtn = document.createElement('button');
-            editBtn.type = 'button';
-            editBtn.className = 'card-edit';
-            editBtn.textContent = '✏️';
-            editBtn.title = 'Modifier cette habitude';
-            editBtn.addEventListener('click', e => {
-              e.stopPropagation();
-              openDetail(it.id, btn);
-              selectDetailTab('settings');
-            });
-            friends.appendChild(editBtn);
-          };
-          manageEditButton();
-          col.addEventListener('click', handleClick);
-          cont.addEventListener('click', (e) => { if (e.target.closest('.badge')) return; handleClick(); });
-          col.append(btn);
-          card.append(col, cont);
-          root.appendChild(card);
-        });
+              if (!enabled) {
+                if (existing) existing.remove();
+                return;
+              }
+              if (existing) return;
+              const editBtn = document.createElement('button');
+              editBtn.type = 'button';
+              editBtn.className = 'card-edit';
+              editBtn.textContent = '✏️';
+              editBtn.title = 'Modifier cette habitude';
+              editBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                openDetail(it.id, btn);
+                selectDetailTab('settings');
+              });
+              friends.appendChild(editBtn);
+            };
+            manageEditButton();
+            col.addEventListener('click', handleClick);
+            cont.addEventListener('click', (e) => { if (e.target.closest('.badge')) return; handleClick(); });
+            col.append(btn);
+            card.append(col, cont);
+            root.appendChild(card);
+          });
         }
         renderDateBar();
         updateAddModalOptions();
@@ -4721,20 +4687,6 @@
           autoWeekSelect.dataset.bound = '1';
         }
         updateSpaceOrgButtons();
-        const notesModeSelect = $("#notesDisplayMode");
-        if (notesModeSelect) {
-          notesModeSelect.value = sp.notesDisplayMode || 'dynamic';
-          if (!notesModeSelect.dataset.bound) {
-            notesModeSelect.addEventListener('change', () => {
-              if (!spaceId) return;
-              const mode = notesModeSelect.value || 'dynamic';
-              sp.notesDisplayMode = mode;
-              persistSpaceDoc(spaceId, { notesDisplayMode: mode });
-              renderCards();
-            });
-            notesModeSelect.dataset.bound = '1';
-          }
-        }
         const rightsSelect = $("#spaceEditorRights");
         if (rightsSelect) {
           rightsSelect.value = getEditorRights(sp);
@@ -4746,23 +4698,6 @@
               persistSpaceDoc(spaceId, { editorRights: mode });
             });
             rightsSelect.dataset.bound = '1';
-          }
-        }
-        const editButtonSelect = $("#spaceEditButton");
-        if (editButtonSelect) {
-          editButtonSelect.value = shouldShowEditButton() ? 'yes' : 'no';
-          if (!editButtonSelect.dataset.bound) {
-            editButtonSelect.addEventListener('change', () => {
-              const enabled = editButtonSelect.value === 'yes';
-              if (!spaceId) return;
-              const current = getSpace();
-              if (current) {
-                current.editButton = enabled;
-              }
-              persistSpaceDoc(spaceId, { editButton: enabled });
-              renderCards();
-            });
-            editButtonSelect.dataset.bound = '1';
           }
         }
         refreshOwnerPanel();
@@ -5181,6 +5116,7 @@
       let lastRenderedSpaceId = null;
       const open = m => m.classList.add('on'), close = m => m.classList.remove('on');
       let skipMenuAutoOpen = false;
+      let menuAutoOpenSuppressed = false;
       function updateHabitModalControls() {
         const hasHabits = (getSpace()?.ch?.length || 0) > 0;
         if (habitBackBtn) {
@@ -5225,13 +5161,20 @@
       $("#closeAdd").onclick = () => {
         if (allowedSpaces.length === 0) return;
         pendingAddModalTarget = null;
+        menuAutoOpenSuppressed = true;
         close(mAdd);
       };
-      function maybeTogglePrivateAdd(forceOpen = false) {
+      async function maybeTogglePrivateAdd(forceOpen = false) {
+        if (currentProfile?.email && !currentProfile?.guest) {
+          await refreshOwnedSpaces(normalizeEmail(currentProfile.email));
+        }
         const locked = allowedSpaces.length === 0;
-        const shouldOpen = (locked && !skipMenuAutoOpen) || forceOpen;
+        const shouldOpen = (locked && !skipMenuAutoOpen && !menuAutoOpenSuppressed) || forceOpen;
         if (shouldOpen) {
           open(mAdd);
+        }
+        if (!locked) {
+          menuAutoOpenSuppressed = false;
         }
         updateAddModalOptions();
       }
@@ -5301,6 +5244,34 @@
         lastPreviewedCode = '';
         open(mJoin);
       }
+      function openUserPreferences() {
+        const sp = getSpace();
+        if (!sp || !mPrefs) return;
+        if (prefsNotesSelect) {
+          prefsNotesSelect.value = sp.notesDisplayMode || 'dynamic';
+        }
+        if (prefsEditSelect) {
+          prefsEditSelect.value = sp.editButtonMode || 'dynamic';
+        }
+        open(mPrefs);
+      }
+      prefsNotesSelect?.addEventListener('change', async () => {
+        if (!spaceId) return;
+        const mode = prefsNotesSelect.value || 'dynamic';
+        const current = getSpace();
+        if (current) current.notesDisplayMode = mode;
+        await persistSpaceDoc(spaceId, { notesDisplayMode: mode });
+        renderCards();
+      });
+      prefsEditSelect?.addEventListener('change', async () => {
+        if (!spaceId) return;
+        const mode = prefsEditSelect.value || 'dynamic';
+        const current = getSpace();
+        if (current) current.editButtonMode = mode;
+        await persistSpaceDoc(spaceId, { editButtonMode: mode });
+        renderCards();
+      });
+      closePrefsBtn?.addEventListener('click', () => close(mPrefs));
       function setJoinStatus(message, isError = true) {
         if (!joinStatus) return;
         joinStatus.textContent = message;
@@ -5360,11 +5331,6 @@
         const opt = event.target.closest('.opt');
         if (!opt || opt.dataset.disabled === '1') return;
         pendingAddModalTarget = null;
-        if (opt.id === 'refreshApp') {
-          close(mAdd);
-          handleAppUpdateRequest();
-          return;
-        }
         if (opt.id === 'menuLogin') {
           close(mAdd);
           showAuthOverlay(true);
@@ -5383,6 +5349,11 @@
         if (opt.id === 'joinGarden') {
           requestAddModalTransition('join');
         }
+        if (opt.id === 'menuPrefs') {
+          close(mAdd);
+          openUserPreferences();
+          return;
+        }
       });
       const gardenNameInput = $("#gardenNameInput");
       const gardenModeSelect = $("#gardenModeSelect");
@@ -5395,12 +5366,16 @@
       const authSpaceDesc = $("#authSpaceDesc");
       const joinSpaceDesc = $("#joinSpaceDesc");
       const installAppOpt = $("#installApp");
-      const updateAppOpt = $("#refreshApp");
       const menuAddHabit = $("#addHabit");
       const menuInviteFriend = $("#inviteFriend");
       const menuCreateGarden = $("#createGarden");
       const menuLoginOpt = $("#menuLogin");
+      const menuPrefsOpt = $("#menuPrefs");
       const menuLogoutOpt = $("#menuLogout");
+      const mPrefs = $("#modalPrefs");
+      const prefsNotesSelect = $("#prefsNotesDisplayMode");
+      const prefsEditSelect = $("#prefsEditButtonMode");
+      const closePrefsBtn = $("#closePrefs");
       function updateAddModalOptions() {
         const hasSpaces = allowedSpaces.length > 0;
         const isAuthenticated = !!currentProfile?.email;
@@ -5431,11 +5406,11 @@
         if (menuLoginOpt) {
           menuLoginOpt.classList.toggle('hide', isAuthenticated);
         }
+        if (menuPrefsOpt) {
+          menuPrefsOpt.classList.toggle('hide', !hasSpaces);
+        }
         if (menuLogoutOpt) {
           menuLogoutOpt.classList.toggle('hide', !isAuthenticated);
-        }
-        if (updateAppOpt) {
-          updateAppOpt.classList.toggle('hide', !isCurrentSpaceAdmin());
         }
         const locked = !hasSpaces;
         document.body.classList.toggle('no-space', locked);
@@ -5617,7 +5592,9 @@
           members: [ownerEmail],
           createdAt: new Date(),
           editButton: true,
-          editorRights: 'admin'
+          editorRights: 'admin',
+          editButtonMode: 'dynamic',
+          notesDisplayMode: 'dynamic'
         };
         spaceId = id;
         userName = currentProfile.name;
@@ -5630,7 +5607,9 @@
           payload: {
             createdBy: currentProfile?.email || null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            editButton: true
+            editButton: true,
+            editButtonMode: 'dynamic',
+            notesDisplayMode: 'dynamic'
           }
         };
         gardenStatus.textContent = 'Ajoute quelques habitudes pour démarrer ton jardin.';
@@ -6064,7 +6043,7 @@
       const loaderOverlay = $("#loaderOverlay");
       const loaderEmojiEl = $("#loaderEmoji");
       const authOverlay = $("#authOverlay");
-      const takeOverSessionBtn = $("#takeOverSessionBtn");
+      const brand = $("#brand");
       const forgotPasswordLink = $("#forgotPasswordLink");
       const authForm = $("#authForm");
       const authEmailInput = $("#authEmail");
@@ -6081,10 +6060,16 @@
       authSignupBtn?.addEventListener('click', () => { if (authForm) authForm.dataset.intent = 'signup'; });
       authGuestBtn?.addEventListener('click', () => startGuestSession());
       authForm?.addEventListener('submit', handleAuthSubmit);
-      takeOverSessionBtn?.addEventListener('click', forceSessionTakeover);
       updateAuthFormState();
       updateAuthMessage();
       showLoaderOverlay();
+
+      brand?.addEventListener('click', () => {
+        dayOff = 0;
+        showHome();
+        renderCards();
+        renderDateBar();
+      });
 
       function clearResetNotice() {
         if (resetNotice) resetNotice.textContent = '';
@@ -6331,7 +6316,7 @@
           console.warn('clearAppCaches', err);
         }
       }
-      async function handleAppUpdateRequest() {
+      async function handleAppUpdateRequest({ auto = false } = {}) {
         if (updateRequestInProgress) {
           showToast('Une mise à jour est déjà en cours.', { type: 'info' });
           return;
@@ -6341,7 +6326,7 @@
           return;
         }
         updateRequestInProgress = true;
-        showToast('Vérification des nouveautés…', { type: 'info', duration: 5000 });
+        showToast(auto ? 'Recherche automatique des nouveautés…' : 'Vérification des nouveautés…', { type: 'info', duration: 5000 });
         try {
           await clearAppCaches();
           const registration = await ensureSwRegistration();
@@ -6363,6 +6348,13 @@
           updateRequestInProgress = false;
         }
       }
+      async function initAutoUpdater() {
+        const registration = await ensureSwRegistration();
+        if (!registration) return;
+        registration.addEventListener('updatefound', () => handleAppUpdateRequest({ auto: true }));
+        await handleAppUpdateRequest({ auto: true });
+      }
+      initAutoUpdater();
       if ('serviceWorker' in navigator) {
         const registerServiceWorker = async () => {
           try {
