@@ -143,6 +143,14 @@
       flex: 1
     }
 
+    .empty-state {
+      margin: 48px 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #5f5f5f;
+      line-height: 1.6;
+    }
+
     .auth-overlay {
       position: fixed;
       inset: 0;
@@ -1558,6 +1566,35 @@
       display: block;
     }
 
+    .session-alert {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    }
+    .session-alert-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #2a7a57;
+      font-size: 16px;
+    }
+    .session-alert-body {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+    .session-alert-actions {
+      display: flex;
+      justify-content: center;
+    }
+
     .toast-container {
       position: fixed;
       top: 14px;
@@ -1674,7 +1711,17 @@
     </div>
     <div class="loader-version" id="loaderVersion"></div>
   </div>
-  <div class="session-overlay" id="sessionOverlay"></div>
+  <div class="session-overlay" id="sessionOverlay">
+    <div class="session-alert">
+      <div class="session-alert-title">Une autre session est en cours</div>
+      <div class="session-alert-body">
+        Habitube détecte qu’un autre onglet est actif. Reprendre ici fermera la session dans l’autre onglet.
+      </div>
+      <div class="session-alert-actions">
+        <button class="btn primary" id="takeOverSessionBtn">Reprendre cette session</button>
+      </div>
+    </div>
+  </div>
   <div class="toast-container" id="toastContainer"></div>
   <div class="install-prompt" id="installPromptCard">
     <div class="install-card">
@@ -1723,7 +1770,7 @@
       <div class="brand" id="brand"><span class="logo">🌱</span>Habitube</div>
       <div class="spacer"></div>
       <select id="spaceSel" class="select" title="Changer de jardin"></select>
-      <button class="navbtn" id="openSpace" title="Jardin">⛭</button>
+      <button class="navbtn" id="addBtn" title="Menu">☰</button>
     </div>
 
     <div class="daysWrap" id="daysWrap">
@@ -1733,7 +1780,7 @@
       </div>
       <div class="rightBtns">
         <button class="navbtn" id="nextDay">→</button>
-        <button class="navbtn" id="addBtn" title="Menu">☰</button>
+        <button class="navbtn" id="openSpace" title="Jardin">⛭</button>
       </div>
     </div>
 
@@ -1944,7 +1991,8 @@
             <div class="field">
               <label><b>Affiche des notes</b></label>
               <select id="notesDisplayMode" class="select">
-                <option value="info" selected>Bouton d'info</option>
+                <option value="dynamic" selected>Dynamique</option>
+                <option value="info">Bouton d'info</option>
                 <option value="show">Tout afficher</option>
                 <option value="hide">Tout cacher</option>
               </select>
@@ -2141,7 +2189,7 @@
             </div>
             <div class="field">
               <div class="rowInlineActions">
-                <button class="btn primary" id="createGardenBtn">Créer</button>
+                <button class="btn primary" id="createGardenBtn">Suivant</button>
               </div>
               <div class="subtitle" id="gardenStatus"></div>
             </div>
@@ -2456,6 +2504,8 @@
       const SESSION_CONFLICT_MESSAGE = 'Un autre onglet Habitube est actif. Ferme-le ou attends qu\'il se libère pour continuer.';
       const TAB_INSTANCE_ID = (window.crypto?.randomUUID ? crypto.randomUUID() : `tab-${Date.now()}-${Math.random().toString(36).slice(2)}`);
       const INSTALL_PROMPT_STORAGE_KEY = 'habitu-install-prompt-seen';
+      const INSTALL_PROMPT_SUPPRESSION_MS = 15 * 24 * 60 * 60 * 1000;
+      const INSTALL_PROMPT_FIRST_HABIT_KEY = 'habitu-install-first-habit';
       let sessionLockTimer;
       let isPrimaryTab = false;
       let sessionBanner = null;
@@ -2528,13 +2578,32 @@
         if (!overlay) return;
         overlay.classList.toggle('visible', show);
       }
+      function forceSessionTakeover() {
+        safeStorageSet(SESSION_LOCK_KEY, JSON.stringify({ tabId: TAB_INSTANCE_ID, ts: Date.now() }));
+        refreshSessionLock();
+      }
       function isRunningAsPWA() {
         if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
         if (navigator.standalone) return true;
         return false;
       }
+      function hasCreatedInitialHabits() {
+        return safeStorageGet(INSTALL_PROMPT_FIRST_HABIT_KEY) === '1';
+      }
+      function markFirstHabitCreated() {
+        if (hasCreatedInitialHabits()) return;
+        safeStorageSet(INSTALL_PROMPT_FIRST_HABIT_KEY, '1');
+        maybeShowInstallPrompt(false);
+      }
+      function getInstallPromptTimestamp() {
+        const value = safeStorageGet(INSTALL_PROMPT_STORAGE_KEY);
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
       function hasSeenInstallPrompt() {
-        return !!safeStorageGet(INSTALL_PROMPT_STORAGE_KEY);
+        const timestamp = getInstallPromptTimestamp();
+        if (!timestamp) return false;
+        return (Date.now() - timestamp) < INSTALL_PROMPT_SUPPRESSION_MS;
       }
       function markInstallPromptSeen() {
         safeStorageSet(INSTALL_PROMPT_STORAGE_KEY, String(Date.now()));
@@ -2577,6 +2646,7 @@
         });
       }
       function maybeShowInstallPrompt(auto = true) {
+        if (!hasCreatedInitialHabits()) return;
         if (isRunningAsPWA() || installPromptAutoShown || hasSeenInstallPrompt()) return;
         if (!deferredInstallPrompt) return;
         showInstallPromptCard();
@@ -2794,6 +2864,7 @@
       let allowedSpaces = [];
       let currentProfile = loadStoredProfile();
       let guestSpaces = loadGuestSpaces();
+      let pendingSpaceCreation = null;
       let pendingInviteToken = new URLSearchParams(window.location.search).get('invite');
       let pendingInviteInfo = null;
       const HABITU_FIREBASE_DB = window.HABITU_FIREBASE_DB;
@@ -2874,6 +2945,21 @@
       }
       function normalizeEmail(email) {
         return String(email || '').trim().toLowerCase();
+      }
+      async function refreshOwnedSpaces(email) {
+        if (!email) return [];
+        try {
+          const spaces = await fetchSpacesForEmail(email);
+          spaces.forEach(space => {
+            SPACES[space.id] = { ...(SPACES[space.id] || {}), ...space, members: space.members || [], ch: space.ch || [] };
+          });
+          const collected = spaces.map(space => space.id);
+          allowedSpaces = [...new Set([...allowedSpaces, ...collected])];
+          return spaces;
+        } catch (err) {
+          console.warn('refreshOwnedSpaces', err);
+          return [];
+        }
       }
       function countOwnedGardens(email) {
         if (currentProfile?.guest) {
@@ -3034,6 +3120,9 @@
         ensureHabitMetadata(habitData);
         return HABITU_FIREBASE_DB.collection('spaces').doc(spaceId).collection('habits').doc(habitData.id)
           .set({ ...habitData, spaceId, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+          .then(() => {
+            markFirstHabitCreated();
+          })
           .catch(e => console.warn('persistHabit', e));
       }
       function persistInviteDoc(token, payload) {
@@ -3126,6 +3215,9 @@
             return habit;
           });
           habits.forEach(ensureHabitMetadata);
+          if (habits.length > 0) {
+            markFirstHabitCreated();
+          }
           SPACES[spaceId] = { ...(SPACES[spaceId] || {}), ch: habits };
           return habits;
         } catch (err) {
@@ -3259,10 +3351,17 @@
           refreshLibraryTags();
         }
       }
+      let libraryDataPromise = null;
+      function ensureLibraryData(force = false) {
+        if (force || !libraryDataPromise) {
+          libraryDataPromise = loadLibraryData();
+        }
+        return libraryDataPromise;
+      }
       async function resetFirestoreState(email) {
         clearLocalState();
         if (!email) { return; }
-        await loadLibraryData();
+        await ensureLibraryData(true);
         const spaces = await fetchSpacesForEmail(email);
         allowedSpaces = spaces.map(space => space.id);
         spaces.forEach(space => { SPACES[space.id] = { ...space, members: space.members || [], ch: [] }; });
@@ -3406,35 +3505,52 @@
 
       function getNotesDisplayMode() {
         const sp = getSpace();
-        return (sp?.notesDisplayMode || 'info');
+        return (sp?.notesDisplayMode || 'dynamic');
       }
 
-      function applyNoteDisplayMode(desc, infoBtn) {
+      function applyNoteDisplayMode(desc, infoBtn, { state = 0 } = {}) {
         if (!desc) return;
         const mode = getNotesDisplayMode();
         const hasNote = desc.dataset.has === '1';
         const fullText = desc.dataset.full || '';
-        if (mode === 'show') {
+        const shortText = desc.dataset.short || '';
+        const numericState = Number(state) || 0;
+        const showFull = () => {
           desc.textContent = fullText;
           desc.classList.remove('hidden');
           desc.classList.add('open');
+        };
+        const hideShort = () => {
+          desc.classList.remove('open');
+          desc.classList.add('hidden');
+          desc.textContent = shortText;
+        };
+        if (mode === 'show') {
           if (infoBtn) infoBtn.style.display = 'none';
+          showFull();
           return;
         }
         if (mode === 'hide') {
+          if (infoBtn) infoBtn.style.display = 'none';
           desc.textContent = '';
           desc.classList.remove('open');
           desc.classList.add('hidden');
+          return;
+        }
+        if (mode === 'dynamic') {
           if (infoBtn) infoBtn.style.display = 'none';
+          if (numericState === 1 && hasNote) {
+            showFull();
+          } else {
+            hideShort();
+          }
           return;
         }
         if (infoBtn) {
           infoBtn.style.display = hasNote ? 'inline-flex' : 'none';
         }
         if (!hasNote) {
-          desc.classList.remove('open');
-          desc.classList.add('hidden');
-          desc.textContent = desc.dataset.short || '';
+          hideShort();
         }
       }
 
@@ -3616,7 +3732,19 @@
           if (aIndividual === bIndividual) return 0;
           return aIndividual ? -1 : 1;
         });
-        items.forEach(it => {
+        if (lastRenderedSpaceId !== spaceId) {
+          autoOpenedHabitModalForEmptySpace = false;
+          lastRenderedSpaceId = spaceId;
+        }
+        if (!items.length) {
+          const emptyState = document.createElement('div');
+          emptyState.className = 'empty-state';
+          emptyState.innerHTML = '<strong>Ton jardin est encore vide.</strong><p>Ajoute quelques habitudes via « Nouvelle(s) habitude(s) » pour commencer à les cultiver.</p>';
+          root.appendChild(emptyState);
+          maybePromptAddHabitsForEmptySpace();
+        } else {
+          autoOpenedHabitModalForEmptySpace = false;
+          items.forEach(it => {
           if (DELETED_HABITS.has(it.id)) return;
           if (!isVisibleToday(it.id, today)) return;
           ensureHabit(it.id);
@@ -3643,9 +3771,7 @@
           infoBtn.textContent = 'ℹ️';
           const hasNote = desc.dataset.has === '1';
           infoBtn.title = hasNote ? 'Afficher la note' : '';
-          infoBtn.style.display = hasNote ? 'inline-flex' : 'none';
           title.appendChild(infoBtn);
-          applyNoteDisplayMode(desc, infoBtn);
 
           const friends = document.createElement('div');
           friends.className = 'friends';
@@ -3855,6 +3981,7 @@
             setVisualFromState(nst);
             renderBadges();
             renderWeeklyProgress();
+            applyNoteDisplayMode(desc, infoBtn, { state: nst });
             scheduleHabitActivity(it.id, {
               type: 'realization',
               state: nst,
@@ -3953,6 +4080,7 @@
           setVisualFromState(state);
           renderBadges();
           renderWeeklyProgress();
+          applyNoteDisplayMode(desc, infoBtn, { state });
           const manageEditButton = () => {
             const enabled = shouldShowEditButton();
             const existing = friends.querySelector('.card-edit');
@@ -3980,6 +4108,7 @@
           card.append(col, cont);
           root.appendChild(card);
         });
+        }
         renderDateBar();
         updateAddModalOptions();
       }
@@ -4594,11 +4723,11 @@
         updateSpaceOrgButtons();
         const notesModeSelect = $("#notesDisplayMode");
         if (notesModeSelect) {
-          notesModeSelect.value = sp.notesDisplayMode || 'info';
+          notesModeSelect.value = sp.notesDisplayMode || 'dynamic';
           if (!notesModeSelect.dataset.bound) {
             notesModeSelect.addEventListener('change', () => {
               if (!spaceId) return;
-              const mode = notesModeSelect.value || 'info';
+              const mode = notesModeSelect.value || 'dynamic';
               sp.notesDisplayMode = mode;
               persistSpaceDoc(spaceId, { notesDisplayMode: mode });
               renderCards();
@@ -4710,7 +4839,9 @@
         const nextSpace = allowedSpaces[0] || null;
         spaceId = nextSpace;
         updSel();
+        skipMenuAutoOpen = true;
         renderCards();
+        skipMenuAutoOpen = false;
         if (spaceId) {
           openSpacePage();
         } else {
@@ -5043,7 +5174,36 @@
       const joinSpaceBtn = $("#joinSpaceBtn");
       const spaceAccessCodeEl = $("#spaceAccessCode");
       const regenerateSpaceCodeBtn = $("#regenerateSpaceCodeBtn");
+      const habitBackBtn = mHabit?.querySelector('.menu-back');
+      const closeHabitBtn = $("#closeHabit");
+      let habitModalContext = 'menu';
+      let autoOpenedHabitModalForEmptySpace = false;
+      let lastRenderedSpaceId = null;
       const open = m => m.classList.add('on'), close = m => m.classList.remove('on');
+      let skipMenuAutoOpen = false;
+      function updateHabitModalControls() {
+        const hasHabits = (getSpace()?.ch?.length || 0) > 0;
+        if (habitBackBtn) {
+          habitBackBtn.classList.toggle('hide', habitModalContext !== 'creation');
+        }
+        if (closeHabitBtn) {
+          closeHabitBtn.classList.toggle('hide', !hasHabits);
+          closeHabitBtn.disabled = !hasHabits;
+        }
+      }
+      function openHabitFlow(context = 'menu') {
+        habitModalContext = context;
+        updateHabitModalControls();
+        step1();
+        open(mHabit);
+      }
+      function maybePromptAddHabitsForEmptySpace() {
+        if (!spaceId) return;
+        if (autoOpenedHabitModalForEmptySpace) return;
+        if (mHabit?.classList.contains('on')) return;
+        openHabitFlow('menu');
+        autoOpenedHabitModalForEmptySpace = true;
+      }
       spaceAccessCodeEl?.addEventListener('click', () => {
         if (!spaceAccessCodeEl.value) return;
         spaceAccessCodeEl.select();
@@ -5069,7 +5229,7 @@
       };
       function maybeTogglePrivateAdd(forceOpen = false) {
         const locked = allowedSpaces.length === 0;
-        const shouldOpen = locked || forceOpen;
+        const shouldOpen = (locked && !skipMenuAutoOpen) || forceOpen;
         if (shouldOpen) {
           open(mAdd);
         }
@@ -5078,6 +5238,11 @@
       document.querySelectorAll('.menu-back').forEach(btn => {
         btn.addEventListener('click', () => {
           const modal = btn.closest('.modal');
+          if (modal === mHabit && habitModalContext === 'creation') {
+            close(mHabit);
+            open(mGarden);
+            return;
+          }
           if (modal) close(modal);
           maybeTogglePrivateAdd(true);
         });
@@ -5120,7 +5285,7 @@
           await deleteCurrentSpace();
         }
       });
-      $("#addHabit").onclick = () => { if (!requireAdmin('ajouter une habitude')) return; close(mAdd); open(mHabit); step1() }
+      $("#addHabit").onclick = () => { close(mAdd); openHabitFlow('menu'); }
       $("#inviteFriend").onclick = () => {
         if (!requireAdmin('inviter un jardinier')) return;
         close(mAdd);
@@ -5240,7 +5405,7 @@
         const hasSpaces = allowedSpaces.length > 0;
         const isAuthenticated = !!currentProfile?.email;
         const ownedCount = countOwnedGardens(currentProfile?.email);
-        const showSupportOptions = isAuthenticated && hasSpaces;
+        const showSupportOptions = hasSpaces;
         const reachedLimit = ownedCount >= MAX_GARDENS_PER_ACCOUNT;
         if (menuCreateGarden) {
           if (reachedLimit) {
@@ -5328,7 +5493,10 @@
         triggerInstallPrompt('manual');
       });
       installPromptBtn?.addEventListener('click', () => triggerInstallPrompt('manual'));
-      installPromptClose?.addEventListener('click', () => closeInstallPromptCard());
+      installPromptClose?.addEventListener('click', () => {
+        markInstallPromptSeen();
+        closeInstallPromptCard();
+      });
       installPromptHelp?.addEventListener('click', () => {
         showToast('Installer donne un accès rapide sur ton écran d’accueil.', { type: 'info', duration: 5000 });
       });
@@ -5422,7 +5590,12 @@
         if (!currentProfile) {
           persistProfile({ name: userName || 'Moi', guest: true });
         }
-        const ownedCount = countOwnedGardens(currentProfile?.email);
+        let ownedCount = countOwnedGardens(currentProfile?.email);
+        if (!currentProfile?.guest) {
+          const normalizedEmail = normalizeEmail(currentProfile?.email);
+          const refreshed = await refreshOwnedSpaces(normalizedEmail);
+          ownedCount = refreshed.filter(space => normalizeEmail(space.ownerEmail) === normalizedEmail).length;
+        }
         if (ownedCount >= MAX_GARDENS_PER_ACCOUNT) {
           gardenStatus.textContent = `Tu as atteint la limite de ${MAX_GARDENS_PER_ACCOUNT} jardins créés.`;
           return;
@@ -5452,19 +5625,30 @@
         if (currentProfile?.guest) {
           addGuestSpace(id);
         }
-        try {
-          await persistSpaceDoc(id, { createdBy: currentProfile?.email || null, createdAt: firebase.firestore.FieldValue.serverTimestamp(), editButton: true });
-          await loadHabitsForSpace(id);
-          await loadActivitiesForSpace(id);
-          gardenStatus.textContent = 'Ton jardin est prêt !';
-        } catch (err) {
-          gardenStatus.textContent = 'Erreur lors de la création du jardin.';
-        }
+        pendingSpaceCreation = {
+          spaceId: id,
+          payload: {
+            createdBy: currentProfile?.email || null,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            editButton: true
+          }
+        };
+        gardenStatus.textContent = 'Ajoute quelques habitudes pour démarrer ton jardin.';
         updSel();
         renderCards();
         close(mGarden);
-        open(mHabit);
-        step1();
+        openHabitFlow('creation');
+      }
+      async function finalizePendingSpaceCreation() {
+        if (!pendingSpaceCreation) return;
+        const { spaceId: pendingId, payload } = pendingSpaceCreation;
+        pendingSpaceCreation = null;
+        try {
+          await persistSpaceDoc(pendingId, payload);
+          await loadActivitiesForSpace(pendingId);
+        } catch (err) {
+          console.warn('finalizePendingSpaceCreation', err);
+        }
       }
 
       function renderInviteList() {
@@ -5824,9 +6008,10 @@
           addBtn = document.createElement('button');
           addBtn.type = 'button';
           addBtn.className = 'btn primary';
-          addBtn.addEventListener('click', () => {
+          addBtn.addEventListener('click', async () => {
             if (!selection.size) return;
             const sp = getSpace();
+            const persistPromises = [];
             selection.forEach(hid => {
               if (!sp) return;
               if ((sp.ch || []).some(x => x.id === hid)) return;
@@ -5835,8 +6020,14 @@
               const payload = buildHabitPayload(sp, habitSource);
               (sp.ch || (sp.ch = [])).push(payload);
               ensureHabit(hid);
-              persistHabit(spaceId, payload);
+              persistPromises.push(persistHabit(spaceId, payload));
             });
+            if (persistPromises.length) {
+              await Promise.all(persistPromises);
+            }
+            if (pendingSpaceCreation?.spaceId === spaceId) {
+              await finalizePendingSpaceCreation();
+            }
             close(mHabit);
             renderCards();
           });
@@ -5855,7 +6046,10 @@
         root.appendChild(controls);
       }
 
-      $("#closeHabit").onclick = () => close(mHabit);
+      closeHabitBtn?.addEventListener('click', () => {
+        if ((getSpace()?.ch?.length || 0) === 0) return;
+        close(mHabit);
+      });
       $("#closeInvite").onclick = () => close(mInvite);
       $("#closeQuit").onclick = () => close(mQuit);
 
@@ -5870,6 +6064,7 @@
       const loaderOverlay = $("#loaderOverlay");
       const loaderEmojiEl = $("#loaderEmoji");
       const authOverlay = $("#authOverlay");
+      const takeOverSessionBtn = $("#takeOverSessionBtn");
       const forgotPasswordLink = $("#forgotPasswordLink");
       const authForm = $("#authForm");
       const authEmailInput = $("#authEmail");
@@ -5886,6 +6081,7 @@
       authSignupBtn?.addEventListener('click', () => { if (authForm) authForm.dataset.intent = 'signup'; });
       authGuestBtn?.addEventListener('click', () => startGuestSession());
       authForm?.addEventListener('submit', handleAuthSubmit);
+      takeOverSessionBtn?.addEventListener('click', forceSessionTakeover);
       updateAuthFormState();
       updateAuthMessage();
       showLoaderOverlay();
@@ -5989,7 +6185,6 @@
 
       function hideAuthOverlay() { authOverlay.classList.add('hide') }
       function showAuthOverlay(force = false) {
-        if (!force && hasSessionCookie()) return;
         hideLoaderOverlay();
         clearResetNotice();
         if (authError) authError.textContent = '';
@@ -5997,6 +6192,18 @@
       }
 
       async function startGuestSession() {
+        if (currentProfile?.guest && HABITU_FIREBASE_AUTH?.currentUser?.isAnonymous) {
+          hideAuthOverlay();
+          updateAddModalOptions();
+          showLoaderOverlay();
+          try {
+            await ensureLibraryData();
+          } finally {
+            hideLoaderOverlay();
+          }
+          showHome();
+          return;
+        }
         try {
           await HABITU_FIREBASE_AUTH.signInAnonymously();
         } catch (err) {
@@ -6038,6 +6245,12 @@
             hideLoaderOverlay();
             hideAuthOverlay();
             updateAddModalOptions();
+            showLoaderOverlay();
+            try {
+              await ensureLibraryData();
+            } finally {
+              hideLoaderOverlay();
+            }
             showHome();
             return;
           }
@@ -6073,6 +6286,12 @@
         } else {
           hideAuthOverlay();
           updateAddModalOptions();
+          showLoaderOverlay();
+          try {
+            await ensureLibraryData();
+          } finally {
+            hideLoaderOverlay();
+          }
           showHome();
         }
       });

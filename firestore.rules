@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helpers
+    function normalizeEmail(email) {
+      return email == null ? '' : email.toLowerCase();
+    }
+
+    function currentEmail() {
+      return request.auth != null && request.auth.token.email != null
+        ? normalizeEmail(request.auth.token.email)
+        : '';
+    }
+
+    function membersLower(spaceData) {
+      if (!(spaceData.members is list)) {
+        return [];
+      }
+      return spaceData.members
+        .map(member => member != null ? member.toLowerCase() : '')
+        .filter(member => member != '');
+    }
+
+    function isSpaceMember(spaceData) {
+      let email = currentEmail();
+      if (email == '') {
+        return false;
+      }
+      return normalizeEmail(spaceData.ownerEmail) == email || membersLower(spaceData).hasAny([email]);
+    }
+
+    function canAccessSpace(spaceId) {
+      if (!(spaceId is string)) {
+        return false;
+      }
+      let space = get(/databases/$(database)/documents/spaces/$(spaceId));
+      return request.auth != null && space.exists && isSpaceMember(space.data);
+    }
+
+    function ownerEmailUnchanged(resourceData) {
+      if (!(request.resource.data.ownerEmail is string)) {
+        return true;
+      }
+      return normalizeEmail(request.resource.data.ownerEmail) == normalizeEmail(resourceData.ownerEmail);
+    }
+
+    function isJoiningSpace(resourceData) {
+      if (!(request.resource.data.members is list)) {
+        return false;
+      }
+      let current = currentEmail();
+      if (current == '') {
+        return false;
+      }
+      let existingMembers = resourceData.members is list ? resourceData.members : [];
+      if (existingMembers.hasAny([current])) {
+        return false;
+      }
+      let newMembers = request.resource.data.members;
+      return newMembers.hasAll(existingMembers) && newMembers.hasAny([current]);
+    }
+
+    match /spaces/{spaceId} {
+      allow read: if request.auth != null && isSpaceMember(resource.data);
+      allow create: if request.auth != null && normalizeEmail(request.resource.data.ownerEmail) == currentEmail();
+      allow update: if request.auth != null &&
+        resource.data != null &&
+        ownerEmailUnchanged(resource.data) &&
+        (
+          normalizeEmail(resource.data.ownerEmail) == currentEmail() ||
+          (resource.data.editorRights == 'registered' && isSpaceMember(resource.data)) ||
+          isJoiningSpace(resource.data)
+        );
+      allow delete: if request.auth != null && normalizeEmail(resource.data.ownerEmail) == currentEmail();
+    }
+
+    match /spaces/{spaceId}/habits/{habitId} {
+      allow read, write: if canAccessSpace(spaceId);
+    }
+
+    match /activities/{activityId} {
+      allow create: if request.auth != null &&
+        request.resource.data.spaceId is string &&
+        canAccessSpace(request.resource.data.spaceId);
+      allow read, update, delete: if request.auth != null &&
+        resource.data.spaceId is string &&
+        canAccessSpace(resource.data.spaceId);
+    }
+
+    match /invites/{token} {
+      allow get: if true;
+      allow list: if request.auth != null &&
+        normalizeEmail(resource.data.ownerEmail) == currentEmail();
+      allow create: if request.auth != null &&
+        normalizeEmail(request.resource.data.ownerEmail) == currentEmail();
+      allow update: if request.auth != null &&
+        resource.data != null &&
+        normalizeEmail(resource.data.ownerEmail) == currentEmail() &&
+        (
+          !(request.resource.data.ownerEmail is string) ||
+          normalizeEmail(request.resource.data.ownerEmail) == normalizeEmail(resource.data.ownerEmail)
+        );
+      allow delete: if request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /libraryHabits/{habitId} {
+      allow read: if true;
+    }
+  }
+}
