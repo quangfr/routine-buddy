@@ -3314,6 +3314,8 @@
         if (!spaceId && allowedSpaces.length) { spaceId = allowedSpaces[0]; }
         if (spaceId && !allowedSpaces.includes(spaceId)) { spaceId = allowedSpaces[0] || null; }
         updateSpaceAccessCodeDisplay();
+        spacesInitialized = true;
+        maybeTogglePrivateAdd();
       }
       const HABIT_TITLE_IS_CUSTOM = {};
 
@@ -5101,6 +5103,7 @@
       const open = m => m.classList.add('on'), close = m => m.classList.remove('on');
       let skipMenuAutoOpen = false;
       let menuAutoOpenSuppressed = false;
+      let spacesInitialized = false;
       let habitWizardStep = 1;
       const mPrefs = $("#modalPrefs");
       const prefsNotesSelect = $("#prefsNotesDisplayMode");
@@ -5158,6 +5161,7 @@
           await refreshOwnedSpaces(normalizeEmail(currentProfile.email));
         }
         const locked = allowedSpaces.length === 0;
+        if (!spacesInitialized && !forceOpen) return;
         const shouldOpen = (locked && !skipMenuAutoOpen && !menuAutoOpenSuppressed) || forceOpen;
         if (shouldOpen) {
           open(mAdd);
