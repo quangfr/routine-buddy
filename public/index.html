@@ -52,6 +52,10 @@
       background: var(--bg)
     }
 
+    body.no-space {
+      background: #f5e0c9;
+    }
+
     #app {
       max-width: 480px;
       margin: 0 auto;
@@ -266,7 +270,7 @@
       justify-content: space-between;
       gap: 8px;
       flex-wrap: nowrap;
-      margin-top: 6px;
+      margin-top: 0px;
       width: 100%;
     }
 
@@ -280,47 +284,51 @@
       font-size: 12px;
       border-radius: 8px;
     }
+
     .auth-card .auth-actions button.text-btn.secondary {
-      background: #fff;
+      background: var(--card);
       color: var(--green);
       border: 1px solid var(--green);
     }
+
     .auth-card .auth-guest-btn {
-      margin-top: 8px;
+      margin-top: 12px;
+      width: 100%;
       font-size: 12px;
-      border: 1px dashed var(--border);
-      background: transparent;
+      margin-bottom: 12px;
+      background: var(--card);
       color: var(--green);
-      border-radius: 8px;
+      border: 1px solid var(--green);
+      padding: 6px 10px;
     }
 
     .auth-separator {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin: 10px 0 6px;
-      font-size: 11px;
-      color: #a6a6a6;
+      margin: 18px 0px 12px;
+      font-size: 10px;
+      color: #8c8c8c;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
     }
 
     .auth-separator span {
       flex: 1;
       height: 1px;
-      background: linear-gradient(to right, transparent, #ccc, transparent);
+      background: #dcdcdc;
     }
 
     .auth-separator .label {
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      font-size: 10px;
-      color: #8c8c8c;
+      padding: 0 8px;
+      background: var(--card);
     }
 
     .auth-link-row {
       display: flex;
-      justify-content: center;
+      justify-content: left;
       gap: 6px;
-      margin-top: 6px;
+      margin-top: 0px;
     }
 
     .auth-link {
@@ -333,7 +341,7 @@
     .auth-card .auth-error {
       font-size: 12px;
       color: #d33;
-      min-height: 18px
+      min-height: 12px
     }
 
     .auth-helper {
@@ -342,10 +350,14 @@
       min-height: 18px;
     }
 
+    .auth-note {
+      margin-top: 16px;
+    }
+
     .auth-card .auth-note {
       font-size: 12px;
       color: #555;
-      margin-top: -4px
+      margin-top: 12px
     }
 
     .auth-space-desc {
@@ -511,7 +523,7 @@
     }
 
     .auth-message {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       margin-bottom: 4px
     }
@@ -1323,9 +1335,12 @@
       align-items: center;
       cursor: pointer
     }
+
     .opt.disabled {
       opacity: 0.45;
       cursor: not-allowed;
+      pointer-events: none;
+      border-color: #ccc;
     }
 
     .opt.update-app {
@@ -1668,40 +1683,42 @@
     </div>
   </div>
   <div class="auth-overlay hide" id="authOverlay">
-      <div class="auth-card">
-        <img src="icon-512.png" alt="Logo Habitube" />
-        <div class="auth-message" id="authMessage">Connecte-toi pour retrouver tes jardins d'ahbitud.</div>
-        <div class="auth-space-desc" id="authSpaceDesc"></div>
-        <div class="auth-forms">
-          <form id="authForm">
-            <input id="authEmail" type="email" required placeholder="Email" />
-            <input id="authPassword" type="password" required placeholder="Mot de passe" />
-            <div class="auth-link-row">
-              <span id="forgotPasswordLink" class="auth-link">Mot de passe oublié ?</span>
-            </div>
-            <div class="auth-actions">
-              <button type="submit" id="authLoginBtn" data-action="login" class="text-btn primary">Se connecter</button>
-              <button type="submit" id="authSignupBtn" data-action="signup" class="text-btn secondary">Créer mon compte</button>
-            </div>
-            <div class="auth-error" id="authError"></div>
-            <div class="auth-note" id="authNote">Nous gardons tes jardins privés.</div>
-          </form>
-          <div class="auth-separator">
-            <span></span>
-            <span class="label">ou</span>
-            <span></span>
+    <div class="auth-card">
+      <img src="icon-512.png" alt="Logo Habitube" />
+      <div class="auth-message" id="authMessage">Connecte-toi pour retrouver tes habitudes</div>
+      <div class="auth-space-desc" id="authSpaceDesc"></div>
+      <div class="auth-forms">
+        <form id="authForm">
+          <input id="authEmail" type="email" required placeholder="Email" />
+          <input id="authPassword" type="password" required placeholder="Mot de passe" />
+          <div class="auth-link-row">
+            <span id="forgotPasswordLink" class="auth-link">Mot de passe oublié ?</span>
           </div>
-          <button type="button" class="auth-guest-btn btn secondary" id="authGuestBtn">Se connecter en mode invité</button>
+          <div class="auth-error" id="authError"></div>
+          <div class="auth-actions">
+            <button type="submit" id="authLoginBtn" data-action="login" class="text-btn primary">Se connecter</button>
+            <button type="submit" id="authSignupBtn" data-action="signup" class="text-btn secondary">Créer mon
+              compte</button>
+          </div>
+
+        </form>
+        <div class="auth-separator">
+          <span class="label">ou</span>
         </div>
-        <div class="auth-helper" id="resetNotice"></div>
+        <button type="button" class="auth-guest-btn text-btn secondary" id="authGuestBtn">Se connecter en mode
+          anonyme</button>
+        <div class="auth-note" id="authNote">Nous gardons tes jardins privés.<br>Aucune donnée n’est transmise à des
+          tiers.</div>
       </div>
+      <div class="auth-helper" id="resetNotice"></div>
+    </div>
   </div>
   <div id="app">
     <div class="top">
       <div class="brand" id="brand"><span class="logo">🌱</span>Habitube</div>
       <div class="spacer"></div>
       <select id="spaceSel" class="select" title="Changer de jardin"></select>
-        <button class="navbtn" id="openSpace" title="Jardin">⛭</button>
+      <button class="navbtn" id="openSpace" title="Jardin">⛭</button>
     </div>
 
     <div class="daysWrap" id="daysWrap">
@@ -1709,7 +1726,7 @@
       <div style="display:flex;align-items:center;gap:6px">
         <div class="dateLabel" id="dateLabel">—</div>
       </div>
-        <div class="rightBtns">
+      <div class="rightBtns">
         <button class="navbtn" id="nextDay">→</button>
         <button class="navbtn" id="addBtn" title="Menu">☰</button>
       </div>
@@ -2050,6 +2067,7 @@
     <div class="modal" id="modalInvite">
       <div class="sheet">
         <div class="sheetHeader">
+          <button type="button" class="backMini menu-back">←</button>
           <div>Inviter</div><button class="closeX" id="closeInvite">⨉</button>
         </div>
         <div class="sheetBody">
@@ -2080,6 +2098,7 @@
     <div class="modal" id="modalHabit">
       <div class="sheet">
         <div class="sheetHeader">
+          <button type="button" class="backMini menu-back">←</button>
           <div id="habitTitle">Nouvelle(s) habitude(s)</div><button class="closeX" id="closeHabit">⨉</button>
         </div>
         <div class="sheetBody">
@@ -2093,6 +2112,7 @@
     <div class="modal garden" id="modalGarden">
       <div class="sheet">
         <div class="sheetHeader">
+          <button type="button" class="backMini menu-back">←</button>
           <div>Créer un jardin</div>
         </div>
         <div class="sheetBody">
@@ -2128,6 +2148,7 @@
     <div class="modal join" id="modalJoin">
       <div class="sheet">
         <div class="sheetHeader">
+          <button type="button" class="backMini menu-back">←</button>
           <div>Rejoindre un jardin</div>
         </div>
         <div class="sheetBody">
@@ -2284,6 +2305,10 @@
           return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
         }
         return `G${genCode()}`;
+      }
+      function inviteBaseUrl() {
+        const pathname = window.location.pathname.replace(/\/index\.html$/i, '/');
+        return `${window.location.origin}${pathname}`;
       }
       function genInviteToken() {
         if (window.crypto?.randomUUID) {
@@ -2760,6 +2785,7 @@
         { emoji: '🏫', label: 'École / Classe', type: 'group', orgMode: 'week', desc: 'Rituels pédagogiques simples.' },
         { emoji: '🏢', label: '🏢 Bureau', type: 'group', orgMode: 'week', desc: 'Rituels collaboratifs pro.' }
       ];
+      const MAX_GARDENS_PER_ACCOUNT = 3;
       let allowedSpaces = [];
       let currentProfile = loadStoredProfile();
       let guestSpaces = loadGuestSpaces();
@@ -2843,6 +2869,15 @@
       }
       function normalizeEmail(email) {
         return String(email || '').trim().toLowerCase();
+      }
+      function countOwnedGardens(email) {
+        if (currentProfile?.guest) {
+          return guestSpaces.size;
+        }
+        if (!email) return 0;
+        const normalized = normalizeEmail(email);
+        if (!normalized) return 0;
+        return Object.values(SPACES).filter(space => normalizeEmail(space.ownerEmail) === normalized).length;
       }
       function displayNameFromEmail(email) {
         const normalized = normalizeEmail(email);
@@ -4373,7 +4408,7 @@
         const sp = getSpace();
         if (!sp) return;
         const token = genInviteToken();
-        const link = `${window.location.origin}${window.location.pathname}?invite=${token}`;
+        const link = `${inviteBaseUrl()}?invite=${token}`;
         const ownerName = displayNameFromEmail(sp.ownerEmail);
         const inviteData = {
           ownerName,
@@ -5022,11 +5057,15 @@
         if (shouldOpen) {
           open(mAdd);
         }
-        if (closeAddBtn) {
-          closeAddBtn.classList.toggle('hide', locked);
-        }
         updateAddModalOptions();
       }
+      document.querySelectorAll('.menu-back').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modal = btn.closest('.modal');
+          if (modal) close(modal);
+          maybeTogglePrivateAdd(true);
+        });
+      });
       function showQuitModal() {
         const sp = getSpace();
         if (!sp) return;
@@ -5181,14 +5220,14 @@
       const menuCreateGarden = $("#createGarden");
       const menuLoginOpt = $("#menuLogin");
       const menuLogoutOpt = $("#menuLogout");
-      const closeAddBtn = $("#closeAdd");
       function updateAddModalOptions() {
         const hasSpaces = allowedSpaces.length > 0;
         const isAuthenticated = !!currentProfile?.email;
+        const ownedCount = countOwnedGardens(currentProfile?.email);
         const showSupportOptions = isAuthenticated && hasSpaces;
+        const reachedLimit = ownedCount >= MAX_GARDENS_PER_ACCOUNT;
         if (menuCreateGarden) {
-          const createDisabled = !isAuthenticated;
-          if (createDisabled) {
+          if (reachedLimit) {
             menuCreateGarden.dataset.disabled = '1';
             menuCreateGarden.classList.add('disabled');
           } else {
@@ -5197,7 +5236,9 @@
           }
           const subtitle = menuCreateGarden.querySelector('.subtitle');
           if (subtitle) {
-            subtitle.textContent = createDisabled ? 'Connecte-toi pour créer un jardin.' : 'Nouvel espace partagé';
+            subtitle.textContent = reachedLimit
+              ? `Tu as créé ${MAX_GARDENS_PER_ACCOUNT} jardins maximum.`
+              : 'Nouvel espace partagé';
           }
         }
         if (menuAddHabit) {
@@ -5214,6 +5255,16 @@
         }
         if (updateAppOpt) {
           updateAppOpt.classList.toggle('hide', !isCurrentSpaceAdmin());
+        }
+        const locked = !hasSpaces;
+        document.body.classList.toggle('no-space', locked);
+        const closeAddBtnLocal = $("#closeAdd");
+        if (closeAddBtnLocal) {
+          closeAddBtnLocal.classList.toggle('hide', locked);
+        }
+        const menuModal = $("#modalAdd");
+        if (locked && menuModal && !menuModal.classList.contains('on')) {
+          open(mAdd);
         }
       }
       const installPromptBtn = $("#installPromptBtn");
@@ -5312,7 +5363,7 @@
             authSpaceDesc.textContent = (pendingInviteInfo.spaceDesc || '').trim();
           }
         } else {
-          authMessage.textContent = 'Connecte-toi pour retrouver Habitube.';
+          authMessage.textContent = 'Connecte-toi pour retrouver tes habitudes';
           if (authSpaceDesc) {
             authSpaceDesc.textContent = '';
           }
@@ -5348,8 +5399,12 @@
       }
 
       async function createGarden() {
-        if (!currentProfile?.email) {
-          gardenStatus.textContent = 'Tu dois être connecté pour créer un jardin.';
+        if (!currentProfile) {
+          persistProfile({ name: userName || 'Moi', guest: true });
+        }
+        const ownedCount = countOwnedGardens(currentProfile?.email);
+        if (ownedCount >= MAX_GARDENS_PER_ACCOUNT) {
+          gardenStatus.textContent = `Tu as atteint la limite de ${MAX_GARDENS_PER_ACCOUNT} jardins créés.`;
           return;
         }
         const profile = GARDEN_TYPES[0];
@@ -5357,7 +5412,7 @@
         const mode = gardenModeSelect.value || profile.orgMode;
         const accessCode = generateSpaceAccessCode();
         const id = generateSpaceId();
-        const ownerEmail = normalizeEmail(currentProfile.email);
+        const ownerEmail = normalizeEmail(currentProfile?.email || '');
         SPACES[id] = {
           emoji: profile.emoji,
           label: title,
@@ -5374,8 +5429,11 @@
         spaceId = id;
         userName = currentProfile.name;
         allowedSpaces = [...new Set([...allowedSpaces, id])];
+        if (currentProfile?.guest) {
+          addGuestSpace(id);
+        }
         try {
-          await persistSpaceDoc(id, { createdBy: currentProfile.email, createdAt: firebase.firestore.FieldValue.serverTimestamp(), editButton: true });
+          await persistSpaceDoc(id, { createdBy: currentProfile?.email || null, createdAt: firebase.firestore.FieldValue.serverTimestamp(), editButton: true });
           await loadHabitsForSpace(id);
           await loadActivitiesForSpace(id);
           gardenStatus.textContent = 'Ton jardin est prêt !';
@@ -5406,7 +5464,7 @@
           const nameEl = document.createElement('div');
           nameEl.className = 'invite-name';
           nameEl.textContent = invite.invitedName;
-          const link = `${window.location.origin}${window.location.pathname}?invite=${token}`;
+          const link = `${inviteBaseUrl()}?invite=${token}`;
           const linkWrapper = document.createElement('div');
           linkWrapper.className = 'invite-link-row';
           const icon = document.createElement('span');
@@ -5453,7 +5511,7 @@
         }
         await ensureSpaceHasCode(spaceId);
         const token = genInviteToken();
-        const link = `${window.location.origin}${window.location.pathname}?invite=${token}`;
+        const link = `${inviteBaseUrl()}?invite=${token}`;
         const ownerName = currentProfile?.name || userName || 'Un jardinier';
         const inviteData = {
           ownerName,
@@ -5918,14 +5976,12 @@
         authOverlay.classList.remove('hide');
       }
 
-      function startGuestSession() {
-        clearLocalState();
-        const name = (currentProfile?.name || userName || 'Moi').trim() || 'Moi';
-        const profile = { name, guest: true };
-        userName = name;
-        persistProfile(profile);
-        hideAuthOverlay();
-        showHome();
+      async function startGuestSession() {
+        try {
+          await HABITU_FIREBASE_AUTH.signInAnonymously();
+        } catch (err) {
+          showToast('Impossible de démarrer une session invité.', { type: 'error' });
+        }
       }
 
       async function linkGuestSpacesToEmail(email) {
@@ -5972,26 +6028,33 @@
           updateAuthMessage();
           return;
         }
+        const isGuest = user.isAnonymous;
         const email = (user.email || '').toLowerCase();
         const inviteName = pendingInviteInfo?.invitedName || '';
-        const name = user.displayName || currentProfile?.name || inviteName || 'Moi';
-        persistProfile({ uid: user.uid, email, name });
+        const name = user.displayName || currentProfile?.name || inviteName || userName || 'Moi';
+        persistProfile({ uid: user.uid, email, name, guest: isGuest });
         await persistUserProfile({ uid: user.uid, email, name });
-        await linkGuestSpacesToEmail(email);
-        await acceptPendingInvite(email);
-        hideAuthOverlay();
-        showLoaderOverlay();
-        try {
-          await resetFirestoreState(email);
-        } finally {
-          hideLoaderOverlay();
+        if (!isGuest) {
+          await linkGuestSpacesToEmail(email);
+          await acceptPendingInvite(email);
+          hideAuthOverlay();
+          showLoaderOverlay();
+          try {
+            await resetFirestoreState(email);
+          } finally {
+            hideLoaderOverlay();
+          }
+          await ensureProfileName(inviteName || name);
+          userName = currentProfile?.name || name;
+          updateAddModalOptions();
+          if (allowedSpaces.length === 0) { openGardenFlow(); return; }
+          updAll();
+          showHome();
+        } else {
+          hideAuthOverlay();
+          updateAddModalOptions();
+          showHome();
         }
-        await ensureProfileName(inviteName || name);
-        userName = currentProfile?.name || name;
-        updateAddModalOptions();
-        if (allowedSpaces.length === 0) { openGardenFlow(); return; }
-        updAll();
-        showHome();
       });
 
       /* Tabs util */
