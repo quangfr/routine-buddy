@@ -2197,21 +2197,6 @@
       </div>
     </div>
 
-    <div class="modal" id="modalQuit">
-      <div class="sheet">
-        <div class="sheetHeader">
-          <div>Quitter le jardin</div><button class="closeX" id="closeQuit">⨉</button>
-        </div>
-        <div class="sheetBody">
-          <div class="subtitle" id="quitModalText">Tu quittes ce jardin.</div>
-        </div>
-        <div class="habit-actions">
-          <button class="btn" id="quitModalCancel">Annuler</button>
-          <button class="btn danger" id="quitModalDelete">Supprimer le jardin</button>
-        </div>
-      </div>
-    </div>
-
     <script src="library.js"></script>
     <script>
       /* ===== Données ===== */
@@ -2867,6 +2852,7 @@
         Object.keys(INVITE_CACHE).forEach(k => delete INVITE_CACHE[k]);
         Object.keys(SPACES).forEach(k => delete SPACES[k]);
         spaceId = null;
+        spacesInitialized = false;
       }
       function normalizeEmail(email) {
         return String(email || '').trim().toLowerCase();
@@ -3332,15 +3318,21 @@
             if (habit.addedAt) habit.addedAt = timestampToDate(habit.addedAt);
             return habit;
           });
-          habits.forEach(ensureHabitMetadata);
-          if (habits.length > 0) {
+          habits.forEach(habit => {
+            ensureHabitMetadata(habit);
+            if (habit.deleted) {
+              DELETED_HABITS.add(habit.id);
+            }
+          });
+          const visibleHabits = habits.filter(habit => !habit.deleted);
+          if (visibleHabits.length > 0) {
             markFirstHabitCreated();
           }
-          SPACES[spaceId] = { ...(SPACES[spaceId] || {}), ch: habits };
-          return habits;
+          SPACES[spaceId] = { ...(SPACES[spaceId] || {}), ch: visibleHabits };
+          return visibleHabits;
         } catch (err) {
           console.warn('loadHabitsForSpace', err);
-          return SPACES[spaceId]?.ch || [];
+          return (SPACES[spaceId]?.ch || []).filter(habit => habit && !habit.deleted);
         }
       }
       async function loadActivitiesForSpace(spaceId, days = 120) {
@@ -3383,11 +3375,17 @@
         }
       }
       async function refreshGuestSpaces() {
-        if (!guestSpaces.size || !HABITU_FIREBASE_DB) return [];
+        if (!guestSpaces.size || !HABITU_FIREBASE_DB) {
+          spacesInitialized = true;
+          return [];
+        }
         const spaceIds = Array.from(guestSpaces);
         const docs = await Promise.all(spaceIds.map(id => fetchSpaceDoc(id)));
         const spaces = docs.filter(Boolean);
-        if (!spaces.length) return [];
+        if (!spaces.length) {
+          spacesInitialized = true;
+          return [];
+        }
         const validIds = spaces.map(space => space.id);
         spaces.forEach(space => {
           SPACES[space.id] = {
@@ -3408,6 +3406,7 @@
         if (spaceId && !allowedSpaces.includes(spaceId)) {
           spaceId = allowedSpaces[0] || null;
         }
+        spacesInitialized = true;
         return spaces;
       }
       async function loadInvitesForOwner(ownerId) {
@@ -3753,7 +3752,16 @@
       function clampDayOff(value) {
         return Math.max(value, getEarliestDayOff());
       }
-      function listChallenges() { return getSpace()?.ch || []; }
+      function listChallenges() {
+        const space = getSpace();
+        if (!space) return [];
+        return (space.ch || []).filter(habit => {
+          if (!habit) return false;
+          if (habit.deleted) return false;
+          if (DELETED_HABITS.has(habit.id)) return false;
+          return true;
+        });
+      }
       function findAny(id) {
         const map = new Map();
         Object.values(SPACES).forEach(space => { (space.ch || []).forEach(h => { if (h?.id) map.set(h.id, h); }); });
@@ -4792,7 +4800,18 @@
 
         const del = $("#deleteHabitBtn");
         if (del && !del.dataset.bound) {
-          del.onclick = () => { if (!requireAdmin('supprimer une habitude')) return; if (confirm('Supprimer cette habitude ?')) { DELETED_HABITS.add(activeId); persistHabit(spaceId, { id: activeId, deleted: true }); showHome(); renderCards(); } };
+          del.onclick = () => {
+            if (!requireAdmin('supprimer une habitude')) return;
+            if (!confirm('Supprimer cette habitude ?')) return;
+            DELETED_HABITS.add(activeId);
+            const sp = SPACES[spaceId];
+            if (sp && Array.isArray(sp.ch)) {
+              sp.ch = sp.ch.filter(habit => habit?.id !== activeId);
+            }
+            persistHabit(spaceId, { id: activeId, deleted: true });
+            showHome();
+            renderCards();
+          };
           del.dataset.bound = '1';
         }
         if (del) {
@@ -5256,10 +5275,6 @@
 
       /* Modales */
       const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mJoin = $("#modalJoin");
-      const mQuit = $("#modalQuit");
-      const quitModalText = $("#quitModalText");
-      const quitModalDeleteBtn = $("#quitModalDelete");
-      const quitModalCancelBtn = $("#quitModalCancel");
       const joinNameInput = $("#joinName");
       const joinCodeInput = $("#joinCode");
       const joinStatus = $("#joinStatus");
@@ -5295,6 +5310,8 @@
       }
       function maybePromptAddHabitsForEmptySpace() {
         if (!spaceId) return;
+        if (allowedSpaces.length === 0) return;
+        if (!allowedSpaces.includes(spaceId)) return;
         if (autoOpenedHabitModalForEmptySpace) return;
         if (mHabit?.classList.contains('on')) return;
         openHabitFlow('menu');
@@ -5351,31 +5368,20 @@
           maybeTogglePrivateAdd(true);
         });
       });
-      function showQuitModal() {
+      async function showQuitModal() {
         const sp = getSpace();
         if (!sp) return;
         const isOwner = isCurrentSpaceAdmin();
-        if (quitModalText) {
-          quitModalText.textContent = isOwner
-            ? 'Supprimer ce jardin fermera l’espace pour tout le monde.'
-            : 'Quitter le jardin supprime tes activités personnelles.';
-        }
-        if (quitModalDeleteBtn) {
-          const action = isOwner ? 'delete' : 'leave';
-          quitModalDeleteBtn.dataset.action = action;
-          quitModalDeleteBtn.textContent = isOwner ? 'Supprimer le jardin' : 'Supprimer ma participation';
-        }
-        open(mQuit);
-      }
-      quitModalCancelBtn?.addEventListener('click', () => close(mQuit));
-      quitModalDeleteBtn?.addEventListener('click', async () => {
-        close(mQuit);
-        if (quitModalDeleteBtn.dataset.action === 'leave') {
-          await leaveCurrentSpace();
-        } else {
+        const prompt = isOwner
+          ? 'Supprimer ce jardin fermera l’espace pour tout le monde. Continuer ?'
+          : 'Quitter le jardin supprime tes activités personnelles. Continuer ?';
+        if (!confirm(prompt)) return;
+        if (isOwner) {
           await deleteCurrentSpace();
+        } else {
+          await leaveCurrentSpace();
         }
-      });
+      }
       $("#addHabit").onclick = () => { close(mAdd); openHabitFlow('menu'); }
       $("#inviteFriend").onclick = () => {
         if (!requireAdmin('inviter un jardinier')) return;
@@ -5536,6 +5542,9 @@
         const closeAddBtnLocal = $("#closeAdd");
         if (closeAddBtnLocal) {
           closeAddBtnLocal.classList.toggle('hide', locked);
+        }
+        if (locked && addModal && spacesInitialized && !addModal.classList.contains('on')) {
+          open(mAdd);
         }
       }
       const installPromptBtn = $("#installPromptBtn");
@@ -6072,7 +6081,6 @@
         close(mHabit);
       });
       $("#closeInvite").onclick = () => close(mInvite);
-      $("#closeQuit").onclick = () => close(mQuit);
 
       /* Jour +/- */
       $("#prevDay").onclick = () => { dayOff = clampDayOff(dayOff + (isWeekMode() ? -7 : -1)); renderCards(); renderDateBar(); };
