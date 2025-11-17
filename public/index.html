@@ -81,7 +81,7 @@
     .navbtn,
     .calBtn,
     .backMini {
-      font: 600 13px/1.2 system-ui, -apple-system, Roboto, sans-serif;
+      font: 500 13px/1.2 system-ui, -apple-system, Roboto, sans-serif;
       padding: 6px 10px;
       border-radius: var(--r);
       cursor: pointer;
@@ -660,7 +660,7 @@
     }
 
     .dateLabel {
-      font-weight: 700;
+      font-weight: 500;
       padding: 0;
       border: none;
       background: transparent
@@ -682,6 +682,85 @@
       display: grid;
       grid-template-columns: 64px 1fr;
       overflow: hidden
+    }
+
+    .list.dense-view {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 6px;
+    }
+
+    .list.dense-view .card {
+      grid-template-columns: auto 1fr;
+      padding: 2px 4px 2px 0;
+      border-radius: calc(var(--r) + 2px);
+      min-height: auto;
+    }
+
+    .list.dense-view .card.s1me .content {
+      padding-right: 0;
+      gap: 2px;
+    }
+
+    .list.dense-view .card.s1me .title {
+      margin-bottom: 0;
+      min-height: 0;
+    }
+
+    .list.dense-view .levelCol {
+      padding: 0;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .list.dense-view .levelBtn {
+      width: 40px;
+      height: 40px;
+    }
+
+    .list.dense-view .levelBtn .big {
+      font-size: 24px;
+    }
+
+    .list.dense-view .content {
+      padding: 0;
+      gap: 4px;
+    }
+
+    .list.dense-view .title {
+      order: 1;
+      font-size: 13px;
+    }
+
+    .list.dense-view .title .base {
+      white-space: normal;
+      overflow: hidden;
+      line-height: 1.2;
+      max-height: 2.4em;
+    }
+
+    .list.dense-view .weekly-progress {
+      order: 2;
+      gap: 4px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .list.dense-view .schedule-days,
+    .list.dense-view .desc,
+    .list.dense-view .friends {
+      display: none;
+    }
+
+    .list.dense-view .weekly-progress__block {
+      width: 8px;
+      height: 6px;
+      border-radius: 4px;
+    }
+
+    .weekly-progress__block--today {
+      box-shadow: inset 0 0 0 1px rgba(30, 31, 26, 0.7);
     }
 
     /* Encadrés par état + auteur + mode */
@@ -717,7 +796,7 @@
       padding: 4px;
       display: flex;
       flex-direction: column;
-      gap: 4px
+      gap: 2px
     }
 
     .schedule-days {
@@ -736,8 +815,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      text-transform: uppercase;
-      border: 1px solid #c6beae;
+      border: 1px solid #f7f3ea;
     }
 
     .schedule-days__pill--done {
@@ -759,13 +837,16 @@
     }
 
     .title {
-      font-weight: 700;
+      font-weight: 500;
       display: flex;
       align-items: center;
       gap: 4px;
       font-size: 14px;
       min-height: 22px;
       justify-content: space-between
+    }
+    .title .base {
+      font-weight: 500;
     }
 
     .weekly-progress {
@@ -932,8 +1013,7 @@
       padding: 0;
       border-radius: 0;
       border: none;
-      border-right: 1px solid var(--border);
-      background: #fff;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1248,7 +1328,7 @@
       flex: 1;
       text-align: center;
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 500;
       letter-spacing: 0.02em;
     }
 
@@ -1275,7 +1355,7 @@
       border: none;
       color: var(--green);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       text-decoration: underline;
       cursor: pointer;
       padding: 0;
@@ -2204,6 +2284,13 @@
               </select>
             </div>
             <div class="field">
+              <label><b>Mode d'affichage</b></label>
+              <select id="prefsDisplayMode" class="select">
+                <option value="dense" selected>Dense</option>
+                <option value="etendu">Étendu</option>
+              </select>
+            </div>
+            <div class="field">
               <label><b>Bouton d'édition</b></label>
               <select id="prefsEditButtonDisplay" class="select">
                 <option value="auto">Auto (en cours seulement)</option>
@@ -2269,7 +2356,7 @@
       const FREQ_MODE = {}, HABIT_REC = {};
 
       /* Utils */
-      const APP_VERSION = '0.0.8';
+      const APP_VERSION = '0.0.10';
       const NEED_EMOJIS = {
         affection: '❤️',
         joy: '😄',
@@ -2845,6 +2932,19 @@
       const HABITU_FIREBASE_DB = window.HABITU_FIREBASE_DB;
       const ACTIVITY_BUFFER_MS = 3e3;
       const IS_LOCAL_FILE_URL = window.location.protocol === 'file:';
+      const STORAGE_ALLOW_FIRESTORE_FROM_LOCAL = 'habitu-allow-firestore-local';
+      function isFirestoreAllowedLocally() {
+        try {
+          if (!window.localStorage) return true;
+          const stored = window.localStorage.getItem(STORAGE_ALLOW_FIRESTORE_FROM_LOCAL);
+          if (stored === '0') return false;
+          if (stored === '1') return true;
+        } catch (err) {
+          console.warn('isFirestoreAllowedLocally', err);
+        }
+        return true;
+      }
+      const FIRESTORE_ENABLED_LOCALLY = isFirestoreAllowedLocally();
       const activityQueue = new Map();
       const SESSION_COOKIE_NAME = 'habitube-session';
       const SESSION_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000;
@@ -3187,6 +3287,9 @@
         if (profile.editButtonDisplay !== undefined) {
           payload.editButtonDisplay = profile.editButtonDisplay;
         }
+        if (profile.habitListDisplayMode !== undefined) {
+          payload.habitListDisplayMode = profile.habitListDisplayMode;
+        }
         return HABITU_FIREBASE_DB.collection('users').doc(profile.uid)
           .set(payload, { merge: true })
           .catch(e => console.warn('persistUserProfile', e));
@@ -3214,7 +3317,8 @@
           email: updated.email,
           name: updated.name,
           tipsDisplayMode: normalized,
-          editButtonDisplay: updated.editButtonDisplay
+          editButtonDisplay: updated.editButtonDisplay,
+          habitListDisplayMode: updated.habitListDisplayMode
         });
       }
       async function updateUserEditButtonPreference(mode) {
@@ -3227,7 +3331,22 @@
           email: updated.email,
           name: updated.name,
           tipsDisplayMode: updated.tipsDisplayMode,
-          editButtonDisplay: normalized
+          editButtonDisplay: normalized,
+          habitListDisplayMode: updated.habitListDisplayMode
+        });
+      }
+      async function updateUserHabitListDisplayMode(mode) {
+        if (!currentProfile) return;
+        const normalized = ['etendu', 'dense'].includes(mode) ? mode : 'dense';
+        const updated = { ...currentProfile, habitListDisplayMode: normalized };
+        persistProfile(updated);
+        await persistUserProfile({
+          uid: updated.uid,
+          email: updated.email,
+          name: updated.name,
+          tipsDisplayMode: updated.tipsDisplayMode,
+          editButtonDisplay: updated.editButtonDisplay,
+          habitListDisplayMode: normalized
         });
       }
       function persistSpaceDoc(spaceId, data = {}) {
@@ -3311,12 +3430,12 @@
         return HABITU_FIREBASE_DB.collection('invites').doc(token).delete().catch(e => console.warn('deleteInvite', e));
       }
       function sendActivityToServer(payload) {
-        if (!HABITU_FIREBASE_DB || IS_LOCAL_FILE_URL) return Promise.resolve();
+        if (!HABITU_FIREBASE_DB || (IS_LOCAL_FILE_URL && !FIRESTORE_ENABLED_LOCALLY)) return Promise.resolve();
         return HABITU_FIREBASE_DB.collection('activities').add(payload).catch(e => console.warn('sendActivity', e));
       }
       function scheduleHabitActivity(habitId, payload) {
         if (!habitId) return;
-        if (IS_LOCAL_FILE_URL) {
+        if (IS_LOCAL_FILE_URL && !FIRESTORE_ENABLED_LOCALLY) {
           console.warn('Skipping Firestore activity log while running from file://');
           return;
         }
@@ -3326,6 +3445,8 @@
         }
         const actorName = currentProfile?.name || 'Moi';
         const localRecordedAt = new Date();
+        const targetRecordedAt = payload.recordedAt ? timestampToDate(payload.recordedAt) : null;
+        const serverRecordedAt = targetRecordedAt ? firebase.firestore.Timestamp.fromDate(targetRecordedAt) : firebase.firestore.FieldValue.serverTimestamp();
         const eventData = {
           ...payload,
           habitId,
@@ -3333,9 +3454,9 @@
           userEmail: currentProfile?.email || null,
           userId: currentProfile?.uid || null,
           actorName,
-          recordedAt: firebase.firestore.FieldValue.serverTimestamp()
+          recordedAt: serverRecordedAt
         };
-        const localEvent = { ...eventData, recordedAt: localRecordedAt };
+        const localEvent = { ...eventData, recordedAt: targetRecordedAt || localRecordedAt };
         if (payload.type === 'realization') {
           upsertLocalHabitActivity(localEvent);
           refreshActivityViews();
@@ -3761,6 +3882,12 @@
       function getEditButtonPreference() {
         return currentProfile?.editButtonDisplay || 'auto';
       }
+      function getHabitListDisplayMode() {
+        return currentProfile?.habitListDisplayMode || 'dense';
+      }
+      function isHabitListDense() {
+        return getHabitListDisplayMode() === 'dense';
+      }
       function getDescTipSeed(baseDate = curDate()) {
         const anchor = isWeekMode() ? getWeekStart(baseDate) : new Date(baseDate);
         anchor.setHours(0, 0, 0, 0);
@@ -4003,6 +4130,9 @@
       /* Cartes */
       function renderCards() {
         const root = $("#cards");
+        if (!root) return;
+        const isDenseList = isHabitListDense();
+        root.classList.toggle('dense-view', isDenseList);
         root.innerHTML = '';
         if (!spaceId) return;
         const today = curDate();
@@ -4074,6 +4204,7 @@
             const windowStart = isWeekSpace ? getWeekStart(today) : today;
             const records = getHabitRecords(spaceId, it.id, windowStart);
             const freqWeekly = HABIT_REC[it.id] || 1;
+            const viewRecordedAt = isWeekSpace ? null : new Date(today);
             let userRecord = records.find(r => isCurrentUserLabel(r.owner)) || null;
             const doneRecord = records.find(r => (r.state || 0) >= 1) || null;
             let ownerRecord = null;
@@ -4166,18 +4297,54 @@
               ensureHeartBadge(friendsBadges, shouldHeart, arr, btn, it.id);
             };
 
-            const renderWeeklyProgress = () => {
-              const isWeek = btn.dataset.week === '1';
-              if (!isWeek) {
+            const renderProgressDots = () => {
+              const isWeekModeView = btn.dataset.week === '1';
+              const showDailyDots = isDenseList && !isWeekModeView;
+              if (showDailyDots) {
+                progressRow.style.display = 'flex';
+                progressRow.innerHTML = '';
+                const weekStart = getWeekStart(today);
+                const weekRecords = getHabitRecords(spaceId, it.id, weekStart);
+                const dayStates = new Array(7).fill(0);
+                weekRecords.forEach(rec => {
+                  const recDay = rec.recordedAt?.getDay();
+                  if (!Number.isFinite(recDay)) return;
+                  const index = (recDay + 6) % 7;
+                  const stateNow = Math.max(0, Math.min(2, Number(rec.state) || 0));
+                  dayStates[index] = Math.max(dayStates[index], stateNow);
+                });
+                const todayIndex = (today.getDay() + 6) % 7;
+                dayStates.forEach((state, idx) => {
+                  const block = document.createElement('span');
+                  block.className = 'weekly-progress__block';
+                  if (state >= 2) {
+                    block.classList.add('weekly-progress__block--done');
+                  } else if (state === 1) {
+                    block.classList.add('weekly-progress__block--active');
+                  } else {
+                    block.classList.add('weekly-progress__block--pending');
+                  }
+                  if (idx === todayIndex) {
+                    block.classList.add('weekly-progress__block--today');
+                  }
+                  progressRow.appendChild(block);
+                });
+                return;
+              }
+              if (!isDenseList && !isWeekModeView) {
                 progressRow.style.display = 'none';
                 progressRow.innerHTML = '';
                 return;
               }
               const recur = Math.max(1, +btn.dataset.recur || 1);
-              progressRow.style.display = recur > 1 ? 'flex' : 'none';
+              const totalBlocks = isDenseList ? Math.max(1, recur) : recur;
+              if (!isDenseList && totalBlocks <= 1) {
+                progressRow.style.display = 'none';
+                progressRow.innerHTML = '';
+                return;
+              }
+              progressRow.style.display = 'flex';
               progressRow.innerHTML = '';
-              if (recur <= 1) return;
-              const totalBlocks = recur;
               const stateNow = +btn.dataset.state || 0;
               const rawCount = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
               let doneCount = rawCount;
@@ -4263,7 +4430,7 @@
               drawBtn(btn);
               setVisualFromState(nst);
               renderBadges();
-              renderWeeklyProgress();
+              renderProgressDots();
               applyNoteDisplayMode(desc, { state: nst });
               manageEditButton();
               scheduleHabitActivity(it.id, {
@@ -4273,7 +4440,8 @@
                 helping: btn.dataset.helping === '1',
                 count: +btn.dataset.count || 0,
                 frequency: freqWeekly,
-                modeType: mode.type
+                modeType: mode.type,
+                recordedAt: viewRecordedAt
               });
               populateScheduleRow();
               renderDateBar();
@@ -4367,7 +4535,7 @@
             drawBtn(btn);
             setVisualFromState(state);
             renderBadges();
-            renderWeeklyProgress();
+            renderProgressDots();
             applyNoteDisplayMode(desc, { state });
             const manageEditButton = () => {
               const currentState = +btn.dataset.state || 0;
@@ -5488,6 +5656,7 @@
       const mPrefs = $("#modalPrefs");
       const prefsTipsSelect = $("#prefsTipsDisplayMode");
       const prefsEditBtnSelect = $("#prefsEditButtonDisplay");
+      const prefsDisplayModeSelect = $("#prefsDisplayMode");
       const closePrefsBtn = $("#closePrefs");
       function updateHabitModalControls() {
         const hasHabits = (getSpace()?.ch?.length || 0) > 0;
@@ -5603,6 +5772,9 @@
         if (prefsEditBtnSelect) {
           prefsEditBtnSelect.value = getEditButtonPreference();
         }
+        if (prefsDisplayModeSelect) {
+          prefsDisplayModeSelect.value = getHabitListDisplayMode();
+        }
         open(mPrefs);
       }
       prefsTipsSelect?.addEventListener('change', async () => {
@@ -5613,6 +5785,11 @@
       prefsEditBtnSelect?.addEventListener('change', async () => {
         const mode = prefsEditBtnSelect.value || 'auto';
         await updateUserEditButtonPreference(mode);
+        renderCards();
+      });
+      prefsDisplayModeSelect?.addEventListener('change', async () => {
+        const mode = prefsDisplayModeSelect.value || 'dense';
+        await updateUserHabitListDisplayMode(mode);
         renderCards();
       });
       closePrefsBtn?.addEventListener('click', () => close(mPrefs));
@@ -6471,7 +6648,8 @@
             email: updated.email,
             name: finalName,
             tipsDisplayMode: updated.tipsDisplayMode,
-            editButtonDisplay: updated.editButtonDisplay
+            editButtonDisplay: updated.editButtonDisplay,
+            habitListDisplayMode: updated.habitListDisplayMode
           });
         }
         return finalName;
@@ -6506,9 +6684,11 @@
         const remoteProfile = await loadRemoteUserProfile(user.uid);
         const fallbackTips = currentProfile?.tipsDisplayMode;
         const fallbackEditBtn = currentProfile?.editButtonDisplay;
+        const fallbackHabitMode = currentProfile?.habitListDisplayMode;
         const tipsDisplayMode = remoteProfile?.tipsDisplayMode || fallbackTips || 'auto';
         const editButtonDisplay = remoteProfile?.editButtonDisplay || fallbackEditBtn || 'auto';
-        const profile = { uid: user.uid, email, name, guest: isGuest, tipsDisplayMode, editButtonDisplay };
+        const habitListDisplayMode = remoteProfile?.habitListDisplayMode || fallbackHabitMode || 'dense';
+        const profile = { uid: user.uid, email, name, guest: isGuest, tipsDisplayMode, editButtonDisplay, habitListDisplayMode };
         persistProfile(profile);
         await persistUserProfile(profile);
         if (!isGuest) {
@@ -6580,32 +6760,35 @@
       }
       async function handleAppUpdateRequest({ auto = false } = {}) {
         if (updateRequestInProgress) {
-          showToast('Une mise à jour est déjà en cours.', { type: 'info' });
           return;
         }
         if (!('serviceWorker' in navigator)) {
-          showToast('Service worker indisponible.', { type: 'error' });
+          console.warn('Service worker indisponible.');
           return;
         }
+        const loaderWasVisible = loaderOverlay && !loaderOverlay.classList.contains('hide');
+        if (!loaderWasVisible) {
+          showLoaderOverlay();
+        }
         updateRequestInProgress = true;
-        showToast(auto ? 'Mise à jour…' : 'Mise à jour…', { type: 'info', duration: 5000 });
         try {
           await clearAppCaches();
           const registration = await ensureSwRegistration();
           if (!registration) {
-            showToast('Service worker introuvable.', { type: 'error' });
+            console.warn('Service worker introuvable.');
             return;
           }
           await registration.update();
           if (registration.waiting) {
             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-            showToast('Mise à jour…', { type: 'success' });
           }
         } catch (err) {
           console.warn('handleAppUpdateRequest', err);
-          showToast('Impossible de vérifier les mises à jour.', { type: 'error' });
         } finally {
           updateRequestInProgress = false;
+          if (!loaderWasVisible) {
+            hideLoaderOverlay();
+          }
         }
       }
       async function initAutoUpdater() {
