@@ -682,7 +682,8 @@
       transition: transform 0.15s ease;
       display: grid;
       grid-template-columns: 64px 1fr;
-      overflow: hidden
+      overflow: hidden;
+      touch-action: manipulation;
     }
 
     .card:active {
@@ -780,6 +781,7 @@
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 4px;
+      margin-left: 2px;
     }
 
     .weekly-progress__block--today {
@@ -2204,15 +2206,9 @@
         </div>
         <div class="sheetBody">
           <div class="grid">
-            <div class="opt" id="createGarden">
-              <div class="emoji">🏡</div>
-              <div><b>Créer un jardin</b>
-                <div class="subtitle">Nouvel espace partagé</div>
-              </div>
-            </div>
             <div class="opt" id="addHabit">
               <div class="emoji">🌱</div>
-              <div><b>Semer de nouvelles graines</b>
+              <div><b>Semer des graines</b>
                 <div class="subtitle">Démarrer des nouvelles habitudes</div>
               </div>
             </div>
@@ -2226,6 +2222,12 @@
               <div class="emoji">🧑‍🌾</div>
               <div><b>Rejoindre un jardin</b>
                 <div class="subtitle">Entrer un code d'accès</div>
+              </div>
+            </div>
+            <div class="opt" id="createGarden">
+              <div class="emoji">🏡</div>
+              <div><b>Créer un jardin</b>
+                <div class="subtitle">Nouvel espace partagé</div>
               </div>
             </div>
             <div class="opt" id="menuPrefs">
@@ -2439,7 +2441,7 @@
       const FREQ_MODE = {}, HABIT_REC = {};
 
       /* Utils */
-      const APP_VERSION = '0.0.13';
+      const APP_VERSION = '0.0.15';
       const NEED_EMOJIS = {
         affection: '❤️',
         joy: '😄',
@@ -2549,16 +2551,28 @@
           }
         };
         const startLongPress = (event) => {
-          if (event.pointerType === 'mouse' && event.button !== 0) return;
+          const isTouchEvent = event.type.startsWith('touch');
+          if (!isTouchEvent && event.pointerType === 'mouse' && event.button !== 0) return;
           clearLongPress();
           longPressTimer = setTimeout(() => {
-            showCardContextMenu(habit, btn, event.clientX, event.clientY);
+            const clientX = isTouchEvent ? event.touches?.[0]?.clientX || event.changedTouches?.[0]?.clientX : event.clientX;
+            const clientY = isTouchEvent ? event.touches?.[0]?.clientY || event.changedTouches?.[0]?.clientY : event.clientY;
+            if (clientX != null && clientY != null) {
+              showCardContextMenu(habit, btn, clientX, clientY);
+            }
           }, CARD_CONTEXT_LONG_PRESS_MS);
+          if (isTouchEvent && event.cancelable) {
+            event.preventDefault();
+          }
         };
         card.addEventListener('pointerdown', startLongPress);
         card.addEventListener('pointerup', clearLongPress);
         card.addEventListener('pointerleave', clearLongPress);
         card.addEventListener('pointercancel', clearLongPress);
+        card.addEventListener('touchstart', startLongPress, { passive: false });
+        card.addEventListener('touchend', clearLongPress);
+        card.addEventListener('touchmove', clearLongPress);
+        card.addEventListener('touchcancel', clearLongPress);
         card.addEventListener('contextmenu', (event) => {
           event.preventDefault();
           showCardContextMenu(habit, btn, event.clientX, event.clientY);
