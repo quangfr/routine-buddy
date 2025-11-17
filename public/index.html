@@ -33,7 +33,9 @@
       --border: #c6beae;
       --r: 4px;
       --gap: 8px;
-      --fs: 13px
+      --fs: 13px;
+      --top-sticky-offset: 44px;
+      --detail-head-height: 48px;
     }
 
     * {
@@ -206,24 +208,18 @@
       font-weight: 500;
       color: #4d4d4d;
     }
+
     .loader-habit-index {
       font-size: 16px;
       letter-spacing: 0.25em;
       text-transform: uppercase;
     }
+
     .loader-habit-name {
       font-size: 18px;
       font-weight: 600;
       max-width: 260px;
       text-align: center;
-    }
-    .loader-habit-tip {
-      font-size: 14px;
-      color: #4d4d4d;
-      max-width: 280px;
-      text-align: center;
-      margin-top: 4px;
-      font-weight: 400;
     }
 
     .loader-version {
@@ -937,11 +933,12 @@
       align-items: center;
       gap: 8px;
       position: sticky;
-      top: 0;
-      z-index: 5;
+      top: var(--top-sticky-offset, 44px);
+      z-index: 7;
       background: var(--bg);
       padding: 6px var(--gap);
-      border-bottom: 1px solid var(--border)
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
     }
 
     .detailTitle {
@@ -956,8 +953,9 @@
       border-bottom: 1px solid var(--border);
       background: var(--bg);
       position: sticky;
-      top: 80px;
-      z-index: 4
+      top: calc(var(--top-sticky-offset, 44px) + var(--detail-head-height, 48px));
+      z-index: 6;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
     }
 
     .tab {
@@ -1682,15 +1680,14 @@
 
 <body>
   <div class="loader-overlay hide" id="loaderOverlay">
-      <div class="loader-content">
-        <div class="loader-title">Habitube.com</div>
-        <div class="loader-emoji" id="loaderEmoji">🌰</div>
-        <div class="loader-habit">
-          <div class="loader-habit-index" id="loaderHabitIndex">#0</div>
-          <div class="loader-habit-name" id="loaderHabitName">Une habitude</div>
-          <div class="loader-habit-tip" id="loaderHabitTip">...</div>
-        </div>
+    <div class="loader-content">
+      <div class="loader-title">Habitube.com</div>
+      <div class="loader-emoji" id="loaderEmoji">🌰</div>
+      <div class="loader-habit">
+        <div class="loader-habit-index" id="loaderHabitIndex">#0</div>
+        <div class="loader-habit-name" id="loaderHabitName">Une habitude</div>
       </div>
+    </div>
     <div class="loader-version" id="loaderVersion"></div>
   </div>
   <div class="toast-container" id="toastContainer"></div>
@@ -2003,7 +2000,6 @@
             </div>
             <div class="field owner-controls hide" id="ownerControls">
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn" id="transferSpaceBtn">Transférer le jardin</button>
                 <button class="btn danger" id="deleteSpaceBtn">Supprimer le jardin</button>
               </div>
               <div class="subtitle" id="ownerControlsHint"></div>
@@ -2239,26 +2235,6 @@
       </div>
     </div>
 
-    <div class="modal" id="modalTransfer">
-      <div class="sheet">
-        <div class="sheetHeader">
-          <div>Transférer le jardin</div><button class="closeX" id="closeTransfer">⨉</button>
-        </div>
-        <div class="sheetBody">
-          <div class="grid">
-            <div class="field">
-              <label><b>Nouveau propriétaire</b></label>
-              <select id="transferOwnerSelect" class="select"></select>
-            </div>
-            <div class="field">
-              <button class="btn primary" id="confirmTransferBtn">Valider</button>
-            </div>
-            <div class="subtitle" id="transferStatus"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="modal" id="modalQuit">
       <div class="sheet">
         <div class="sheetHeader">
@@ -2269,7 +2245,6 @@
         </div>
         <div class="habit-actions">
           <button class="btn" id="quitModalCancel">Annuler</button>
-          <button class="btn hide" id="quitModalTransfer">Transférer le jardin</button>
           <button class="btn danger" id="quitModalDelete">Supprimer le jardin</button>
         </div>
       </div>
@@ -2302,11 +2277,11 @@
       /* Utils */
       const APP_VERSION = '0.0.2';
       const FALLBACK_LOADER_HABITS = [
-        { id: 'fallback-1', emoji: '🌱', title: 'Cultiver un rituel matinal', tips: ['Prendre 3 grandes inspirations', 'Noter 1 chose à faire'] },
-        { id: 'fallback-2', emoji: '🌿', title: 'Respirer profondément', tips: ['Inspire 4s, expire 6s', 'Ferme les yeux 10s'] },
-        { id: 'fallback-3', emoji: '🌸', title: 'Faire une pause hydratation', tips: ['Boire 1 grand verre', 'Changer d’eau fraîchement'] },
-        { id: 'fallback-4', emoji: '🌞', title: 'Programmer un sourire', tips: ['Rire 3 secondes', 'Partager un compliment'] },
-        { id: 'fallback-5', emoji: '🌻', title: 'Noter un petit mérite', tips: ['Écrire 1 ligne de gratitude', 'Valider une petite victoire'] }
+        { id: 'fallback-1', emoji: '🌱', title: 'Cultiver un rituel matinal' },
+        { id: 'fallback-2', emoji: '🌿', title: 'Respirer profondément' },
+        { id: 'fallback-3', emoji: '🌸', title: 'Faire une pause hydratation' },
+        { id: 'fallback-4', emoji: '🌞', title: 'Programmer un sourire' },
+        { id: 'fallback-5', emoji: '🌻', title: 'Noter un petit mérite' }
       ];
       const DEFAULT_DURATION = 15;
       const LOADER_ROTATION_MS = 10000;
@@ -2322,40 +2297,60 @@
         if (librarySource.length) return librarySource;
         return FALLBACK_LOADER_HABITS;
       }
-      function pickLoaderTipFromHabit(habit, seed) {
-        const tips = (habit?.tips || []).filter(Boolean);
-        if (!tips.length) return '';
-        const tipHash = hashStr(`tip:${seed}`);
-        const idx = ((tipHash % tips.length) + tips.length) % tips.length;
-        return tips[idx];
+      function getLoaderMinuteSeed() {
+        const now = Date.now();
+        return String(Math.floor(now / 60000));
       }
       function pickLoaderHabit(seed = '') {
-        const normalizedSeed = String(seed || `${Date.now()}-${Math.random()}`);
+        const normalizedSeed = String(seed || getLoaderMinuteSeed());
         const candidates = getLoaderHabitCandidates();
         if (!candidates.length) {
-          return { emoji: '🌱', title: 'Une habitude', index: 0, tip: '' };
+          return { emoji: '🌱', title: 'Une habitude', index: 0 };
         }
         const hash = hashStr(`loader:${normalizedSeed}`);
         const idx = ((hash % candidates.length) + candidates.length) % candidates.length;
         const habit = candidates[idx];
         const label = habit.title || habit.titre || 'Une habitude';
         const indexValue = habit.id ?? (idx + 1);
-        const tip = pickLoaderTipFromHabit(habit, `${normalizedSeed}:${indexValue}`);
-        return { emoji: habit.emoji || '🌱', title: label, index: indexValue, tip };
+        return { emoji: habit.emoji || '🌱', title: label, index: indexValue };
       }
       function refreshLoaderHabit(seed = '') {
         const info = pickLoaderHabit(seed);
         const emojiEl = $('#loaderEmoji');
         const indexEl = $('#loaderHabitIndex');
         const nameEl = $('#loaderHabitName');
-        const tipEl = $('#loaderHabitTip');
         if (emojiEl) emojiEl.textContent = info.emoji || '🌱';
         if (indexEl) indexEl.textContent = info.index ? `#${info.index}` : '#0';
         if (nameEl) nameEl.textContent = info.title || 'Une habitude';
-        if (tipEl) tipEl.textContent = info.tip || '...';
       }
       setLoaderVersion();
-      refreshLoaderHabit();
+      refreshLoaderHabit(getLoaderMinuteSeed());
+      /* ===== Sticky header offsets ===== */
+      const stickyRoot = document.documentElement;
+      function refreshStickyOffsets() {
+        const topElement = document.querySelector('.top');
+        const topHeight = topElement ? topElement.offsetHeight : 0;
+        stickyRoot.style.setProperty('--top-sticky-offset', `${topHeight}px`);
+        const activeDetailHead = document.querySelector('.view.active .detailHead');
+        if (activeDetailHead) {
+          stickyRoot.style.setProperty('--detail-head-height', `${activeDetailHead.offsetHeight}px`);
+        }
+      }
+      let stickyRefreshScheduled = false;
+      function scheduleStickyRefresh() {
+        if (stickyRefreshScheduled) return;
+        stickyRefreshScheduled = true;
+        requestAnimationFrame(() => {
+          stickyRefreshScheduled = false;
+          refreshStickyOffsets();
+        });
+      }
+      const viewObserver = new MutationObserver(scheduleStickyRefresh);
+      document.querySelectorAll('.view').forEach(view => viewObserver.observe(view, { attributes: true, attributeFilter: ['class'] }));
+      const bodyObserver = new MutationObserver(scheduleStickyRefresh);
+      bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      window.addEventListener('resize', refreshStickyOffsets);
+      refreshStickyOffsets();
       function fmtDate(d) { const M = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'][d.getMonth()]; const j = String(d.getDate()).padStart(2, '0'); const J = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][d.getDay()]; return `${J} ${j}/${M}`; }
       function weekLabel(d) {
         const day = d.getDay(); // 0=dim
@@ -2519,6 +2514,7 @@
       const INSTALL_PROMPT_STORAGE_KEY = 'habitu-install-prompt-seen';
       const INSTALL_PROMPT_SUPPRESSION_MS = 15 * 24 * 60 * 60 * 1000;
       const INSTALL_PROMPT_FIRST_HABIT_KEY = 'habitu-install-first-habit';
+      const STORAGE_LAST_MEMBER_NAME = 'habitu-last-member-name';
       let deferredInstallPrompt = null;
       let installPromptAutoShown = false;
       let toastContainerEl = null;
@@ -2535,10 +2531,11 @@
           localStorage.setItem(key, value);
         } catch (e) { }
       }
-      function safeStorageRemove(key) {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) { }
+      function getLastMemberName() {
+        return safeStorageGet(STORAGE_LAST_MEMBER_NAME) || '';
+      }
+      function setLastMemberName(value) {
+        safeStorageSet(STORAGE_LAST_MEMBER_NAME, (value || '').trim());
       }
       function ensureToastContainer() {
         if (!toastContainerEl) {
@@ -2820,9 +2817,6 @@
       function clearSessionCookie() {
         document.cookie = `${SESSION_COOKIE_NAME}=; expires=${new Date(0).toUTCString()}; path=/; SameSite=Lax`;
       }
-      function hasSessionCookie() {
-        return document.cookie.split('; ').some(pair => pair.startsWith(`${SESSION_COOKIE_NAME}=`));
-      }
       function persistProfile(profile) {
         if (!profile) {
           localStorage.removeItem(STORAGE_USER_PROFILE);
@@ -2904,6 +2898,74 @@
         });
         return { emails: Array.from(emails), userIds: Array.from(userIds), idByEmail };
       }
+      function normalizeMemberKey(value) {
+        if (!value) return '';
+        const trimmed = String(value).trim();
+        if (!trimmed) return '';
+        if (trimmed.includes('@')) {
+          return normalizeEmail(trimmed);
+        }
+        return trimmed;
+      }
+      function ensureSpaceMemberSettings(space) {
+        if (!space) return {};
+        if (!space.memberSettings || typeof space.memberSettings !== 'object') {
+          space.memberSettings = {};
+        }
+        return space.memberSettings;
+      }
+      function getSpaceMemberLabel(space, memberKey) {
+        const key = normalizeMemberKey(memberKey);
+        if (!key) return '';
+        const settings = ensureSpaceMemberSettings(space);
+        const custom = settings[key];
+        if (custom?.name) return custom.name;
+        if (key.includes('@')) {
+          return key.split('@')[0];
+        }
+        return '';
+      }
+      function getCurrentSpaceMemberKey(space) {
+        if (!space) return '';
+        const emailKey = normalizeMemberKey(currentProfile?.email);
+        if (emailKey && (space.members || []).some(member => normalizeMemberKey(member) === emailKey)) {
+          return emailKey;
+        }
+        const uidKey = normalizeMemberKey(currentProfile?.uid);
+        if (uidKey && (space.members || []).some(member => normalizeMemberKey(member) === uidKey)) {
+          return uidKey;
+        }
+        return '';
+      }
+      function isCurrentMemberKey(key) {
+        const normalized = normalizeMemberKey(key);
+        if (!normalized) return false;
+        const emailKey = normalizeMemberKey(currentProfile?.email);
+        if (emailKey && emailKey === normalized) return true;
+        const uidKey = normalizeMemberKey(currentProfile?.uid);
+        if (uidKey && uidKey === normalized) return true;
+        return false;
+      }
+      async function updateSpaceMemberName(spaceId, memberKey, name, { persist = true } = {}) {
+        if (!spaceId || !memberKey) return;
+        const sp = SPACES[spaceId];
+        if (!sp) return;
+        const normalized = normalizeMemberKey(memberKey);
+        if (!normalized) return;
+        const settings = ensureSpaceMemberSettings(sp);
+        const finalName = (name || '').trim();
+        if (finalName) {
+          settings[normalized] = { name: finalName };
+        } else {
+          delete settings[normalized];
+        }
+        if (isCurrentMemberKey(normalized)) {
+          setLastMemberName(finalName);
+        }
+        if (persist) {
+          await persistSpaceDoc(spaceId, { memberSettings: settings });
+        }
+      }
       function sanitizeSpaceMembers(members) {
         const { emails, userIds } = buildMemberInfo(members);
         if (!userIds.length) return emails;
@@ -2932,7 +2994,9 @@
         try {
           const spaces = await fetchSpacesForUser(profile);
           spaces.forEach(space => {
-            SPACES[space.id] = { ...(SPACES[space.id] || {}), ...space, members: space.members || [], ch: space.ch || [] };
+            const existing = SPACES[space.id] || {};
+            const memberSettings = space.memberSettings || existing.memberSettings || {};
+            SPACES[space.id] = { ...existing, ...space, members: space.members || [], memberSettings, ch: space.ch || [] };
           });
           const collected = spaces.map(space => space.id);
           allowedSpaces = [...new Set([...allowedSpaces, ...collected])];
@@ -2951,9 +3015,8 @@
         if (space.ownerId && currentProfile?.uid && space.ownerId === currentProfile.uid) {
           return currentProfile.name || userName || 'Moi';
         }
-        if (space.ownerName) {
-          return space.ownerName;
-        }
+        const ownerLabel = getSpaceMemberLabel(space, space.ownerId);
+        if (ownerLabel) return ownerLabel;
         return 'Un jardinier';
       }
       function countOwnedGardens(profile) {
@@ -3055,16 +3118,12 @@
         if (!HABITU_FIREBASE_DB || !spaceId) return Promise.resolve();
         const space = SPACES[spaceId] || {};
         const members = sanitizeSpaceMembers(space.members);
-        const ownerIdCandidate = space.ownerId || null;
-        let ownerNameCandidate = space.ownerName || null;
-        if (!ownerNameCandidate && ownerIdCandidate && currentProfile?.uid === ownerIdCandidate) {
-          ownerNameCandidate = currentProfile.name || userName || 'Moi';
-        }
+        const memberSettings = ensureSpaceMemberSettings(space);
         const payload = {
           ...space,
           ...data,
-          ...(ownerIdCandidate ? { ownerId: ownerIdCandidate } : {}),
-          ...(ownerNameCandidate ? { ownerName: ownerNameCandidate } : {}),
+          ...(space.ownerId ? { ownerId: space.ownerId } : {}),
+          memberSettings,
           members,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -3191,6 +3250,7 @@
           snapshot.forEach(doc => {
             const raw = doc.data() || {};
             const code = (raw.code || '').toUpperCase();
+            const memberSettings = raw.memberSettings || {};
             const data = { id: doc.id, ...raw, createdAt: timestampToDate(raw.createdAt), code };
             const ownerId = data.ownerId;
             const { emails: memberEmails, userIds, idByEmail } = buildMemberInfo(raw.members);
@@ -3200,7 +3260,13 @@
             const userMatches = normalizedUserId && userIds.includes(normalizedUserId);
             if (ownerMatches || memberMatches || userMatches) {
               const enabledEditButton = raw.editButton !== false;
-              spaces.push({ ...data, members: sanitizedMembers, memberIdByEmail: idByEmail, editButton: enabledEditButton });
+              spaces.push({
+                ...data,
+                members: sanitizedMembers,
+                memberIdByEmail: idByEmail,
+                editButton: enabledEditButton,
+                memberSettings
+              });
             }
           });
           return spaces;
@@ -3324,7 +3390,7 @@
         if (!pendingInviteToken || !email) return null;
         const invite = await refreshPendingInviteInfo();
         if (!invite) return null;
-        await joinSpace(invite.spaceId, email);
+        await joinSpace(invite.spaceId, email, { name: invite.invitedName });
         await deleteInviteDoc(invite.token);
         pendingInviteToken = null;
         if (window.history.replaceState) {
@@ -3340,7 +3406,7 @@
         updateAuthMessage();
         return invite;
       }
-      async function joinSpace(spaceId, email) {
+      async function joinSpace(spaceId, email, { name } = {}) {
         if (!HABITU_FIREBASE_DB || !spaceId || !email) return;
         const normalized = normalizeEmail(email);
         try {
@@ -3357,6 +3423,9 @@
           const members = new Set(sanitizeSpaceMembers(SPACES[spaceId].members));
           members.add(normalized);
           SPACES[spaceId].members = Array.from(members);
+        }
+        if (name && normalized) {
+          await updateSpaceMemberName(spaceId, normalized, name);
         }
       }
       async function loadLibraryData() {
@@ -3393,7 +3462,7 @@
           });
         });
         refreshLibraryTags();
-        refreshLoaderHabit();
+        refreshLoaderHabit(getLoaderMinuteSeed());
       }
       async function resetFirestoreState(profile) {
         clearLocalState();
@@ -3403,10 +3472,14 @@
         const spaces = await fetchSpacesForUser(profile);
         allowedSpaces = spaces.map(space => space.id);
         spaces.forEach(space => {
+          const existing = SPACES[space.id] || {};
+          const memberSettings = space.memberSettings || existing.memberSettings || {};
           SPACES[space.id] = {
+            ...existing,
             ...space,
             members: space.members || [],
             memberIdByEmail: space.memberIdByEmail || {},
+            memberSettings,
             ch: []
           };
         });
@@ -3424,7 +3497,6 @@
       const HABIT_TITLE_IS_CUSTOM = {};
 
       /* Fréquence : tout = quotidien par défaut (UI conservée) */
-      function defaultFreqMode() { return { type: 'quotidien' } }
       function isVisibleToday() { return true }
 
       /* ===== Helpers visuels encadrés ===== */
@@ -4431,7 +4503,6 @@
         });
         const { likes, helps } = summarizeSocials(spaceId, range.since, range.until);
         const members = new Set(allMembersOfSpace());
-        members.add(userName || 'Moi');
         const rows = Array.from(members).map(name => ({
           n: name,
           me: name === (userName || 'Moi'),
@@ -4484,11 +4555,6 @@
         renderRank();
       };
       function showDetailView() { hideAll(); $("#detail").classList.add('active'); $("#daysWrap").classList.add('hide') }
-      function getProfileSinceDate() {
-        if (!spaceId) return null;
-        const range = resolvePeriodRange(profilePeriod);
-        return range.since;
-      }
       function renderProfileStats() {
         updateProfilePeriodButtons();
         const root = $("#profileHabits");
@@ -4801,7 +4867,9 @@
         const sp = getSpace();
         $("#spaceHeaderTitle").textContent = sp.label;
         $("#paramSpaceLabel").value = sp.label;
-        $("#paramName").value = userName || 'Moi';
+        const currentMemberKey = getCurrentSpaceMemberKey(sp);
+        const currentMemberName = getSpaceMemberLabel(sp, currentMemberKey);
+        $("#paramName").value = currentMemberName || getLastMemberName() || '';
         const orgSel = $("#spaceOrgMode");
         if (orgSel) orgSel.value = sp.orgMode || 'day';
         const autoWeekField = $("#autoWeekField");
@@ -4810,6 +4878,7 @@
       }
       function setupSpaceInfo() {
         const sp = getSpace(); const t = $("#spaceDescInfo");
+        const nameInput = $("#paramName");
         t.value = SPACE_DESC_TXT[spaceId] ?? (sp.desc || ''); t.classList.add('editing');
         t.oninput = () => { SPACE_DESC_TXT[spaceId] = t.value; sp.desc = t.value; persistSpaceDoc(spaceId, { desc: t.value }) }
         const autoWeekSelect = $("#autoWeekAffection");
@@ -4841,6 +4910,12 @@
         if (saveSettingsBtn && !saveSettingsBtn.dataset.bound) {
           saveSettingsBtn.onclick = async () => {
             if (!spaceId) return;
+            const sp = getSpace();
+            const currentKey = getCurrentSpaceMemberKey(sp);
+            const customName = (nameInput?.value || '').trim();
+            if (currentKey) {
+              await updateSpaceMemberName(spaceId, currentKey, customName, { persist: false });
+            }
             await persistSpaceDoc(spaceId);
             showToast('Réglages sauvegardés.', { type: 'success' });
           };
@@ -4848,53 +4923,20 @@
         }
       }
 
-      function getTransferCandidates() {
-        const sp = getSpace();
-        if (!sp) return [];
-        const ownerEmail = normalizeEmail(currentProfile?.email || '');
-        const normalizedMembers = Array.from(new Set((sp.members || []).map(normalizeEmail)));
-        return normalizedMembers.filter(email => email && email !== ownerEmail);
-      }
-
       function refreshOwnerPanel() {
         const ownerControls = $("#ownerControls");
         const ownerHint = $("#ownerControlsHint");
-        const transferBtn = $("#transferSpaceBtn");
         const deleteBtn = $("#deleteSpaceBtn");
         const guestQuitControls = $("#guestQuitControls");
         const isOwner = isCurrentSpaceAdmin();
         if (ownerControls) ownerControls.classList.toggle('hide', !isOwner);
         if (guestQuitControls) guestQuitControls.classList.toggle('hide', isOwner);
-        const candidates = isOwner ? getTransferCandidates() : [];
-        if (transferBtn) transferBtn.disabled = !candidates.length;
         if (deleteBtn) deleteBtn.disabled = !isOwner;
         if (ownerHint) {
           ownerHint.textContent = '';
         }
       }
 
-      function populateTransferSelect() {
-        const select = $("#transferOwnerSelect");
-        if (!select) return;
-        const candidates = getTransferCandidates();
-        select.innerHTML = '';
-        if (!candidates.length) {
-          const opt = document.createElement('option');
-          opt.value = '';
-          opt.textContent = 'Aucun autre jardinier disponible';
-          select.appendChild(opt);
-          select.disabled = true;
-        } else {
-          select.disabled = false;
-          candidates.forEach(email => {
-            const opt = document.createElement('option');
-            opt.value = email;
-            opt.textContent = displayNameFromEmail(email) || email;
-            select.appendChild(opt);
-          });
-        }
-        if (confirmTransferBtn) confirmTransferBtn.disabled = !candidates.length;
-      }
 
       async function leaveCurrentSpace() {
         if (!spaceId || !currentProfile?.email) return;
@@ -4962,7 +5004,6 @@
           return false;
         }
         sp.ownerId = targetId;
-        sp.ownerName = displayNameFromEmail(normalized) || sp.ownerName || '';
         await persistSpaceDoc(spaceIdArg);
         refreshOwnerPanel();
         updSpaceHeader();
@@ -5007,12 +5048,21 @@
 
       function allMembersOfSpace() {
         const sp = getSpace();
-        const members = new Set(['Moi']);
-        (sp?.members || []).forEach(email => {
-          const name = displayNameFromEmail(email);
-          if (name) members.add(name);
+        const keys = new Set();
+        (sp?.members || []).forEach(member => {
+          const normalized = normalizeMemberKey(member);
+          if (normalized) keys.add(normalized);
         });
-        return Array.from(members);
+        const currentKey = getCurrentSpaceMemberKey(sp);
+        if (currentKey) keys.add(currentKey);
+        if (!keys.size) keys.add('__current__');
+        const names = [];
+        keys.forEach(key => {
+          const label = getSpaceMemberLabel(sp, key) || ((key === '__current__' || isCurrentMemberKey(key)) ? 'Moi' : '');
+          if (label) names.push(label);
+        });
+        if (!names.length) names.push('Moi');
+        return names;
       }
       function renderSpaceRank() {
         updateSpacePeriodButtons();
@@ -5029,17 +5079,27 @@
             totals.set(rec.owner, (totals.get(rec.owner) || 0) + minutes);
           }
         });
+        const sp = getSpace();
         const { likes, helps } = summarizeSocials(spaceId, range.since, range.until);
-        const members = new Set(allMembersOfSpace());
-        members.add(userName || 'Moi');
-        const rows = Array.from(members).map(name => ({
-          n: name,
-          me: name === (userName || 'Moi'),
-          totalMin: totals.get(name) || 0,
-          likes: likes.get(name) || 0,
-          help: Math.round(((helps.get(name) || 0) * 15) / 60),
-          txt: m2txt(totals.get(name) || 0)
-        })).sort((a, b) => b.totalMin - a.totalMin);
+        const memberKeys = new Set();
+        (sp?.members || []).forEach(member => {
+          const normalized = normalizeMemberKey(member);
+          if (normalized) memberKeys.add(normalized);
+        });
+        const currentKey = getCurrentSpaceMemberKey(sp);
+        if (currentKey) memberKeys.add(currentKey);
+        if (!memberKeys.size) memberKeys.add('__current__');
+        const rows = Array.from(memberKeys).map(key => {
+          const label = getSpaceMemberLabel(sp, key) || ((key === '__current__' || isCurrentMemberKey(key)) ? 'Moi' : 'Un jardinier');
+          return {
+            n: label,
+            me: key === currentKey || (!currentKey && key === '__current__'),
+            totalMin: totals.get(label) || 0,
+            likes: likes.get(label) || 0,
+            help: Math.round(((helps.get(label) || 0) * 15) / 60),
+            txt: m2txt(totals.get(label) || 0)
+          };
+        }).filter(row => row.n).sort((a, b) => b.totalMin - a.totalMin);
         rows.forEach(({ n, totalMin, txt, me, likes, help }) => {
           const row = document.createElement('div');
           row.className = 'row';
@@ -5222,7 +5282,11 @@
         ordered.forEach(id => {
           const o = document.createElement('option');
           o.value = id;
-          o.textContent = SPACES[id].label;
+          const spaceEntry = SPACES[id];
+          const memberKey = getCurrentSpaceMemberKey(spaceEntry);
+          const memberName = getSpaceMemberLabel(spaceEntry, memberKey);
+          const label = memberName ? `${spaceEntry.label} (${memberName})` : spaceEntry.label;
+          o.textContent = label;
           sel.appendChild(o);
         });
         if (!ordered.includes(spaceId) || !SPACES[spaceId]) spaceId = ordered[0];
@@ -5233,10 +5297,9 @@
       $("#openSpace").onclick = openSpacePage; $("#backFromSpace").onclick = showHome;
 
       /* Modales */
-      const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mJoin = $("#modalJoin"), mTransfer = $("#modalTransfer");
+      const mAdd = $("#modalAdd"), mHabit = $("#modalHabit"), mInvite = $("#modalInvite"), mGarden = $("#modalGarden"), mJoin = $("#modalJoin");
       const mQuit = $("#modalQuit");
       const quitModalText = $("#quitModalText");
-      const quitModalTransferBtn = $("#quitModalTransfer");
       const quitModalDeleteBtn = $("#quitModalDelete");
       const quitModalCancelBtn = $("#quitModalCancel");
       const joinNameInput = $("#joinName");
@@ -5336,32 +5399,19 @@
         const sp = getSpace();
         if (!sp) return;
         const isOwner = isCurrentSpaceAdmin();
-        const candidates = getTransferCandidates();
-        const hasCandidates = candidates.length > 0;
         if (quitModalText) {
-          if (isOwner && hasCandidates) {
-            quitModalText.textContent = 'Transfère la propriété ou supprime le jardin.';
-          } else if (isOwner) {
-            quitModalText.textContent = 'Supprimer ce jardin fermera l’espace pour tout le monde.';
-          } else {
-            quitModalText.textContent = 'Quitter le jardin supprime tes activités personnelles.';
-          }
-        }
-        if (quitModalTransferBtn) {
-          quitModalTransferBtn.classList.toggle('hide', !(isOwner && hasCandidates));
+          quitModalText.textContent = isOwner
+            ? 'Supprimer ce jardin fermera l’espace pour tout le monde.'
+            : 'Quitter le jardin supprime tes activités personnelles.';
         }
         if (quitModalDeleteBtn) {
-          const action = (isOwner && !hasCandidates) ? 'delete' : (isOwner && hasCandidates ? 'delete' : 'leave');
+          const action = isOwner ? 'delete' : 'leave';
           quitModalDeleteBtn.dataset.action = action;
           quitModalDeleteBtn.textContent = isOwner ? 'Supprimer le jardin' : 'Supprimer ma participation';
         }
         open(mQuit);
       }
       quitModalCancelBtn?.addEventListener('click', () => close(mQuit));
-      quitModalTransferBtn?.addEventListener('click', () => {
-        close(mQuit);
-        openTransferModal();
-      });
       quitModalDeleteBtn?.addEventListener('click', async () => {
         close(mQuit);
         if (quitModalDeleteBtn.dataset.action === 'leave') {
@@ -5379,7 +5429,7 @@
       function openInvite() { updateSpaceAccessCodeDisplay(); renderInviteList(); open(mInvite) }
       function openJoinModal() {
         setJoinStatus('', false);
-        const defaultName = pendingInviteInfo?.invitedName || currentProfile?.name || userName || 'Moi';
+        const defaultName = pendingInviteInfo?.invitedName || getLastMemberName() || currentProfile?.name || '';
         if (joinNameInput) joinNameInput.value = defaultName;
         if (joinCodeInput) joinCodeInput.value = '';
         setJoinDescription('');
@@ -5564,9 +5614,6 @@
       const generateInviteBtn = $("#generateInvite");
       const habitModeToggle = $("#modeToggle");
       const habitModeButtons = habitModeToggle ? Array.from(habitModeToggle.querySelectorAll('.mode-option')) : [];
-      const confirmTransferBtn = $("#confirmTransferBtn");
-      const transferStatus = $("#transferStatus");
-      const transferSpaceBtn = $("#transferSpaceBtn");
       const deleteSpaceBtn = $("#deleteSpaceBtn");
       createGardenBtn.onclick = createGarden;
       joinCodeInput?.addEventListener('input', () => {
@@ -5584,24 +5631,7 @@
       });
       joinSpaceBtn?.addEventListener('click', joinGardenByCode);
       generateInviteBtn.onclick = generateInviteLink;
-      transferSpaceBtn?.addEventListener('click', () => openTransferModal());
       deleteSpaceBtn?.addEventListener('click', () => deleteCurrentSpace());
-      confirmTransferBtn?.addEventListener('click', async () => {
-        if (!spaceId) return;
-        const select = $("#transferOwnerSelect");
-        if (!select || !select.value) {
-          if (transferStatus) transferStatus.textContent = 'Choisis un jardinier.';
-          return;
-        }
-        const success = await updateSpaceOwner(spaceId, select.value);
-        if (transferStatus) {
-          transferStatus.textContent = success ? 'Propriété transférée !' : 'Impossible de transférer.';
-        }
-        if (success) {
-          close(mTransfer);
-        }
-      });
-      $("#closeTransfer").onclick = () => close(mTransfer);
       installAppOpt?.addEventListener('click', () => {
         close(mAdd);
         triggerInstallPrompt('manual');
@@ -5718,6 +5748,14 @@
         if (ownerEmail) memberSet.add(ownerEmail);
         if (ownerId) memberSet.add(ownerId);
         const memberList = sanitizeSpaceMembers(Array.from(memberSet));
+        const ownerLabel = (currentProfile?.name || userName || 'Moi').trim() || 'Moi';
+        const memberSettings = {};
+        if (ownerEmail) {
+          memberSettings[normalizeMemberKey(ownerEmail)] = { name: ownerLabel };
+        }
+        if (ownerId) {
+          memberSettings[normalizeMemberKey(ownerId)] = { name: ownerLabel };
+        }
         SPACES[id] = {
           emoji: profile.emoji,
           label: title,
@@ -5726,17 +5764,18 @@
           code: accessCode,
           ch: [],
           ownerId: ownerId || null,
-          ownerName: currentProfile?.name || userName || 'Moi',
           members: memberList,
           createdAt: new Date(),
           editButton: true,
           editorRights: 'admin',
           editButtonMode: 'dynamic',
           notesDisplayMode: 'dynamic',
-          tipsDisplayMode: 'absence'
+          tipsDisplayMode: 'absence',
+          memberSettings
         };
         spaceId = id;
-        userName = currentProfile.name;
+        userName = ownerLabel;
+        setLastMemberName(ownerLabel);
         allowedSpaces = [...new Set([...allowedSpaces, id])];
         if (currentProfile?.guest) {
           addGuestSpace(id);
@@ -5748,7 +5787,8 @@
           editButton: true,
           editButtonMode: 'dynamic',
           notesDisplayMode: 'dynamic',
-          tipsDisplayMode: 'absence'
+          tipsDisplayMode: 'absence',
+          memberSettings
         };
         gardenStatus.textContent = 'Ajoute quelques habitudes pour démarrer ton jardin.';
         await persistSpaceDoc(id, creationPayload);
@@ -5873,7 +5913,7 @@
           if (allowedSpaces.includes(spaceData.id)) { setJoinStatus('Tu fais déjà partie de ce jardin.', true); return; }
           SPACES[spaceData.id] = { ...(SPACES[spaceData.id] || {}), ...spaceData, members: spaceData.members || [] };
           if (currentProfile?.email) {
-            await joinSpace(spaceData.id, currentProfile.email);
+            await joinSpace(spaceData.id, currentProfile.email, { name });
           } else {
             addGuestSpace(spaceData.id);
           }
@@ -6213,8 +6253,8 @@
 
       function startLoaderAnimation() {
         if (loaderHabitTimer) return;
-        refreshLoaderHabit();
-        loaderHabitTimer = setInterval(() => refreshLoaderHabit(), LOADER_ROTATION_MS);
+        refreshLoaderHabit(getLoaderMinuteSeed());
+        loaderHabitTimer = setInterval(() => refreshLoaderHabit(getLoaderMinuteSeed()), LOADER_ROTATION_MS);
       }
       function stopLoaderAnimation() {
         if (loaderHabitTimer) {
@@ -6280,7 +6320,7 @@
       async function linkGuestSpacesToEmail(email) {
         if (!email || guestSpaces.size === 0) return;
         const spaces = Array.from(guestSpaces);
-        await Promise.all(spaces.map(id => joinSpace(id, email)));
+        await Promise.all(spaces.map(id => joinSpace(id, email, { name: currentProfile?.name })));
         clearGuestSpaces();
       }
 
@@ -6345,6 +6385,7 @@
           }
           await ensureProfileName(inviteName || name);
           userName = currentProfile?.name || name;
+          setLastMemberName(userName);
           updateAddModalOptions();
           if (allowedSpaces.length === 0) { openGardenFlow(); return; }
           updAll();
