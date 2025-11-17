@@ -1,6 +1,11 @@
 name: Import Habits to Firestore
 
+
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'public/library.js'
   workflow_dispatch:
     inputs:
       dry_run:
