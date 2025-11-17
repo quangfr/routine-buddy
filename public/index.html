@@ -720,6 +720,44 @@
       gap: 4px
     }
 
+    .schedule-days {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .schedule-days__pill {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      border: 1px solid #c6beae;
+    }
+
+    .schedule-days__pill--done {
+      background: #3b905f;
+      color: #fff;
+      border-color: #3b905f;
+    }
+
+    .schedule-days__pill--active {
+      background: #f5c654;
+      color: #fff;
+      border-color: #f5c654;
+    }
+
+    .schedule-days__pill--pending {
+      background: var(--bg);
+      color: #5a5a56;
+      border-color: #c6beae;
+    }
+
     .title {
       font-weight: 700;
       display: flex;
@@ -2156,18 +2194,27 @@
           <div>Préférences</div><button class="closeX" id="closePrefs">⨉</button>
         </div>
         <div class="sheetBody">
-          <div class="grid">
-            <div class="field">
-              <label><b>Afficher les astuces</b></label>
-              <select id="prefsTipsDisplayMode" class="select">
-                <option value="absence">Dynamique</option>
-                <option value="never">Non</option>
-              </select>
-            </div>
+        <div class="grid">
+          <div class="field">
+            <label><b>Afficher les astuces</b></label>
+            <select id="prefsTipsDisplayMode" class="select">
+              <option value="auto">Auto (en cours seulement)</option>
+              <option value="oui">Oui</option>
+              <option value="non">Non</option>
+            </select>
+          </div>
+          <div class="field">
+            <label><b>Bouton d'édition</b></label>
+            <select id="prefsEditButtonDisplay" class="select">
+              <option value="auto">Auto (en cours seulement)</option>
+              <option value="oui">Oui</option>
+              <option value="non">Non</option>
+            </select>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
     <div class="modal join" id="modalJoin">
       <div class="sheet">
@@ -2222,7 +2269,7 @@
       const FREQ_MODE = {}, HABIT_REC = {};
 
       /* Utils */
-      const APP_VERSION = '0.0.4';
+      const APP_VERSION = '0.0.8';
       const NEED_EMOJIS = {
         affection: '❤️',
         joy: '😄',
@@ -2634,6 +2681,67 @@
         maybeShowInstallPrompt(false);
       });
       const MIN_DAY_OFF = -3650;
+      const DAY_LABELS = ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'];
+      const FULL_WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+      function normalizeDayIndex(value) {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return null;
+        const floored = Math.floor(num);
+        return ((floored % 7) + 7) % 7;
+      }
+
+      function buildDayModeDays(count, referenceDay = null) {
+        const recurrence = Math.max(1, Math.min(7, Number(count) || 1));
+        const baseDay = normalizeDayIndex(referenceDay);
+        const startDay = baseDay !== null ? baseDay : 1;
+        if (recurrence >= 7) {
+          return FULL_WEEK_DAYS.slice();
+        }
+        if (recurrence === 3) {
+          return [startDay, (startDay + 2) % 7, (startDay + 4) % 7];
+        }
+        const days = [];
+        const seen = new Set();
+        const step = 7 / recurrence;
+        for (let i = 0; i < recurrence; i++) {
+          let offset = Math.round(step * i);
+          let day = (startDay + offset) % 7;
+          while (seen.has(day)) {
+            day = (day + 1) % 7;
+          }
+          seen.add(day);
+          days.push(day);
+        }
+        return days;
+      }
+
+      function getHabitFreqType(habit) {
+        if (!habit) return 'quotidien';
+        const candidate = (habit.freqType || habit.freqDefault || '').toString().toLowerCase();
+        if (['quotidien', 'jours', 'ponctuelle', 'hebdo'].includes(candidate)) {
+          return candidate;
+        }
+        return 'quotidien';
+      }
+
+      function getHabitFreqDays(habit) {
+        const rawDays = Array.isArray(habit?.freqDays) ? habit.freqDays : [];
+        const normalized = Array.from(new Set(rawDays
+          .map(day => normalizeDayIndex(day))
+          .filter(day => day !== null)
+        ));
+        if (normalized.length) return normalized;
+        const freqType = getHabitFreqType(habit);
+        if (freqType === 'quotidien') return FULL_WEEK_DAYS.slice();
+        if (freqType === 'jours') {
+          const fallback = buildDayModeDays(habit?.frequency ?? 1, curDate().getDay());
+          if (fallback.length) return fallback;
+          return [curDate().getDay()];
+        }
+        return [];
+      }
+
       function getWeekStart(date = new Date()) {
         const copy = new Date(date);
         copy.setHours(0, 0, 0, 0);
@@ -2641,64 +2749,19 @@
         copy.setDate(copy.getDate() - diff);
         return copy;
       }
-      function getWeekDaysForFrequency(count) {
-        const week = [1, 2, 3, 4, 5, 6, 0];
-        if (count >= week.length) return week.slice();
-        if (count === 3) return [1, 3, 5];
-        if (count === 1) return [1];
-        const step = week.length / count;
-        const days = [];
-        for (let i = 0; i < count; i++) {
-          days.push(week[Math.floor(i * step) % week.length]);
-        }
-        return days;
-      }
-      function getDayUsage(spaceId) {
-        const usage = Array(7).fill(0);
-        if (!spaceId) return usage;
-        const events = SPACE_ACTIVITIES[spaceId] || [];
-        events.forEach(ev => {
-          const recorded = ev?.recordedAt;
-          if (!recorded) return;
-          const date = recorded instanceof Date ? recorded : (recorded?.toDate ? recorded.toDate() : new Date(recorded));
-          if (!date || Number.isNaN(date.getTime())) return;
-          const day = date.getDay();
-          usage[day] += 1;
-        });
-        return usage;
-      }
-
-      function chooseDayModeDays(spaceId, count) {
-        if (!count) return [];
-        const usage = getDayUsage(spaceId);
-        const weekOrder = [1, 2, 3, 4, 5, 6, 0];
-        const sorted = [...weekOrder].sort((a, b) => (usage[a] - usage[b]) || (a - b));
-        const start = sorted[0];
-        const days = [];
-        for (let i = 0; i < count; i++) {
-          let day = (start + Math.round((7 / count) * i)) % 7;
-          while (days.includes(day)) {
-            day = (day + 1) % 7;
-          }
-          days.push(day);
-        }
-        if (days.length < count) {
-          const fallback = getWeekDaysForFrequency(count);
-          return fallback;
-        }
-        return days;
-      }
 
       function buildHabitFrequencyInfo(space, frequencyValue) {
         const recurrence = Math.max(1, Math.min(7, Number(frequencyValue) || 1));
         const isWeek = space?.orgMode === 'week';
+        const freqType = isWeek ? 'hebdo' : (recurrence === 7 ? 'quotidien' : 'jours');
         const info = {
           recurrence,
-          freqDefault: isWeek ? 'hebdo' : (recurrence === 7 ? 'quotidien' : 'jours')
+          freqDefault: freqType,
+          freqType
         };
         if (!isWeek) {
-          const targetId = space?.id;
-          info.freqDays = chooseDayModeDays(targetId, recurrence);
+          const referenceDay = curDate().getDay();
+          info.freqDays = buildDayModeDays(recurrence, referenceDay);
         }
         return info;
       }
@@ -3118,8 +3181,11 @@
           email: profile.email,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        if (profile.tipsDisplayMode) {
+        if (profile.tipsDisplayMode !== undefined) {
           payload.tipsDisplayMode = profile.tipsDisplayMode;
+        }
+        if (profile.editButtonDisplay !== undefined) {
+          payload.editButtonDisplay = profile.editButtonDisplay;
         }
         return HABITU_FIREBASE_DB.collection('users').doc(profile.uid)
           .set(payload, { merge: true })
@@ -3140,14 +3206,28 @@
 
       async function updateUserTipsDisplayMode(mode) {
         if (!currentProfile) return;
-        const normalized = mode === 'never' ? 'never' : 'absence';
+        const normalized = ['auto', 'oui', 'non'].includes(mode) ? mode : 'auto';
         const updated = { ...currentProfile, tipsDisplayMode: normalized };
         persistProfile(updated);
         await persistUserProfile({
           uid: updated.uid,
           email: updated.email,
           name: updated.name,
-          tipsDisplayMode: normalized
+          tipsDisplayMode: normalized,
+          editButtonDisplay: updated.editButtonDisplay
+        });
+      }
+      async function updateUserEditButtonPreference(mode) {
+        if (!currentProfile) return;
+        const normalized = ['auto', 'oui', 'non'].includes(mode) ? mode : 'auto';
+        const updated = { ...currentProfile, editButtonDisplay: normalized };
+        persistProfile(updated);
+        await persistUserProfile({
+          uid: updated.uid,
+          email: updated.email,
+          name: updated.name,
+          tipsDisplayMode: updated.tipsDisplayMode,
+          editButtonDisplay: normalized
         });
       }
       function persistSpaceDoc(spaceId, data = {}) {
@@ -3273,7 +3353,8 @@
         if (habit.customTitle) HABIT_TITLE_CUSTOM[habit.id] = habit.customTitle;
         if (habit.mode) HABIT_MODE[habit.id] = habit.mode;
         if (habit.recurrence) HABIT_REC[habit.id] = habit.recurrence;
-        if (habit.freqDefault) FREQ_MODE[habit.id] = { type: habit.freqDefault };
+        const freqTypeValue = habit.freqType || habit.freqDefault;
+        if (freqTypeValue) FREQ_MODE[habit.id] = { type: freqTypeValue };
       }
       async function fetchSpacesForUser(profile) {
         if (!HABITU_FIREBASE_DB || !profile) return [];
@@ -3544,7 +3625,17 @@
       const HABIT_TITLE_IS_CUSTOM = {};
 
       /* Fréquence : tout = quotidien par défaut (UI conservée) */
-      function isVisibleToday() { return true }
+      function isVisibleToday(habitId, date = curDate()) {
+        if (isWeekMode()) return true;
+        if (!habitId) return true;
+        const targetDay = (date || curDate()).getDay();
+        const habit = findAny(habitId);
+        const freqType = getHabitFreqType(habit);
+        if (freqType === 'ponctuelle') return true;
+        const days = getHabitFreqDays(habit);
+        if (!days.length) return true;
+        return days.includes(targetDay);
+      }
 
       /* ===== Helpers visuels encadrés ===== */
       function applyCardClass(card, st, owner, helping, modeType) {
@@ -3665,7 +3756,10 @@
       }
 
       function getTipsDisplayMode() {
-        return currentProfile?.tipsDisplayMode || 'absence';
+        return currentProfile?.tipsDisplayMode || 'auto';
+      }
+      function getEditButtonPreference() {
+        return currentProfile?.editButtonDisplay || 'auto';
       }
       function getDescTipSeed(baseDate = curDate()) {
         const anchor = isWeekMode() ? getWeekStart(baseDate) : new Date(baseDate);
@@ -3709,22 +3803,31 @@
           desc.classList.remove('hidden');
           desc.classList.add('open');
         };
+        const showTip = () => {
+          desc.textContent = tipText;
+          desc.classList.remove('hidden');
+          desc.classList.add('open');
+        };
         const hideShort = () => {
           desc.classList.remove('open');
           desc.classList.add('hidden');
           desc.textContent = shortText;
         };
-        if (tipsMode === 'absence' && !hasNote && tipText) {
-          desc.textContent = tipText;
-          desc.classList.remove('hidden');
-          desc.classList.add('open');
+        if (!hasNote && tipText) {
+          if (tipsMode === 'oui') {
+            showTip();
+            return;
+          }
+          if (tipsMode === 'auto' && numericState === 1) {
+            showTip();
+            return;
+          }
+        }
+        if (hasNote && numericState === 1) {
+          showFull();
           return;
         }
-        if (numericState === 1 && hasNote) {
-          showFull();
-        } else {
-          hideShort();
-        }
+        hideShort();
       }
 
       /* Global helpers */
@@ -3732,6 +3835,9 @@
       function getSpace() { return (spaceId && SPACES[spaceId]) || null; }
       function isWeekMode() { return getSpace()?.orgMode === 'week'; }
       function shouldShowEditButton(state = 0) {
+        const pref = getEditButtonPreference();
+        if (pref === 'non') return false;
+        if (pref === 'oui') return true;
         return Number(state) === 1;
       }
       function getSpaceEarliestDate() {
@@ -3891,12 +3997,7 @@
       function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return h >>> 0; }
       function rngSeed(seed) { let x = seed >>> 0; return () => { x = (x * 1664525 + 1013904223) >>> 0; return (x >>> 0) / 4294967296; }; }
       function pickVisibleList(arr) {
-        const seed = hashStr(dayKey());
-        const rand = rngSeed(seed);
-        const count = Math.min(arr.length, 4 + Math.floor(rand() * 6)); // 4..9
-        const a = arr.slice();
-        for (let i = 0; i < a.length - 1; i++) { const j = Math.floor(rand() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
-        return a.slice(0, count);
+        return Array.isArray(arr) ? arr.slice() : [];
       }
 
       /* Cartes */
@@ -3937,6 +4038,9 @@
             card.className = 'card';
             const cont = document.createElement('div');
             cont.className = 'content';
+            const scheduleRow = document.createElement('div');
+            scheduleRow.className = 'schedule-days';
+            scheduleRow.style.display = 'none';
             const title = document.createElement('div');
             title.className = 'title';
             const left = document.createElement('div');
@@ -3957,7 +4061,7 @@
             friends.appendChild(friendsBadges);
             const progressRow = document.createElement('div');
             progressRow.className = 'weekly-progress';
-            cont.append(progressRow, title, desc, friends);
+            cont.append(scheduleRow, progressRow, title, desc, friends);
 
             const col = document.createElement('div');
             col.className = 'levelCol';
@@ -3966,7 +4070,8 @@
             btn.dataset.cid = it.id;
             btn.dataset.habitEmoji = it.emoji || '🌱';
 
-            const windowStart = isWeekMode() ? getWeekStart(today) : today;
+            const isWeekSpace = isWeekMode();
+            const windowStart = isWeekSpace ? getWeekStart(today) : today;
             const records = getHabitRecords(spaceId, it.id, windowStart);
             const freqWeekly = HABIT_REC[it.id] || 1;
             let userRecord = records.find(r => isCurrentUserLabel(r.owner)) || null;
@@ -4063,15 +4168,16 @@
 
             const renderWeeklyProgress = () => {
               const isWeek = btn.dataset.week === '1';
+              if (!isWeek) {
+                progressRow.style.display = 'none';
+                progressRow.innerHTML = '';
+                return;
+              }
               const recur = Math.max(1, +btn.dataset.recur || 1);
-              const freqType = FREQ_MODE[it.id]?.type || (isWeek ? 'hebdo' : 'quotidien');
-              const freqDays = Array.isArray(it.freqDays) ? it.freqDays : [];
-              const showDayProgress = !isWeek && (freqType === 'quotidien' || (freqDays.length > 1));
-              const shouldShow = (isWeek && recur > 1) || showDayProgress;
-              progressRow.style.display = shouldShow ? 'flex' : 'none';
+              progressRow.style.display = recur > 1 ? 'flex' : 'none';
               progressRow.innerHTML = '';
-              if (!shouldShow) return;
-              const totalBlocks = isWeek ? recur : (freqType === 'jours' && freqDays.length ? freqDays.length : 7);
+              if (recur <= 1) return;
+              const totalBlocks = recur;
               const stateNow = +btn.dataset.state || 0;
               const rawCount = Math.max(0, Math.min(totalBlocks, +btn.dataset.count || 0));
               let doneCount = rawCount;
@@ -4086,7 +4192,6 @@
                 doneCount = 0;
                 activeIndex = -1;
               }
-              const dayOrder = (!isWeek && freqType === 'jours' && freqDays.length) ? freqDays.slice() : (isWeek ? null : [1, 2, 3, 4, 5, 6, 0]);
               for (let idx = 0; idx < totalBlocks; idx++) {
                 const block = document.createElement('span');
                 block.className = 'weekly-progress__block';
@@ -4098,12 +4203,49 @@
                 } else {
                   block.classList.add('weekly-progress__block--pending');
                 }
-                if (dayOrder && idx < dayOrder.length) {
-                  block.dataset.day = dayOrder[idx];
-                }
                 progressRow.appendChild(block);
               }
             };
+
+            const freqType = getHabitFreqType(it);
+            const scheduledDays = getHabitFreqDays(it);
+            const showSchedule = !isWeekSpace && freqType === 'jours' && scheduledDays.length > 0;
+            const populateScheduleRow = () => {
+              if (!showSchedule) {
+                scheduleRow.style.display = 'none';
+                scheduleRow.innerHTML = '';
+                return;
+              }
+              const weekStart = getWeekStart(today);
+              const weekRecords = getHabitRecords(spaceId, it.id, weekStart);
+              const dayState = new Map();
+              weekRecords.forEach(rec => {
+                const recDay = rec.recordedAt?.getDay();
+                if (!Number.isFinite(recDay)) return;
+                const stateNow = Math.max(0, Math.min(2, Number(rec.state) || 0));
+                const existing = dayState.get(recDay);
+                if (existing === undefined || stateNow > existing) {
+                  dayState.set(recDay, stateNow);
+                }
+              });
+              scheduleRow.innerHTML = '';
+              scheduledDays.forEach(day => {
+                const pill = document.createElement('span');
+                pill.className = 'schedule-days__pill';
+                const recordedState = dayState.get(day) ?? 0;
+                if (recordedState >= 2) {
+                  pill.classList.add('schedule-days__pill--done');
+                } else if (recordedState === 1) {
+                  pill.classList.add('schedule-days__pill--active');
+                } else {
+                  pill.classList.add('schedule-days__pill--pending');
+                }
+                pill.textContent = DAY_LABELS[day] || '';
+                scheduleRow.appendChild(pill);
+              });
+              scheduleRow.style.display = 'flex';
+            };
+            populateScheduleRow();
 
             const applyState = (nst, { keepOwner = false } = {}) => {
               btn.dataset.state = String(nst);
@@ -4133,6 +4275,7 @@
                 frequency: freqWeekly,
                 modeType: mode.type
               });
+              populateScheduleRow();
               renderDateBar();
             };
 
@@ -4205,7 +4348,11 @@
               const st = +btn.dataset.state || 0;
               if (st === 0) {
                 btn.dataset.owner = getCurrentOwnerLabel();
-                applyState(2);
+                applyState(1);
+                return;
+              }
+              if (st === 1) {
+                applyState(2, { keepOwner: true });
                 return;
               }
               if (st === 2) {
@@ -4707,10 +4854,15 @@
       /* ===== Paramètres habitude ===== */
       let activeId = null, refBtn = null;
       function openDetail(id, btnRef) {
+        const it = findAny(id);
+        if (!it) {
+          console.warn('openDetail: habit not found', id);
+          return;
+        }
         activeId = id; refBtn = btnRef; hideAll(); $("#detail").classList.add('active'); $("#daysWrap").classList.add('hide');
         $$('.tab').forEach(t => t.classList.remove('active')); document.querySelector('[data-tab="members"]').classList.add('active');
         $$('#detail .view').forEach(v => v.classList.remove('active')); $('#tab-members').classList.add('active');
-        const it = findAny(id); $("#detailTitle").textContent = `${it.emoji} ${habitLabel(it)}`;
+        $("#detailTitle").textContent = `${it.emoji} ${habitLabel(it)}`;
         renderRank(); populateCalWho(); renderCalendar(); renderHabitSettings();
       }
       function selectDetailTab(key) {
@@ -4782,10 +4934,36 @@
           fJ?.classList.toggle('hide', val !== 'jours');
           fPon?.classList.toggle('hide', val !== 'ponctuelle');
         };
+        const populateFreqSubJours = () => {
+          if (!fJ) return;
+          const days = getHabitFreqDays(it);
+          fJ.querySelectorAll('input[type=checkbox]').forEach(input => {
+            const dayValue = normalizeDayIndex(input.value);
+            input.checked = dayValue !== null && days.includes(dayValue);
+          });
+        };
+        const readFreqSubJours = () => {
+          if (!fJ) return [];
+          const values = [];
+          fJ.querySelectorAll('input[type=checkbox]').forEach(input => {
+            if (!input.checked) return;
+            const dayValue = normalizeDayIndex(input.value);
+            if (dayValue !== null) values.push(dayValue);
+          });
+          const unique = Array.from(new Set(values));
+          unique.sort((a, b) => a - b);
+          return unique;
+        };
         if (ft) {
-          ft.addEventListener('change', adjustFreqSubs);
+          ft.addEventListener('change', () => {
+            adjustFreqSubs();
+            populateFreqSubJours();
+          });
+          const habitFreqType = getHabitFreqType(it);
+          ft.value = habitFreqType;
           adjustFreqSubs();
         }
+        populateFreqSubJours();
 
         const defaultDurSel = $("#mockDefaultDur");
         if (defaultDurSel && !defaultDurSel.dataset.bound) {
@@ -4809,6 +4987,8 @@
               sp.ch = sp.ch.filter(habit => habit?.id !== activeId);
             }
             persistHabit(spaceId, { id: activeId, deleted: true });
+            close(mHabit);
+            activeId = null;
             showHome();
             renderCards();
           };
@@ -4822,13 +5002,29 @@
         if (save && !save.dataset.bound) {
           save.onclick = async () => {
             if (!requireAdmin('modifier une habitude')) return;
+            const freqTypeValue = ft?.value || getHabitFreqType(it);
+            const selectedDays = readFreqSubJours();
+            let freqDaysPayload = [];
+            if (freqTypeValue === 'jours') {
+              freqDaysPayload = selectedDays.length ? selectedDays : [curDate().getDay()];
+            } else if (freqTypeValue === 'quotidien') {
+              freqDaysPayload = FULL_WEEK_DAYS.slice();
+            }
             const payload = {
               id: activeId,
               customTitle: HABIT_TITLE_CUSTOM[activeId] || '',
               desc: HABIT_DESC[activeId] || '',
               note: HABIT_DESC[activeId] || '',
-              mode: HABIT_MODE[activeId] || null
+              mode: HABIT_MODE[activeId] || null,
+              freqType: freqTypeValue,
+              freqDefault: freqTypeValue,
+              freqDays: freqDaysPayload
             };
+            if (it) {
+              it.freqType = payload.freqType;
+              it.freqDefault = payload.freqDefault;
+              it.freqDays = payload.freqDays.slice();
+            }
             await persistHabit(spaceId, payload);
             activeId = null;
             renderCards();
@@ -5291,6 +5487,7 @@
       let habitWizardStep = 1;
       const mPrefs = $("#modalPrefs");
       const prefsTipsSelect = $("#prefsTipsDisplayMode");
+      const prefsEditBtnSelect = $("#prefsEditButtonDisplay");
       const closePrefsBtn = $("#closePrefs");
       function updateHabitModalControls() {
         const hasHabits = (getSpace()?.ch?.length || 0) > 0;
@@ -5403,11 +5600,19 @@
         if (prefsTipsSelect) {
           prefsTipsSelect.value = getTipsDisplayMode();
         }
+        if (prefsEditBtnSelect) {
+          prefsEditBtnSelect.value = getEditButtonPreference();
+        }
         open(mPrefs);
       }
       prefsTipsSelect?.addEventListener('change', async () => {
-        const mode = prefsTipsSelect.value || 'absence';
+        const mode = prefsTipsSelect.value || 'auto';
         await updateUserTipsDisplayMode(mode);
+        renderCards();
+      });
+      prefsEditBtnSelect?.addEventListener('change', async () => {
+        const mode = prefsEditBtnSelect.value || 'auto';
+        await updateUserEditButtonPreference(mode);
         renderCards();
       });
       closePrefsBtn?.addEventListener('click', () => close(mPrefs));
@@ -6265,7 +6470,8 @@
             uid: updated.uid,
             email: updated.email,
             name: finalName,
-            tipsDisplayMode: updated.tipsDisplayMode
+            tipsDisplayMode: updated.tipsDisplayMode,
+            editButtonDisplay: updated.editButtonDisplay
           });
         }
         return finalName;
@@ -6299,8 +6505,10 @@
         const name = user.displayName || currentProfile?.name || inviteName || userName || 'Moi';
         const remoteProfile = await loadRemoteUserProfile(user.uid);
         const fallbackTips = currentProfile?.tipsDisplayMode;
-        const tipsDisplayMode = remoteProfile?.tipsDisplayMode || fallbackTips || 'absence';
-        const profile = { uid: user.uid, email, name, guest: isGuest, tipsDisplayMode };
+        const fallbackEditBtn = currentProfile?.editButtonDisplay;
+        const tipsDisplayMode = remoteProfile?.tipsDisplayMode || fallbackTips || 'auto';
+        const editButtonDisplay = remoteProfile?.editButtonDisplay || fallbackEditBtn || 'auto';
+        const profile = { uid: user.uid, email, name, guest: isGuest, tipsDisplayMode, editButtonDisplay };
         persistProfile(profile);
         await persistUserProfile(profile);
         if (!isGuest) {
