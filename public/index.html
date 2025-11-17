@@ -198,12 +198,32 @@
       animation: loader-bounce 1.6s ease-in-out infinite;
     }
 
-    .loader-tip {
+    .loader-habit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+      color: #4d4d4d;
+    }
+    .loader-habit-index {
+      font-size: 16px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+    .loader-habit-name {
+      font-size: 18px;
+      font-weight: 600;
+      max-width: 260px;
+      text-align: center;
+    }
+    .loader-habit-tip {
       font-size: 14px;
       color: #4d4d4d;
-      max-width: 260px;
-      line-height: 1.35;
-      font-weight: 500;
+      max-width: 280px;
+      text-align: center;
+      margin-top: 4px;
+      font-weight: 400;
     }
 
     .loader-version {
@@ -1662,11 +1682,15 @@
 
 <body>
   <div class="loader-overlay hide" id="loaderOverlay">
-    <div class="loader-content">
-      <div class="loader-title">Habitube.com</div>
-      <div class="loader-emoji" id="loaderEmoji">🌰</div>
-      <div class="loader-tip" id="loaderTip"></div>
-    </div>
+      <div class="loader-content">
+        <div class="loader-title">Habitube.com</div>
+        <div class="loader-emoji" id="loaderEmoji">🌰</div>
+        <div class="loader-habit">
+          <div class="loader-habit-index" id="loaderHabitIndex">#0</div>
+          <div class="loader-habit-name" id="loaderHabitName">Une habitude</div>
+          <div class="loader-habit-tip" id="loaderHabitTip">...</div>
+        </div>
+      </div>
     <div class="loader-version" id="loaderVersion"></div>
   </div>
   <div class="toast-container" id="toastContainer"></div>
@@ -2175,6 +2199,13 @@
                 <option value="dynamic">Dynamique</option>
               </select>
             </div>
+            <div class="field">
+              <label><b>Afficher les astuces</b></label>
+              <select id="prefsTipsDisplayMode" class="select">
+                <option value="absence">En l'absence de note</option>
+                <option value="never">Jamais</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -2270,23 +2301,15 @@
 
       /* Utils */
       const APP_VERSION = '0.0.2';
-      const APP_TIPS = [
-        'Planifie tes 3 habitudes clés dès le matin pour garder le cap.',
-        'Ajoute un cœur pour féliciter les personnes qui t’inspirent.',
-        'Utilise la note pour garder un souvenir de ta séance.',
-        'Passe en vue hebdo pour visualiser les routines d’équipe.',
-        'Bascule sur "Je fais" avant de valider ton soutien collectif.',
-        'Attribue une durée réaliste à chaque habitude et ajuste-la.',
-        'Vérifie le calendrier pour repérer tes streaks les plus longs.',
-        'Invite un proche pour créer un jardin partagé et motivant.',
-        'Coche plusieurs fois le jour pour suivre tes habitudes flexibles.',
-        'Touche l’emoji pour découvrir la fiche détaillée de l’habitude.'
+      const FALLBACK_LOADER_HABITS = [
+        { id: 'fallback-1', emoji: '🌱', title: 'Cultiver un rituel matinal', tips: ['Prendre 3 grandes inspirations', 'Noter 1 chose à faire'] },
+        { id: 'fallback-2', emoji: '🌿', title: 'Respirer profondément', tips: ['Inspire 4s, expire 6s', 'Ferme les yeux 10s'] },
+        { id: 'fallback-3', emoji: '🌸', title: 'Faire une pause hydratation', tips: ['Boire 1 grand verre', 'Changer d’eau fraîchement'] },
+        { id: 'fallback-4', emoji: '🌞', title: 'Programmer un sourire', tips: ['Rire 3 secondes', 'Partager un compliment'] },
+        { id: 'fallback-5', emoji: '🌻', title: 'Noter un petit mérite', tips: ['Écrire 1 ligne de gratitude', 'Valider une petite victoire'] }
       ];
       const DEFAULT_DURATION = 15;
-      const TIP_ROTATION_MS = 3000;
-      let tipRotationIndex = 0;
-      let tipRotationTimer = null;
-      let lastTipIndex = -1;
+      const LOADER_ROTATION_MS = 3000;
       const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
       const setLoaderVersion = () => {
         const versionEl = $('#loaderVersion');
@@ -2294,33 +2317,45 @@
           versionEl.textContent = `v${APP_VERSION}`;
         }
       };
-      const rotateLoaderTip = () => {
-        const tipEl = $('#loaderTip');
-        if (!tipEl) return;
-        let nextIndex = tipRotationIndex;
-        if (APP_TIPS.length > 1) {
-          do {
-            nextIndex = Math.floor(Math.random() * APP_TIPS.length);
-          } while (nextIndex === lastTipIndex);
+      function getLoaderHabitCandidates() {
+        const librarySource = LIBRARY_HABITS.length ? LIBRARY_HABITS : (Array.isArray(window.LIBRARY_JSON_DATA) ? window.LIBRARY_JSON_DATA : []);
+        if (librarySource.length) return librarySource;
+        return FALLBACK_LOADER_HABITS;
+      }
+      function pickLoaderTipFromHabit(habit, seed) {
+        const tips = (habit?.tips || []).filter(Boolean);
+        if (!tips.length) return '';
+        const tipHash = hashStr(`tip:${seed}`);
+        const idx = ((tipHash % tips.length) + tips.length) % tips.length;
+        return tips[idx];
+      }
+      function pickLoaderHabit(seed = '') {
+        const normalizedSeed = String(seed || `${Date.now()}-${Math.random()}`);
+        const candidates = getLoaderHabitCandidates();
+        if (!candidates.length) {
+          return { emoji: '🌱', title: 'Une habitude', index: 0, tip: '' };
         }
-        lastTipIndex = nextIndex;
-        tipRotationIndex = nextIndex;
-        tipEl.textContent = `Astuce ${nextIndex + 1}: ${APP_TIPS[nextIndex]}`;
-      };
-      const startLoaderTips = () => {
-        rotateLoaderTip();
-        if (tipRotationTimer) {
-          clearInterval(tipRotationTimer);
-        }
-        tipRotationTimer = setInterval(rotateLoaderTip, TIP_ROTATION_MS);
-      };
+        const hash = hashStr(`loader:${normalizedSeed}`);
+        const idx = ((hash % candidates.length) + candidates.length) % candidates.length;
+        const habit = candidates[idx];
+        const label = habit.title || habit.titre || 'Une habitude';
+        const indexValue = habit.id ?? (idx + 1);
+        const tip = pickLoaderTipFromHabit(habit, `${normalizedSeed}:${indexValue}`);
+        return { emoji: habit.emoji || '🌱', title: label, index: indexValue, tip };
+      }
+      function refreshLoaderHabit(seed = '') {
+        const info = pickLoaderHabit(seed);
+        const emojiEl = $('#loaderEmoji');
+        const indexEl = $('#loaderHabitIndex');
+        const nameEl = $('#loaderHabitName');
+        const tipEl = $('#loaderHabitTip');
+        if (emojiEl) emojiEl.textContent = info.emoji || '🌱';
+        if (indexEl) indexEl.textContent = info.index ? `#${info.index}` : '#0';
+        if (nameEl) nameEl.textContent = info.title || 'Une habitude';
+        if (tipEl) tipEl.textContent = info.tip || '...';
+      }
       setLoaderVersion();
-      startLoaderTips();
-      window.addEventListener('beforeunload', () => {
-        if (tipRotationTimer) {
-          clearInterval(tipRotationTimer);
-        }
-      });
+      refreshLoaderHabit();
       function fmtDate(d) { const M = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'][d.getMonth()]; const j = String(d.getDate()).padStart(2, '0'); const J = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][d.getDay()]; return `${J} ${j}/${M}`; }
       function weekLabel(d) {
         const day = d.getDay(); // 0=dim
@@ -3358,6 +3393,7 @@
           });
         });
         refreshLibraryTags();
+        refreshLoaderHabit();
       }
       async function resetFirestoreState(profile) {
         clearLocalState();
@@ -3504,11 +3540,15 @@
         openCard.classList.remove('ready'); openCard = null;
       }
       document.addEventListener('click', e => { if (openCard && !e.target.closest('.card')) collapseOpenDesc(); }, { capture: true })
-      function setupDesc(desc, hid) {
+      function setupDesc(desc, hid, { tipSeed = '' } = {}) {
         const stored = HABIT_DESC[hid] || '';
+        const tipInfo = pickHabitTip(hid, tipSeed);
         desc.dataset.full = stored;
         desc.dataset.short = oneLiner(stored);
         desc.dataset.has = stored.trim() ? '1' : '0';
+        desc.dataset.tip = tipInfo.text || '';
+        desc.dataset.tipIndex = tipInfo.index >= 0 ? String(tipInfo.index) : '';
+        desc.dataset.tipCount = tipInfo.count ? String(tipInfo.count) : '';
         desc.textContent = desc.dataset.short;
         desc.classList.add('hidden');
         desc.classList.remove('open');
@@ -3518,6 +3558,38 @@
         const sp = getSpace();
         return (sp?.notesDisplayMode || 'dynamic');
       }
+      function getTipsDisplayMode() {
+        const sp = getSpace();
+        return (sp?.tipsDisplayMode || 'absence');
+      }
+      function getDescTipSeed(baseDate = curDate()) {
+        const anchor = isWeekMode() ? getWeekStart(baseDate) : new Date(baseDate);
+        anchor.setHours(0, 0, 0, 0);
+        const modeKey = isWeekMode() ? 'week' : 'day';
+        const dateKey = `${anchor.getFullYear()}-${anchor.getMonth()}-${anchor.getDate()}`;
+        return `${spaceId || 'global'}:${modeKey}:${dateKey}`;
+      }
+      function getLibraryHabitById(hid) {
+        const normalized = String(hid);
+        const found = LIBRARY_HABITS.find(item => String(item.id) === normalized);
+        if (found) return found;
+        if (Array.isArray(window.LIBRARY_JSON_DATA)) {
+          return window.LIBRARY_JSON_DATA.find(item => String(item.id) === normalized) || null;
+        }
+        return null;
+      }
+      function pickHabitTip(hid, seed = '') {
+        const habit = getLibraryHabitById(hid);
+        const tips = (habit?.tips || []).filter(Boolean);
+        if (!tips.length) {
+          return { text: '', index: -1, count: 0, habit };
+        }
+        const normalizedSeed = String(seed || '');
+        const raw = hashStr(`${hid}:${normalizedSeed}`);
+        const index = raw % tips.length;
+        const safeIndex = (index >= 0 && index < tips.length) ? index : 0;
+        return { text: tips[safeIndex], index: safeIndex, count: tips.length, habit };
+      }
 
       function applyNoteDisplayMode(desc, infoBtn, { state = 0 } = {}) {
         if (!desc) return;
@@ -3526,6 +3598,8 @@
         const fullText = desc.dataset.full || '';
         const shortText = desc.dataset.short || '';
         const numericState = Number(state) || 0;
+        const tipsMode = getTipsDisplayMode();
+        const tipText = desc.dataset.tip || '';
         const showFull = () => {
           desc.textContent = fullText;
           desc.classList.remove('hidden');
@@ -3536,6 +3610,13 @@
           desc.classList.add('hidden');
           desc.textContent = shortText;
         };
+        if (tipsMode === 'absence' && !hasNote && tipText) {
+          if (infoBtn) infoBtn.style.display = 'none';
+          desc.textContent = tipText;
+          desc.classList.remove('hidden');
+          desc.classList.add('open');
+          return;
+        }
         if (mode === 'show') {
           if (infoBtn) infoBtn.style.display = 'none';
           showFull();
@@ -3741,6 +3822,7 @@
         if (!spaceId) return;
         const today = curDate();
         today.setHours(0, 0, 0, 0);
+        const viewTipSeed = getDescTipSeed(today);
         const items = pickVisibleList(listChallenges());
         items.sort((a, b) => {
           const aMode = (HABIT_MODE[a.id] || {}).type;
@@ -3782,7 +3864,7 @@
 
             const desc = document.createElement('div');
             desc.className = 'desc';
-            setupDesc(desc, it.id);
+            setupDesc(desc, it.id, { tipSeed: viewTipSeed });
             const infoBtn = document.createElement('button');
             infoBtn.type = 'button';
             infoBtn.className = 'infoBtn';
@@ -5174,6 +5256,7 @@
       const mPrefs = $("#modalPrefs");
       const prefsNotesSelect = $("#prefsNotesDisplayMode");
       const prefsEditSelect = $("#prefsEditButtonMode");
+      const prefsTipsSelect = $("#prefsTipsDisplayMode");
       const closePrefsBtn = $("#closePrefs");
       function updateHabitModalControls() {
         const hasHabits = (getSpace()?.ch?.length || 0) > 0;
@@ -5312,6 +5395,9 @@
         if (prefsEditSelect) {
           prefsEditSelect.value = sp.editButtonMode || 'dynamic';
         }
+        if (prefsTipsSelect) {
+          prefsTipsSelect.value = sp.tipsDisplayMode || 'absence';
+        }
         open(mPrefs);
       }
       prefsNotesSelect?.addEventListener('change', async () => {
@@ -5328,6 +5414,14 @@
         const current = getSpace();
         if (current) current.editButtonMode = mode;
         await persistSpaceDoc(spaceId, { editButtonMode: mode });
+        renderCards();
+      });
+      prefsTipsSelect?.addEventListener('change', async () => {
+        if (!spaceId) return;
+        const mode = prefsTipsSelect.value || 'absence';
+        const current = getSpace();
+        if (current) current.tipsDisplayMode = mode;
+        await persistSpaceDoc(spaceId, { tipsDisplayMode: mode });
         renderCards();
       });
       closePrefsBtn?.addEventListener('click', () => close(mPrefs));
@@ -5638,7 +5732,8 @@
           editButton: true,
           editorRights: 'admin',
           editButtonMode: 'dynamic',
-          notesDisplayMode: 'dynamic'
+          notesDisplayMode: 'dynamic',
+          tipsDisplayMode: 'absence'
         };
         spaceId = id;
         userName = currentProfile.name;
@@ -5652,7 +5747,8 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           editButton: true,
           editButtonMode: 'dynamic',
-          notesDisplayMode: 'dynamic'
+          notesDisplayMode: 'dynamic',
+          tipsDisplayMode: 'absence'
         };
         gardenStatus.textContent = 'Ajoute quelques habitudes pour démarrer ton jardin.';
         await persistSpaceDoc(id, creationPayload);
@@ -6034,7 +6130,6 @@
       let dayInit = false; function renderDateOnce() { if (!dayInit) { dayOff = 0; renderDateBar(); dayInit = true } }
       function updAll() { renderCards(); renderCalendarAndKeepMonth(); renderDateOnce(); updSel(); maybeTogglePrivateAdd(); updSpaceHeader() }
       const loaderOverlay = $("#loaderOverlay");
-      const loaderEmojiEl = $("#loaderEmoji");
       const authOverlay = $("#authOverlay");
       const brand = $("#brand");
       const forgotPasswordLink = $("#forgotPasswordLink");
@@ -6046,9 +6141,7 @@
       const authGuestBtn = $("#authGuestBtn");
       const resetNotice = $("#resetNotice");
       const authError = $("#authError");
-      const LOADER_EMOJIS = ['🌰', '🌱', '🍀', '🌼', '🌻', '🌷', '🌹', '🪻', '💐', '🎋'];
-      let loaderIndex = 0;
-      let loaderTimer = null;
+      let loaderHabitTimer = null;
       authLoginBtn?.addEventListener('click', () => { if (authForm) authForm.dataset.intent = 'login'; });
       authSignupBtn?.addEventListener('click', () => { if (authForm) authForm.dataset.intent = 'signup'; });
       authGuestBtn?.addEventListener('click', () => startGuestSession());
@@ -6118,20 +6211,15 @@
         }
       }
 
-      function animateLoaderEmoji() {
-        if (!loaderEmojiEl) return;
-        loaderEmojiEl.textContent = LOADER_EMOJIS[loaderIndex];
-        loaderIndex = (loaderIndex + 1) % LOADER_EMOJIS.length;
-      }
       function startLoaderAnimation() {
-        if (!loaderOverlay || loaderTimer) return;
-        animateLoaderEmoji();
-        loaderTimer = setInterval(animateLoaderEmoji, 200);
+        if (loaderHabitTimer) return;
+        refreshLoaderHabit();
+        loaderHabitTimer = setInterval(() => refreshLoaderHabit(), LOADER_ROTATION_MS);
       }
       function stopLoaderAnimation() {
-        if (loaderTimer) {
-          clearInterval(loaderTimer);
-          loaderTimer = null;
+        if (loaderHabitTimer) {
+          clearInterval(loaderHabitTimer);
+          loaderHabitTimer = null;
         }
       }
       function showLoaderOverlay() {
