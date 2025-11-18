@@ -194,7 +194,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Nettoyer la salle de bains",
     "needs": ["cleanliness", "hygiene"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Mettre tout le matériel au même endroit",
@@ -278,7 +278,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Changer son linge de lit",
     "needs": ["cleanliness", "comfort"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Préparer les draps propres à l’avance",
@@ -383,7 +383,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Vérifier les produits ménages",
     "needs": ["equipment", "cleanliness"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "group",
     "tips": [
       "Regrouper tous les produits au même endroit",
@@ -635,7 +635,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Réparer un petit souci",
     "needs": ["equipment", "safety"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Choisir un seul problème à la fois",
@@ -677,7 +677,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Trier ses documents",
     "needs": ["organization","privacy"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Prévoir une pile garder, jeter, à traiter",
@@ -740,7 +740,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Vérifier ses dépenses",
     "needs": ["organization", "safety","privacy"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Choisir un moment où l’on est reposé",
@@ -761,7 +761,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Trier ses vêtements",
     "needs": ["organization", "comfort","privacy"],
     "contexts": ["home"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Choisir un tiroir ou une pile à la fois",
@@ -1202,7 +1202,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Créer une soirée détente",
     "needs": ["calm", "slowness"],
     "contexts": ["home", "family"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "group",
     "tips": [
       "Prévenir les autres en avance",
@@ -1664,7 +1664,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Faire une sortie culturelle",
     "needs": ["joy", "curiosity"],
     "contexts": ["social"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Choisir un lieu accessible en transport",
@@ -1769,7 +1769,7 @@ const LIBRARY_JSON_DATA = [
     "title": "Faire du bricolage",
     "needs": ["equipment", "participation", "joy"],
     "contexts": ["home", "social"],
-    "frequency": 1,
+    "frequency": 0.5,
     "target": "individual",
     "tips": [
       "Commencer par un projet très simple",
