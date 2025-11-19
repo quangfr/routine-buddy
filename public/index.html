@@ -2768,7 +2768,7 @@
     const REPEAT_CONFIGS = {};
 
     /* Utils */
-    const APP_VERSION = '0.0.28';
+    const APP_VERSION = '0.0.29';
     const NEED_EMOJIS = {
       affection: '❤️',
       joy: '😄',
@@ -3238,6 +3238,145 @@
     ];
     const DEFAULT_DURATION = 15;
     const DEFAULT_GARDENER_WINDOW_DAYS = 30;
+    const ACTIVITY_SUMMARY_WINDOW_DAYS = 120;
+    const ACTIVITY_SUMMARY_LOCAL_CACHE_KEY = 'habitu-activity-summary-cache';
+    const ACTIVITY_SUMMARY_LAST_PUBLISHED_HASH_KEY = 'habitu-activity-summary-hash';
+    const ACTIVITY_SUMMARY_LAST_WRITE_KEY = 'habitu-activity-summary-written';
+    const ACTIVITY_SUMMARY_WRITE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+    const USER_ACTIVITY_SUMMARY_COLLECTION = 'userActivitySummaries';
+    const HABIT_ACTIVITY_SUMMARY_COLLECTION = 'habitActivityCounters';
+    const HABIT_ACTIVITY_SUMMARY_SUBCOLLECTION = 'userSummaries';
+    const USER_ACTIVITY_SUMMARY_CACHE = new Map();
+    const HABIT_ACTIVITY_SUMMARY_CACHE = new Map();
+    const HABIT_ACTIVITY_SUMMARY_FETCHING = new Set();
+    function serializeHabitEntryForCache(entry) {
+      if (!entry) return null;
+      return {
+        userId: entry.userId,
+        ownerLabel: entry.ownerLabel,
+        pseudo: entry.pseudo,
+        firstName: entry.firstName,
+        normalizedOwner: entry.normalizedOwner,
+        userEmails: Array.isArray(entry.userEmails) ? entry.userEmails : [],
+        userIds: Array.isArray(entry.userIds) ? entry.userIds : [],
+        recentDays: Array.isArray(entry.recentDays) ? entry.recentDays : [],
+        pastCount: Number(entry.pastCount || 0),
+        totalCount: Number(entry.totalCount || 0),
+        minutes: Number(entry.minutes || 0)
+      };
+    }
+    function persistHabitSummariesToLocalCache(hash = '') {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      try {
+        const payload = {
+          timestamp: Date.now(),
+          hash,
+          habitSummaries: {}
+        };
+        HABIT_ACTIVITY_SUMMARY_CACHE.forEach((entries, habitId) => {
+          if (!Array.isArray(entries) || !entries.length) return;
+          payload.habitSummaries[String(habitId)] = entries
+            .map(serializeHabitEntryForCache)
+            .filter(Boolean);
+        });
+        localStorage.setItem(ACTIVITY_SUMMARY_LOCAL_CACHE_KEY, JSON.stringify(payload));
+      } catch (err) {
+        console.warn('persistHabitSummariesToLocalCache', err);
+      }
+    }
+    function loadActivitySummaryCacheFromStorage() {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      try {
+        const raw = localStorage.getItem(ACTIVITY_SUMMARY_LOCAL_CACHE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+        const stored = parsed.habitSummaries || {};
+        Object.entries(stored).forEach(([habitId, entries]) => {
+          if (!Array.isArray(entries)) return;
+          HABIT_ACTIVITY_SUMMARY_CACHE.set(String(habitId), entries);
+        });
+      } catch (err) {
+        console.warn('loadActivitySummaryCacheFromStorage', err);
+      }
+    }
+    function getSavedSummaryHash() {
+      if (typeof window === 'undefined' || !window.localStorage) return '';
+      try {
+        return localStorage.getItem(ACTIVITY_SUMMARY_LAST_PUBLISHED_HASH_KEY) || '';
+      } catch (err) {
+        console.warn('getSavedSummaryHash', err);
+        return '';
+      }
+    }
+    function markActivitySummaryWrite(hash) {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      try {
+        localStorage.setItem(ACTIVITY_SUMMARY_LAST_WRITE_KEY, String(Date.now()));
+        if (hash) {
+          localStorage.setItem(ACTIVITY_SUMMARY_LAST_PUBLISHED_HASH_KEY, hash);
+        }
+      } catch (err) {
+        console.warn('markActivitySummaryWrite', err);
+      }
+    }
+    function markActivitySummaryDirty() {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      try {
+        localStorage.removeItem(ACTIVITY_SUMMARY_LAST_PUBLISHED_HASH_KEY);
+      } catch (err) {
+        console.warn('markActivitySummaryDirty', err);
+      }
+    }
+    function hasWrittenActivitySummaryToday() {
+      if (typeof window === 'undefined' || !window.localStorage) return false;
+      try {
+        const last = Number(localStorage.getItem(ACTIVITY_SUMMARY_LAST_WRITE_KEY) || 0);
+        if (!last) return false;
+        return Date.now() - last < ACTIVITY_SUMMARY_WRITE_INTERVAL_MS;
+      } catch (err) {
+        console.warn('hasWrittenActivitySummaryToday', err);
+        return false;
+      }
+    }
+    function computeSummaryHash(payload) {
+      if (!payload || !payload.userSummary || !payload.habitStats) return '';
+      const { userSummary, habitStats } = payload;
+      const sortedLast7 = {};
+      Object.keys(userSummary.last7Counts || {})
+        .sort()
+        .forEach(key => {
+          sortedLast7[key] = userSummary.last7Counts[key];
+        });
+      const sortedTotal = {};
+      Object.keys(userSummary.totalCounts || {})
+        .sort()
+        .forEach(key => {
+          sortedTotal[key] = userSummary.totalCounts[key];
+        });
+      const digest = {
+        last7Total: userSummary.last7Total,
+        totalDays: userSummary.totalDays,
+        last7Counts: sortedLast7,
+        totalCounts: sortedTotal,
+        habits: []
+      };
+      Array.from(habitStats.keys()).sort().forEach(hid => {
+        const entry = habitStats.get(hid);
+        digest.habits.push({
+          habitId: hid,
+          pastCount: Number(entry?.pastCount || 0),
+          totalCount: Number(entry?.totalCount || 0)
+        });
+      });
+      return JSON.stringify(digest);
+    }
+    function shouldAttemptActivitySummaryRefresh(force = false) {
+      if (force) return true;
+      if (!hasWrittenActivitySummaryToday()) return true;
+      return false;
+    }
+    loadActivitySummaryCacheFromStorage();
     let PERSONAL_ACTIVITY_CACHE = [];
     let PERSONAL_ACTIVITY_CACHE_DAYS = DEFAULT_GARDENER_WINDOW_DAYS;
     let PERSONAL_ACTIVITY_LAST_REFRESH = 0;
@@ -3886,7 +4025,7 @@
     }
     const FIRESTORE_ENABLED_LOCALLY = isFirestoreAllowedLocally();
     function canWriteFirestore() {
-      return Boolean(HABITU_FIREBASE_DB && (!IS_LOCAL_FILE_URL || FIRESTORE_ENABLED_LOCALLY));
+      return Boolean(HABITU_FIREBASE_DB);
     }
     const activityQueue = new Map();
     const SESSION_COOKIE_NAME = 'habitube-session';
@@ -4175,6 +4314,12 @@
     }
     function dayKeyFromDate(date) {
       return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    }
+    function parseDayKeyToDate(dayKey) {
+      if (!dayKey) return null;
+      const parts = String(dayKey).split('-').map(part => Number(part));
+      if (parts.length !== 3 || parts.some(part => Number.isNaN(part))) return null;
+      return new Date(parts[0], parts[1], parts[2]);
     }
     function getEventDayKey(event) {
       if (!event) return '';
@@ -5208,6 +5353,280 @@
       });
       return merged;
     }
+    function getCurrentUserRecords(days = ACTIVITY_SUMMARY_WINDOW_DAYS) {
+      const normalizedOwner = normalizeOwnerLabel(getCurrentOwnerLabel());
+      if (!normalizedOwner) return [];
+      const records = getPersonalActivityRecords(days);
+      return records.filter(record => normalizeOwnerLabel(getOwnerNameFromEvent(record)) === normalizedOwner);
+    }
+    function buildActivitySummaryPayload(records) {
+      const profile = currentProfile;
+      if (!profile?.uid) return null;
+      const userId = String(profile.uid);
+      const ownerLabel = ((profile.pseudo || profile.name || userName || 'Moi') || 'Moi').trim();
+      const pseudo = (profile.pseudo || '').trim();
+      const firstName = (profile.name || ownerLabel || 'Moi').trim();
+      const storedEmail = normalizeEmail(profile.email || '');
+      const email = storedEmail || '';
+      const since7 = addDays(curDate(), -6);
+      const since28 = addDays(curDate(), -27);
+      const summaryByHabit = new Map();
+      records.forEach(record => {
+        if (!record || Number(record.state || 0) !== 2) return;
+        const habitId = record.habitId ? String(record.habitId) : '';
+        if (!habitId) return;
+        const dayKey = getEventDayKey(record);
+        if (!dayKey) return;
+        const recordedAt = timestampToDate(record.recordedAt);
+        if (!recordedAt) return;
+        let entry = summaryByHabit.get(habitId);
+        if (!entry) {
+          entry = {
+            totalDays: new Set(),
+            last7Days: new Map(),
+            last28Days: new Set(),
+            lastRecordedAt: 0
+          };
+          summaryByHabit.set(habitId, entry);
+        }
+        const recordedTime = recordedAt.getTime();
+        entry.totalDays.add(dayKey);
+        if (!entry.lastRecordedAt || recordedTime >= entry.lastRecordedAt) {
+          entry.lastRecordedAt = recordedTime;
+        }
+        if (recordedAt >= since7) {
+          const prev = entry.last7Days.get(dayKey);
+          if (!prev || recordedTime >= prev.getTime()) {
+            entry.last7Days.set(dayKey, recordedAt);
+          }
+        }
+        if (recordedAt >= since28) {
+          entry.last28Days.add(dayKey);
+        }
+      });
+      const last7Activities = [];
+      let last7Total = 0;
+      const last7Counts = {};
+      let totalDays = 0;
+      const totalCounts = {};
+      const habitStats = new Map();
+      summaryByHabit.forEach((entry, habitId) => {
+        entry.last7Days.forEach((recordedAt, dayKey) => {
+          last7Activities.push({
+            habitId,
+            dayKey,
+            recordedAt: firebase.firestore.Timestamp.fromDate(recordedAt)
+          });
+        });
+        if (entry.last7Days.size) {
+          last7Counts[habitId] = entry.last7Days.size;
+          last7Total += entry.last7Days.size;
+        }
+        const totalForHabit = entry.totalDays.size;
+        totalCounts[habitId] = totalForHabit;
+        totalDays += totalForHabit;
+        const recentDays = Array.from(entry.last28Days).sort();
+        const minutesPerCompletion = BASE_MINUTES[habitId] || DEFAULT_DURATION;
+        const totalMinutes = totalForHabit * minutesPerCompletion;
+        habitStats.set(habitId, {
+          userId,
+          habitId,
+          ownerLabel,
+          pseudo,
+          firstName,
+          normalizedOwner: normalizeOwnerLabel(ownerLabel || pseudo || firstName || ''),
+          userEmails: email ? [email] : [],
+          userIds: [userId],
+          recentDays,
+          last28Days: recentDays.length,
+          totalDays: totalForHabit,
+          pastCount: recentDays.length,
+          totalCount: totalForHabit,
+          minutes: totalMinutes,
+          lastRecordedAt: entry.lastRecordedAt ? firebase.firestore.Timestamp.fromMillis(entry.lastRecordedAt) : null,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      const userSummary = {
+        userId,
+        ownerLabel,
+        pseudo,
+        firstName,
+        email,
+        last7Activities,
+        last7Counts,
+        last7Total,
+        totalCounts,
+        totalDays,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      return { userSummary, habitStats };
+    }
+    async function persistUserActivitySummary(summary) {
+      if (!summary?.userId || !HABITU_FIREBASE_DB) return;
+      try {
+        await HABITU_FIREBASE_DB.collection(USER_ACTIVITY_SUMMARY_COLLECTION)
+          .doc(summary.userId)
+          .set(summary, { merge: true });
+        USER_ACTIVITY_SUMMARY_CACHE.set(summary.userId, summary);
+      } catch (err) {
+        console.warn('persistUserActivitySummary', err);
+      }
+    }
+    async function persistHabitActivitySummaries(habitStats) {
+      if (!HABITU_FIREBASE_DB || !currentProfile?.uid || !habitStats?.size) return;
+      let batch = HABITU_FIREBASE_DB.batch();
+      let operations = 0;
+      try {
+        for (const [habitId, entry] of habitStats.entries()) {
+          const docRef = HABITU_FIREBASE_DB.collection(HABIT_ACTIVITY_SUMMARY_COLLECTION)
+            .doc(String(habitId))
+            .collection(HABIT_ACTIVITY_SUMMARY_SUBCOLLECTION)
+            .doc(currentProfile.uid);
+          const entryData = {
+            ...entry,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          batch.set(docRef, entryData, { merge: true });
+          updateHabitSummaryCacheFromEntry(habitId, entry);
+          operations += 1;
+          if (operations >= 450) {
+            await batch.commit();
+            batch = HABITU_FIREBASE_DB.batch();
+            operations = 0;
+          }
+        }
+        if (operations) {
+          await batch.commit();
+        }
+        persistHabitSummariesToLocalCache();
+      } catch (err) {
+        console.warn('persistHabitActivitySummaries', err);
+      }
+    }
+    function updateHabitSummaryCacheFromEntry(habitId, entry) {
+      if (!habitId || !entry) return;
+      const key = String(habitId);
+      const existing = HABIT_ACTIVITY_SUMMARY_CACHE.get(key) || [];
+      const filtered = existing.filter(item => item.userId !== entry.userId);
+      filtered.push(entry);
+      HABIT_ACTIVITY_SUMMARY_CACHE.set(key, filtered);
+    }
+    function applyLocalHabitCompletionToCache(habitId) {
+      if (!habitId || !currentProfile?.uid) return;
+      const key = String(habitId);
+      const userId = currentProfile.uid;
+      const owner = getCurrentOwnerLabel() || 'Moi';
+      const entries = HABIT_ACTIVITY_SUMMARY_CACHE.get(key) || [];
+      let entry = entries.find(item => String(item.userId) === userId);
+      if (!entry) {
+        entry = {
+          userId,
+          ownerLabel: owner,
+          pseudo: currentProfile?.pseudo || '',
+          firstName: currentProfile?.name || owner,
+          normalizedOwner: normalizeOwnerLabel(owner),
+          userEmails: currentProfile?.email ? [normalizeEmail(currentProfile.email)] : [],
+          userIds: [userId],
+          recentDays: [],
+          pastCount: 0,
+          totalCount: 0,
+          minutes: 0
+        };
+        entries.push(entry);
+      }
+      entry.recentDays = Array.isArray(entry.recentDays) ? entry.recentDays : [];
+      const dayKey = dayKeyFromDate(curDate());
+      const hadDay = entry.recentDays.includes(dayKey);
+      if (!hadDay) {
+        entry.totalCount = (Number(entry.totalCount) || 0) + 1;
+        entry.recentDays.push(dayKey);
+      }
+      const since28 = addDays(curDate(), -27);
+      entry.recentDays = Array.from(new Set(entry.recentDays)).filter(keyValue => {
+        const date = parseDayKeyToDate(keyValue);
+        return date && date >= since28;
+      }).sort((a, b) => a.localeCompare(b));
+      entry.pastCount = entry.recentDays.length;
+      const minutesPerCompletion = BASE_MINUTES[habitId] || DEFAULT_DURATION;
+      entry.minutes = (Number(entry.totalCount) || entry.pastCount) * minutesPerCompletion;
+      entry.userEmails = Array.from(new Set([...(entry.userEmails || []), ...(currentProfile?.email ? [normalizeEmail(currentProfile.email)] : [])]));
+      entry.userIds = Array.from(new Set([...(entry.userIds || []), userId]));
+      HABIT_ACTIVITY_SUMMARY_CACHE.set(key, entries);
+      persistHabitSummariesToLocalCache();
+      markActivitySummaryDirty();
+    }
+    async function refreshActivitySummariesIfNeeded(force = false) {
+      if (!shouldAttemptActivitySummaryRefresh(force)) return;
+      if (!currentProfile?.uid || currentProfile?.guest) return;
+      const payload = buildActivitySummaryPayload(getCurrentUserRecords(ACTIVITY_SUMMARY_WINDOW_DAYS));
+      if (!payload) return;
+      payload.habitStats.forEach((entry, habitId) => {
+        updateHabitSummaryCacheFromEntry(habitId, entry);
+      });
+      const hash = computeSummaryHash(payload);
+      persistHabitSummariesToLocalCache(hash);
+      const savedHash = getSavedSummaryHash();
+      if (!force && savedHash && hash && savedHash === hash) {
+        markActivitySummaryWrite(hash);
+        return;
+      }
+      await persistUserActivitySummary(payload.userSummary);
+      await persistHabitActivitySummaries(payload.habitStats);
+      markActivitySummaryWrite(hash);
+    }
+    function hydrateHabitSummaryCache(habitId) {
+      if (!habitId || !HABITU_FIREBASE_DB) return;
+      const key = String(habitId);
+      if (HABIT_ACTIVITY_SUMMARY_FETCHING.has(key)) return;
+      HABIT_ACTIVITY_SUMMARY_FETCHING.add(key);
+      HABITU_FIREBASE_DB.collection(HABIT_ACTIVITY_SUMMARY_COLLECTION)
+        .doc(key)
+        .collection(HABIT_ACTIVITY_SUMMARY_SUBCOLLECTION)
+        .get()
+        .then(snapshot => {
+          const entries = snapshot.docs.map(doc => ({ userId: doc.id, ...doc.data() }));
+          HABIT_ACTIVITY_SUMMARY_CACHE.set(key, entries);
+          renderCards();
+          renderHabitGardeners();
+        })
+        .catch(err => console.warn('hydrateHabitSummaryCache', err))
+        .finally(() => {
+          HABIT_ACTIVITY_SUMMARY_FETCHING.delete(key);
+        });
+    }
+    function getHabitBadgeCountsFromCache(habitId, todayKey) {
+      const key = String(habitId);
+      const entries = HABIT_ACTIVITY_SUMMARY_CACHE.get(key);
+      if (!entries || !entries.length) return null;
+      let doneToday = 0;
+      let windowCount = 0;
+      entries.forEach(entry => {
+        const recentDays = Array.isArray(entry.recentDays) ? entry.recentDays : [];
+        if (!recentDays.length) return;
+        windowCount += 1;
+        if (todayKey && recentDays.includes(todayKey)) {
+          doneToday += 1;
+        }
+      });
+      return { doneTodayCount: doneToday, windowGardenersCount: windowCount };
+    }
+    function getHabitGardenersStatsFromCache(habitId) {
+      const key = String(habitId);
+      const entries = HABIT_ACTIVITY_SUMMARY_CACHE.get(key);
+      if (!entries || !entries.length) return null;
+      return entries.map(entry => ({
+        ownerLabel: entry.ownerLabel,
+        firstName: entry.firstName,
+        pseudo: entry.pseudo,
+        normalizedOwner: entry.normalizedOwner || normalizeOwnerLabel(entry.ownerLabel || entry.pseudo || ''),
+        userEmails: new Set((entry.userEmails || []).map(email => normalizeEmail(email)).filter(Boolean)),
+        userIds: new Set((entry.userIds || []).map(id => String(id)).filter(Boolean)),
+        pastCount: Number(entry.pastCount ?? entry.last28Days ?? 0),
+        totalCount: Number(entry.totalCount ?? entry.totalDays ?? 0),
+        minutes: Number(entry.minutes ?? 0)
+      }));
+    }
     function getPersonalActivityRecords(days = DEFAULT_GARDENER_WINDOW_DAYS) {
       if (PERSONAL_ACTIVITY_CACHE_DAYS === days && PERSONAL_ACTIVITY_CACHE.length) {
         return PERSONAL_ACTIVITY_CACHE;
@@ -5236,11 +5655,10 @@
     }
     function triggerPersonalActivityRefresh(days = DEFAULT_GARDENER_WINDOW_DAYS) {
       refreshPersonalActivityCache(days)
-        .then(() => {
+        .then(() => refreshActivitySummariesIfNeeded())
+        .catch(() => { /* ignore summary refresh errors */ })
+        .finally(() => {
           renderCards();
-          renderSpaceRank();
-        })
-        .catch(() => {
           renderSpaceRank();
         });
     }
@@ -5417,19 +5835,28 @@
             .map(r => (r.owner || '').trim())
             .filter(Boolean)
           ));
-          const habitRecords = personalRecords.filter(rec => String(rec.habitId) === String(it.id));
-          const state2Records = habitRecords.filter(rec => (rec.state || 0) === 2);
-          const windowGardeners = new Set(state2Records
-            .map(rec => (rec.owner || '').trim())
-            .filter(Boolean)
-          );
-          const doneTodayOwners = new Set(state2Records
-            .filter(rec => getEventDayKey(rec) === selectedDayKey)
-            .map(rec => (rec.owner || '').trim())
-            .filter(Boolean)
-          );
-          const doneTodayCount = doneTodayOwners.size;
-          const windowGardenersCount = windowGardeners.size;
+          let doneTodayCount = 0;
+          let windowGardenersCount = 0;
+          const badgeCounts = getHabitBadgeCountsFromCache(it.id, selectedDayKey);
+          if (badgeCounts) {
+            doneTodayCount = badgeCounts.doneTodayCount;
+            windowGardenersCount = badgeCounts.windowGardenersCount;
+          } else {
+            const habitRecords = personalRecords.filter(rec => String(rec.habitId) === String(it.id));
+            const state2Records = habitRecords.filter(rec => (rec.state || 0) === 2);
+            const windowGardeners = new Set(state2Records
+              .map(rec => (rec.owner || '').trim())
+              .filter(Boolean)
+            );
+            const doneTodayOwners = new Set(state2Records
+              .filter(rec => getEventDayKey(rec) === selectedDayKey)
+              .map(rec => (rec.owner || '').trim())
+              .filter(Boolean)
+            );
+            doneTodayCount = doneTodayOwners.size;
+            windowGardenersCount = windowGardeners.size;
+            hydrateHabitSummaryCache(it.id);
+          }
           gardenerBadge.textContent = `🧑‍🌾${doneTodayCount}/${windowGardenersCount}`;
           gardenerBadge.dataset.habitId = String(it.id);
           gardenerBadge.classList.toggle('gardener-badge--empty', doneTodayCount === 0);
@@ -5527,6 +5954,9 @@
               modeType: mode.type,
               recordedAt: viewRecordedAt
             });
+            if (nst === 2) {
+              applyLocalHabitCompletionToCache(it.id);
+            }
             renderDateBar();
           };
 
@@ -5745,10 +6175,14 @@
         return;
       }
       const sinceDate = addDays(curDate(), -DEFAULT_GARDENER_WINDOW_DAYS);
-      const stats = getHabitGardenersStats(activeId, sinceDate);
+      const cachedStats = getHabitGardenersStatsFromCache(activeId);
+      const stats = cachedStats || getHabitGardenersStats(activeId, sinceDate);
       if (!stats.length) {
         if (empty) empty.classList.remove('hide');
         return;
+      }
+      if (!cachedStats) {
+        hydrateHabitSummaryCache(activeId);
       }
       if (empty) empty.classList.add('hide');
       const sorter = HABIT_GARDENER_SORTERS[habitGardenersSortKey] || HABIT_GARDENER_SORTERS.window;

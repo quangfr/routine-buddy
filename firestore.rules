@@ -77,6 +77,15 @@ service cloud.firestore {
         canAccessSpace(resource.data.spaceId);
     }
 
+    match /userActivitySummaries/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /habitActivityCounters/{habitId}/userSummaries/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
     function isInviteOwner(resourceData) {
       return request.auth != null &&
         resourceData.ownerId is string &&
