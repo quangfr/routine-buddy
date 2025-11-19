@@ -2808,12 +2808,13 @@
     const cardContextMenuEl = document.getElementById('cardContextMenu');
     const HABIT_FILTERS = [
       { key: 'todo', label: 'À faire', emptyText: 'Tu as fait le tour de ce filtre pour le moment.' },
-      { key: 'done', label: 'Fait', emptyText: 'Aucune habitude terminée pour le moment.' },
-      { key: 'hidden', label: 'Caché', emptyText: 'Tu n’as pas caché d’habitude encore.' }
+      { key: 'all', label: 'Tous', emptyText: 'Aucune habitude pour l’instant.' },
+      { key: 'archived', label: 'Archives', emptyText: 'Tu n’as pas archivé d’habitude encore.' }
     ];
     let activeHabitFilter = 'todo';
     const habitFilterBarEl = document.getElementById('habitFilterBar');
     const habitFilterButtons = new Map();
+    const TODO_FILTER_OVERRIDES = new Set();
 
     function getHabitFilterByKey(key) {
       return HABIT_FILTERS.find(filter => filter.key === key) || HABIT_FILTERS[0];
@@ -2865,25 +2866,26 @@
       if (activeHabitFilter === key) return;
       activeHabitFilter = key;
       updateHabitFilterButtons();
-      renderCards();
+      renderCards({ resetTodoOverrides: true });
     }
 
-    function habitMatchesFilter(filterKey, { state = 0, isHidden = false, dueToday = true } = {}) {
+    function habitMatchesFilter(filterKey, context = {}, { allowTodoStale = false } = {}) {
       const normalized = filterKey || HABIT_FILTERS[0].key;
+      const { state = 0, isHidden = false, dueToday = true } = context;
+      if (normalized === 'archived') {
+        return isHidden;
+      }
       if (isHidden) {
-        return normalized === 'hidden';
-      }
-      if (normalized === 'hidden') {
         return false;
       }
-      if (!dueToday) {
-        return false;
+      if (normalized === 'all') {
+        return true;
       }
       if (normalized === 'todo') {
-        return state < 2;
-      }
-      if (normalized === 'done') {
-        return state === 2;
+        if (allowTodoStale) {
+          return true;
+        }
+        return dueToday && state < 2;
       }
       return true;
     }
@@ -2950,7 +2952,7 @@
         }
       }
       if (!isHidden && !isShifted) {
-        addOption('Cacher', () => {
+        addOption('Archiver', () => {
           hideCardContextMenu();
           hideHabit(habit.id);
         });
@@ -2991,14 +2993,26 @@
           showCardContextMenu(habit, btn, event.clientX, event.clientY);
         }, CARD_CONTEXT_LONG_PRESS_MS);
       };
-      card.addEventListener('pointerdown', startLongPress);
-      card.addEventListener('pointerup', () => clearLongPress({ preserveStart: true }));
-      card.addEventListener('pointerleave', () => clearLongPress());
-      card.addEventListener('pointercancel', () => clearLongPress());
-      card.addEventListener('contextmenu', (event) => {
+      const addLongPressListeners = (target, { stopPropagation = false } = {}) => {
+        if (!target) return;
+        target.addEventListener('pointerdown', (event) => {
+          if (stopPropagation) {
+            event.stopPropagation();
+          }
+          startLongPress(event);
+        });
+        target.addEventListener('pointerup', () => clearLongPress({ preserveStart: true }));
+        target.addEventListener('pointerleave', () => clearLongPress());
+        target.addEventListener('pointercancel', () => clearLongPress());
+      };
+      addLongPressListeners(card);
+      addLongPressListeners(btn, { stopPropagation: true });
+      const contextMenuHandler = (event) => {
         event.preventDefault();
         showCardContextMenu(habit, btn, event.clientX, event.clientY);
-      });
+      };
+      card.addEventListener('contextmenu', contextMenuHandler);
+      btn.addEventListener('contextmenu', contextMenuHandler);
     }
     document.addEventListener('pointerdown', (event) => {
       if (!cardContextMenuEl?.classList.contains('open')) return;
@@ -5710,7 +5724,11 @@
     }
 
     /* Cartes */
-    function renderCards() {
+    function renderCards(options = {}) {
+      const { resetTodoOverrides = false } = options;
+      if (resetTodoOverrides || activeHabitFilter !== 'todo') {
+        TODO_FILTER_OVERRIDES.clear();
+      }
       const root = $("#cards");
       hideCardContextMenu();
       if (!root) return;
@@ -5872,18 +5890,22 @@
           const storedCount = Number(userRecord?.count ?? 0) || 0;
           const computedCount = storedCount || (userState === 2 ? freqWeekly + 1 : 0);
           const state = userState;
+          const habitKey = String(it.id);
+          if (state < 2) {
+            TODO_FILTER_OVERRIDES.delete(habitKey);
+          }
           const contextForCounts = {
             state,
             isHidden: isHiddenHabit,
             dueToday: visibleToday
           };
+          const allowTodoStale = TODO_FILTER_OVERRIDES.has(habitKey);
           HABIT_FILTERS.forEach(filter => {
-            if (!habitMatchesFilter(filter.key, contextForCounts)) return;
-            if (filter.key === 'hidden' && !visibleToday) return;
+            if (!habitMatchesFilter(filter.key, contextForCounts, { allowTodoStale })) return;
             filterCounts.set(filter.key, (filterCounts.get(filter.key) || 0) + 1);
           });
           if (!visibleToday && !pinned) return;
-          if (!habitMatchesFilter(activeHabitFilter, contextForCounts)) {
+          if (!habitMatchesFilter(activeHabitFilter, contextForCounts, { allowTodoStale })) {
             return;
           }
           btn.dataset.state = String(state);
@@ -5954,6 +5976,9 @@
               modeType: mode.type,
               recordedAt: viewRecordedAt
             });
+            if (nst === 2) {
+              TODO_FILTER_OVERRIDES.add(String(it.id));
+            }
             if (nst === 2) {
               applyLocalHabitCompletionToCache(it.id);
             }
